@@ -8,7 +8,7 @@ import os
 from typing import Optional, Dict, Any, List
 
 # Add Windows-MCP to path
-tools_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'tools', 'windows_mcp')
+tools_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'tools', 'Windows-MCP')
 sys.path.insert(0, tools_path)
 
 from main import (

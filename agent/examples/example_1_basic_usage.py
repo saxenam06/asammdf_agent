@@ -11,7 +11,6 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from agent.workflows.asammdf_workflow import AsammdfWorkflow, plot_signal_from_mf4
-from agent.core.reporter import WorkflowVerifier
 
 
 def example_1_basic_usage():
