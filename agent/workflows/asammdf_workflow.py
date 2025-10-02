@@ -77,7 +77,8 @@ class AsammdfWorkflow:
         print("="*80 + "\n")
 
         try:
-            # Step 1: Launch asammdf
+            ## Disable launch Assume asammdf already launched
+            # Step 1: Launch asammdf - 
             # step_result = self._execute_step(
             #     "Launch asammdf",
             #     self._launch_asammdf
@@ -302,41 +303,6 @@ class AsammdfWorkflow:
 
         return None
 
-    def _select_natural_sort(self) -> str:
-        """
-        Click Natural Sort option in Channels tab
-
-        Returns:
-            Status message
-        """
-        # Activate asammdf window
-        switch_result = switch_tool(self.app_name)
-        print(f"  → {switch_result}")
-        wait_tool(1)
-
-        # Use state_tool to find Natural Sort button
-        state_output = state_tool(use_vision=False)
-        state_text = state_output[0] if isinstance(state_output, list) else state_output
-        print("  → Retrieved interactive elements from state tool")
-
-        # Find Natural Sort button/radio button
-        natural_sort_coords = self._parse_element_from_state(
-            state_text,
-            "Natural Sort",
-            control_type="RadioButton"
-        )
-
-        if natural_sort_coords:
-            print(f"  → Found Natural Sort at: {natural_sort_coords}")
-            click_tool(loc=natural_sort_coords)
-            print("  → Clicked Natural Sort")
-        else:
-            raise Exception("Could not find Natural Sort button")
-
-        # Wait for signals to load
-        wait_tool(2)
-
-        return "Selected Natural Sort view"
 
     def _drag_signal_to_plot(self, signal_name: str) -> str:
         """
@@ -404,6 +370,7 @@ class AsammdfWorkflow:
         print(f"  → {switch_result}")
         wait_tool(1)
 
+        ## Not needed as Plot already selected
         # # Use state_tool to get interactive elements
         # state_output = state_tool(use_vision=False)
         # state_text = state_output[0] if isinstance(state_output, list) else state_output
@@ -452,22 +419,41 @@ class AsammdfWorkflow:
 
         return "Plot created successfully"
 
-    def discover_ui(self, app_filter: Optional[str] = None):
-        """
-        Debug helper: Discover and print all UI elements
+    def _select_natural_sort(self) -> str:
+            """
+            Click Natural Sort option in Channels tab
 
-        Args:
-            app_filter: Optional filter by application name
-        """
-        print("\n[UI Discovery Mode]")
-        print(f"Discovering UI elements for: {app_filter or self.app_name}\n")
+            Returns:
+                Status message
+            """
+            # Activate asammdf window
+            switch_result = switch_tool(self.app_name)
+            print(f"  → {switch_result}")
+            wait_tool(1)
 
-        # Use state_tool to get all UI elements
-        state_output = state_tool(use_vision=False)
-        state_text = state_output[0] if isinstance(state_output, list) else state_output
+            # Use state_tool to find Natural Sort button
+            state_output = state_tool(use_vision=False)
+            state_text = state_output[0] if isinstance(state_output, list) else state_output
+            print("  → Retrieved interactive elements from state tool")
 
-        print(state_text)
+            # Find Natural Sort button/radio button
+            natural_sort_coords = self._parse_element_from_state(
+                state_text,
+                "Natural Sort",
+                control_type="RadioButton"
+            )
 
+            if natural_sort_coords:
+                print(f"  → Found Natural Sort at: {natural_sort_coords}")
+                click_tool(loc=natural_sort_coords)
+                print("  → Clicked Natural Sort")
+            else:
+                raise Exception("Could not find Natural Sort button")
+
+            # Wait for signals to load
+            wait_tool(2)
+
+            return "Selected Natural Sort view"
 
 # Convenience function for direct execution
 def plot_signal_from_mf4(mf4_file: str = "sample_compressed.mf4",
