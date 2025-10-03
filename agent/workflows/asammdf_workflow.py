@@ -41,14 +41,11 @@ class AsammdfWorkflow:
     Dynamically discovers UI elements without hardcoded coordinates
     """
 
-    def __init__(self, fuzzy_threshold: int = 70):
+    def __init__(self):
         """
         Initialize workflow
 
-        Args:
-            fuzzy_threshold: Fuzzy matching threshold for element names (0-100)
         """
-        self.fuzzy_threshold = fuzzy_threshold
         self.app_name = "asammdf 8.6.10"
 
     def plot_signal(self,
@@ -458,17 +455,16 @@ class AsammdfWorkflow:
 # Convenience function for direct execution
 def plot_signal_from_mf4(mf4_file: str = "sample_compressed.mf4",
                         signal_name: str = "Value",
-                        fuzzy_threshold: int = 70) -> Dict[str, Any]:
+                        ) -> Dict[str, Any]:
     """
     Convenience function to plot a signal from MF4 file
 
     Args:
         mf4_file: Name of MF4 file in Downloads folder
         signal_name: Name of signal to plot
-        fuzzy_threshold: Fuzzy matching threshold (0-100)
 
     Returns:
         Workflow execution results
     """
-    workflow = AsammdfWorkflow(fuzzy_threshold=fuzzy_threshold)
+    workflow = AsammdfWorkflow()
     return workflow.plot_signal(mf4_file=mf4_file, signal_name=signal_name)
