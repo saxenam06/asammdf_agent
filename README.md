@@ -707,3 +707,263 @@ For issues and questions:
 - File an issue on the GitHub repository
 - Check Windows-MCP documentation for tool-specific questions
 - Consult asammdf documentation for application-specific details
+
+
+
+# Setup Guide: Autonomous asammdf Agent
+
+## Quick Start
+
+### 1. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Configure API Key
+
+Create a `.env` file from the template:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and add your Anthropic API key:
+
+```
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Get your API key from: https://console.anthropic.com/
+
+### 3. Extract Skills from Documentation
+
+This is a **one-time setup** that automatically parses the asammdf documentation and builds the skill catalog:
+
+```bash
+python agent/rag/doc_parser.py
+```
+
+This will:
+- Fetch the asammdf GUI documentation
+- Use Claude to extract all GUI skills
+- Save to `agent/rag/skill_catalog.json`
+
+Expected output:
+```
+Fetching documentation from https://asammdf.readthedocs.io/en/stable/gui.html...
+Extracting skills using Claude claude-sonnet-4-20250514...
+Extracted 15-20 skills:
+  - open_file: Open an MF4 file
+  - concatenate_mf4: Concatenate multiple MF4 files
+  - export_excel: Export data to Excel format
+  ...
+Saved 20 skills to agent/rag/skill_catalog.json
+✓ Successfully built skill catalog with 20 skills
+```
+
+### 4. Index Skills in Vector Database
+
+```bash
+python agent/rag/skill_retriever.py --rebuild-index
+```
+
+This creates a ChromaDB vector database at `agent/rag/vector_store/` for fast semantic search.
+
+### 5. Run Examples
+
+#### Option A: Interactive Examples
+
+```bash
+python agent/examples/example_1_basic_usage.py
+```
+
+Choose:
+- `1` - Manual workflow (hardcoded steps from your initial work)
+- `2` - Autonomous workflow (simple task)
+- `3` - Autonomous workflow (concatenate & export)
+
+#### Option B: Direct Autonomous Task
+
+```bash
+python agent/core/autonomous_workflow.py "Open an MF4 file called sample.mf4"
+```
+
+## Architecture
+
+```
+User Task ("concatenate MF4s")
+    ↓
+autonomous_workflow.py (LangGraph orchestrator)
+    ↓
+┌─────────────────────────────────────────────┐
+│ 1. Retrieve Skills (RAG from documentation) │
+│ 2. Generate Plan (Claude + constraints)    │
+│ 3. Validate Plan (schema + skill checks)   │
+│ 4. Execute Steps (state_tool + Windows-MCP)│
+│ 5. Verify Results (state checks)           │
+└─────────────────────────────────────────────┘
+    ↓
+Success / Retry / Fail
+```
+
+## Directory Structure
+
+```
+agent/
+├── workflows/
+│   ├── manual_workflow.py           # Original hardcoded workflow
+│   └── autonomous_workflow.py       # LangGraph orchestrator
+├── rag/
+│   ├── doc_parser.py                # Automatic skill extraction
+│   ├── skill_retriever.py           # RAG queries
+│   ├── skill_catalog.json           # Extracted skills (generated)
+│   └── vector_store/                # ChromaDB (generated)
+├── planning/
+│   ├── schemas.py                   # Pydantic models
+│   └── workflow_planner.py          # Claude-based planner
+├── execution/
+│   ├── action_primitives.py         # Primitive GUI actions
+│   └── state_based_executor.py      # Generic action interpreter
+└── examples/
+    └── example_1_basic_usage.py     # Usage examples
+```
+
+## How It Works
+
+### 1. Skill Extraction (One-time)
+
+`doc_parser.py` uses Claude to parse the asammdf GUI documentation:
+
+**Input:** HTML documentation
+**Process:** Claude extracts skills with structured output
+**Output:** `skill_catalog.json` with 15-20 GUI skills
+
+Example skill:
+```json
+{
+  "skill_id": "concatenate_mf4",
+  "description": "Concatenate multiple MF4 files into one",
+  "ui_location": "Multiple files tab",
+  "action_sequence": [
+    "select_tab('Multiple files')",
+    "add_files",
+    "set_mode('Concatenate')",
+    "run"
+  ],
+  "prerequisites": ["app_open"],
+  "output_state": "concatenated_file_loaded",
+  "doc_citation": "https://asammdf.readthedocs.io/..."
+}
+```
+
+### 2. Task Planning
+
+**Input:** Natural language task
+**Process:**
+1. RAG retrieves top-5 relevant skills from vector DB
+2. Claude generates step-by-step plan using ONLY those skills
+3. Validator ensures all skill IDs exist and have required args
+
+**Output:** Validated execution plan with doc citations
+
+### 3. Execution
+
+**Input:** Plan (list of actions)
+**Process:**
+- For each action, `state_based_executor.py`:
+  1. Activates asammdf window
+  2. Uses `state_tool()` to get UI elements
+  3. Parses element coordinates
+  4. Clicks/types/drags via Windows-MCP tools
+
+**Output:** Execution results per step
+
+### 4. Verification & Recovery
+
+- After each step: Check success/failure
+- On failure: Retry up to 2 times (configurable)
+- On max retries: Abort with error report
+
+## Troubleshooting
+
+### "Skill catalog not found"
+
+Run the extraction:
+```bash
+python agent/rag/doc_parser.py
+```
+
+### "ANTHROPIC_API_KEY not found"
+
+Create `.env` file with your API key:
+```bash
+echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
+```
+
+### "No skills retrieved"
+
+Rebuild the vector index:
+```bash
+python agent/rag/skill_retriever.py --rebuild-index
+```
+
+### "Button not found" errors
+
+The GUI structure may have changed. Options:
+1. Check application version matches (asammdf 8.6.x)
+2. Increase wait times in `state_based_executor.py`
+3. Re-extract skills with updated documentation
+
+## Next Steps
+
+### Add New Skills
+
+1. Re-run extraction (if docs updated):
+   ```bash
+   python agent/rag/doc_parser.py
+   ```
+
+2. Or manually add to `skill_catalog.json`
+
+3. Rebuild index:
+   ```bash
+   python agent/rag/skill_retriever.py --rebuild-index
+   ```
+
+### Implement Custom Executors
+
+Add methods to `state_based_executor.py`:
+
+```python
+def _execute_your_skill(self, args: Dict[str, Any]) -> str:
+    """Your custom skill implementation"""
+    # ... use state_tool + Windows-MCP
+    return "Success message"
+```
+
+### Test New Tasks
+
+```bash
+python agent/core/autonomous_workflow.py "Your custom task description"
+```
+
+## Performance Tips
+
+- **First run:** ~30s (model loading + vector DB init)
+- **Subsequent runs:** ~10-15s per task
+- **Skill retrieval:** <1s (ChromaDB in-memory)
+- **Plan generation:** 2-5s (Claude API)
+
+## Security Notes
+
+- API keys stored in `.env` (gitignored)
+- No credentials passed to LLM (only task descriptions)
+- Windows-MCP runs locally (no network except Anthropic API)
+
+## References
+
+- asammdf docs: https://asammdf.readthedocs.io/en/stable/gui.html
+- LangGraph: https://github.com/langchain-ai/langgraph
+- Windows-MCP: https://github.com/CursorTouch/Windows-MCP
+- Claude API: https://docs.anthropic.com/
