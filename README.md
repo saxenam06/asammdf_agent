@@ -967,3 +967,334 @@ python agent/core/autonomous_workflow.py "Your custom task description"
 - LangGraph: https://github.com/langchain-ai/langgraph
 - Windows-MCP: https://github.com/CursorTouch/Windows-MCP
 - Claude API: https://docs.anthropic.com/
+
+
+# Architecture: Generic Action Execution
+
+## Design Philosophy
+
+The autonomous workflow system is **truly documentation-driven**, meaning:
+
+✅ **No hardcoded task implementations** - All actions are determined by skill catalog
+✅ **Generic action interpreter** - Executor parses `action_sequence` dynamically
+✅ **Extensible without code changes** - Add new skills via documentation extraction
+✅ **Primitive-based** - Complex actions built from reusable primitives
+
+---
+
+## How It Works
+
+### 1. Task → Plan
+
+```
+User: "Concatenate MF4 files and export to Excel"
+    ↓
+Planner queries RAG → retrieves skills
+    ↓
+Claude generates plan:
+{
+  "plan": [
+    {"skill_id": "select_tab", "args": {"name": "Multiple files"}},
+    {"skill_id": "add_files", "args": {"folder": "C:\\data"}},
+    {"skill_id": "concatenate", "args": {}},
+    {"skill_id": "export", "args": {"format": "Excel"}}
+  ]
+}
+```
+
+### 2. Plan → Execution
+
+```
+For each action in plan:
+  1. Look up skill in catalog
+  2. Get action_sequence from skill
+  3. Substitute args into action_sequence
+  4. Parse and execute each primitive
+```
+
+**Example:**
+
+```json
+// Skill from catalog
+{
+  "skill_id": "select_tab",
+  "action_sequence": [
+    "click_by_text('{name}', control_type='TabItem')",
+    "wait(1)"
+  ]
+}
+
+// Action from plan
+{
+  "skill_id": "select_tab",
+  "args": {"name": "Multiple files"}
+}
+
+// Execution:
+// Step 1: "click_by_text('{name}', control_type='TabItem')"
+//         → substitute args → "click_by_text('Multiple files', control_type='TabItem')"
+//         → parse → primitives.click_by_text('Multiple files', control_type='TabItem')
+//         → execute → find element via state_tool → click
+// Step 2: "wait(1)" → primitives.wait(1)
+```
+
+---
+
+## Component Breakdown
+
+### 1. Action Primitives (`action_primitives.py`)
+
+**Purpose:** Library of atomic GUI operations
+
+**Primitives:**
+- `click_by_text(element_name, control_type, prefer_bottom)`
+- `type_in_field(text, field_name, clear, press_enter)`
+- `select_tab(tab_name)`
+- `select_mode(mode_name)`
+- `press_shortcut(keys)`
+- `press_key(key)`
+- `wait(seconds)`
+- `click_button(button_name)`
+- `drag_element(from_text, to_x_offset, to_y_offset)`
+- `type_in_dialog(text, field_name)`
+
+**Key Feature:** All primitives use `state_tool` for dynamic element discovery.
+
+---
+
+### 2. State-Based Executor (`state_based_executor.py`)
+
+**Purpose:** Generic interpreter that executes `action_sequence` from skills
+
+**Flow:**
+```python
+def execute_action(action, skill):
+    for step in skill.action_sequence:
+        # Substitute args
+        step_with_args = substitute_args(step, action.args)
+        # e.g., "click_button('{name}')" + {"name": "Export"}
+        #    → "click_button('Export')"
+
+        # Parse primitive
+        primitive_func, args, kwargs = parse_primitive(step_with_args)
+        # e.g., "click_button('Export')"
+        #    → func=primitives.click_button, args=['Export'], kwargs={}
+
+        # Execute
+        primitive_func(*args, **kwargs)
+```
+
+**No Hardcoded Methods:**
+- ❌ Old approach: `def _execute_open_file()`, `def _execute_export()`
+- ✅ New approach: `def _execute_primitive(action_string)` - parses ANY action
+
+---
+
+### 3. Workflow Orchestrator (`autonomous_workflow.py`)
+
+**Location:** `agent/workflows/autonomous_workflow.py`
+**Purpose:** LangGraph state machine coordinating the full workflow
+
+**Nodes:**
+1. `retrieve_skills` - RAG query
+2. `generate_plan` - Claude planning
+3. `validate_plan` - Schema validation
+4. `execute_step` - Generic executor
+5. `verify_step` - State checks
+6. `handle_error` - Retry logic
+
+---
+
+## Skill Catalog Format
+
+Skills must define `action_sequence` with parseable primitive calls:
+
+```json
+{
+  "skill_id": "concatenate_mf4",
+  "description": "Concatenate multiple MF4 files",
+  "ui_location": "Multiple files tab",
+  "action_sequence": [
+    "select_tab('Multiple files')",
+    "click_button('Add files')",
+    "wait(2)",
+    "type_in_dialog('{folder}/*.mf4', field_name='File name')",
+    "click_button('Open', prefer_bottom=True)",
+    "select_mode('Concatenate')",
+    "click_button('Run')",
+    "wait(5)"
+  ],
+  "prerequisites": ["app_open"],
+  "output_state": "concatenated_file_ready",
+  "doc_citation": "https://asammdf.readthedocs.io/...",
+  "parameters": {
+    "folder": "str"
+  }
+}
+```
+
+**Key Points:**
+- `{folder}` placeholder gets substituted with `action.args["folder"]`
+- Each step is a primitive function call string
+- Primitives support both positional and keyword arguments
+
+---
+
+## Adding New Capabilities
+
+### Option 1: Add Primitive (for new GUI interaction pattern)
+
+```python
+# agent/execution/action_primitives.py
+
+def your_new_primitive(self, arg1: str, arg2: int = 5) -> str:
+    """Your primitive documentation"""
+    switch_tool(self.app_name)
+    # ... implementation using state_tool + Windows-MCP
+    return "Success message"
+```
+
+Then use in skill `action_sequence`:
+```json
+"action_sequence": [
+  "your_new_primitive('value', arg2=10)"
+]
+```
+
+### Option 2: Add Skill (for new task)
+
+Re-run documentation extraction:
+```bash
+python agent/rag/doc_parser.py
+```
+
+Claude will parse new GUI features and add skills automatically.
+
+Or manually edit `skill_catalog.json`:
+```json
+{
+  "skill_id": "your_new_skill",
+  "action_sequence": [
+    "click_button('Some Button')",
+    "wait(2)",
+    "type_in_field('data', field_name='Input')"
+  ],
+  ...
+}
+```
+
+---
+
+## Why This Matters
+
+### ❌ Old Approach (Hardcoded)
+```python
+def _execute_open_file(self, args):
+    # Hardcoded implementation
+    press_shortcut(["ctrl", "o"])
+    type_in_field(args["filename"])
+    click_button("Open")
+```
+
+**Problems:**
+- Can't handle new tasks without code changes
+- Planner generates plan, but executor ignores it
+- Not scalable
+
+### ✅ New Approach (Generic)
+```python
+def execute_action(self, action, skill):
+    # Reads action_sequence from skill
+    for step in skill.action_sequence:
+        self._execute_primitive(step)
+```
+
+**Benefits:**
+- ✅ Handles any task defined in skill catalog
+- ✅ Add new skills without touching executor code
+- ✅ Truly documentation-driven
+- ✅ Planner and executor are decoupled
+
+---
+
+## File Organization
+
+```
+agent/
+├── workflows/
+│   ├── manual_workflow.py         # Original (hardcoded sequences)
+│   └── autonomous_workflow.py     # NEW: LangGraph orchestrator
+│
+├── execution/
+│   ├── action_primitives.py       # NEW: Primitive action library
+│   └── state_based_executor.py    # NEW: Generic interpreter
+│
+├── rag/
+│   ├── doc_parser.py              # Extracts skills from docs
+│   └── skill_retriever.py         # RAG queries
+│
+└── planning/
+    ├── schemas.py                 # Data models
+    └── workflow_planner.py        # Claude-based planner
+```
+
+**Why `autonomous_workflow.py` is in `workflows/`:**
+- Consistency with `manual_workflow.py`
+- Both are workflow entry points
+- Clear separation: workflows orchestrate, execution executes
+
+---
+
+## Testing the Generic Executor
+
+```bash
+# Test primitive action parsing
+python agent/execution/state_based_executor.py
+```
+
+Example test skill:
+```python
+test_skill = SkillSchema(
+    skill_id="open_file",
+    action_sequence=[
+        "press_shortcut(['ctrl', 'o'])",
+        "wait(2)",
+        "type_in_dialog('{filename}', field_name='File name')",
+        "click_button('Open', prefer_bottom=True)",
+        "wait(2)"
+    ],
+    parameters={"filename": "str"}
+)
+
+test_action = ActionSchema(
+    skill_id="open_file",
+    args={"filename": "sample.mf4"}
+)
+
+executor.execute_action(test_action, test_skill)
+```
+
+Output:
+```
+[Executing] open_file with args {'filename': 'sample.mf4'}
+  → press_shortcut(['ctrl', 'o'])
+  → wait(2)
+  → type_in_dialog('sample.mf4', field_name='File name')
+  → click_button('Open', prefer_bottom=True)
+  → wait(2)
+✓ Completed 5 steps
+```
+
+---
+
+## Summary
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| **Executor** | Hardcoded methods per task | Generic action interpreter |
+| **Extensibility** | Requires code changes | Add skills to catalog |
+| **Planning** | Plan generated but unused | Plan fully drives execution |
+| **Scalability** | Limited to implemented tasks | Unlimited (any documented feature) |
+| **Location** | `core/autonomous_workflow.py` | `workflows/autonomous_workflow.py` |
+
+**Key Insight:** The executor doesn't "know" about tasks - it only knows primitives. The skill catalog bridges the gap between high-level tasks and low-level primitives.
