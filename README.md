@@ -1,30 +1,304 @@
 # asammdf Agent
 
-Intelligent GUI automation agent for the [asammdf](https://github.com/danielhrisca/asammdf) MDF/MF4 file viewer. This agent leverages the Windows-MCP tools to programmatically control the asammdf GUI application, enabling automated workflows for opening files and plotting signals without hardcoded screen coordinates.
+**Autonomous GUI automation agent** for the [asammdf](https://github.com/danielhrisca/asammdf) MDF/MF4 file viewer.
 
-## Overview
+Give it a task in natural language (e.g., _"concatenate all MF4 files and export to Excel"_), and the agent **takes full control of the asammdf GUI**, autonomously interacting with it to complete your task:
 
-The asammdf agent provides a Python-based workflow orchestrator that can:
-- Launch and control the asammdf GUI application
-- Open MF4 measurement files
-- Automatically locate and plot signals by name
-- Execute complete workflows with dynamic UI element discovery
+1. 📖 **Retrieves skills** from documentation-based knowledge base (RAG)
+2. 🧠 **Plans workflow** using Claude AI + retrieved skills
+3. 🤖 **Takes control of asammdf GUI** and autonomously executes actions via MCP tools
+4. 👁️ **Observes GUI state** in real-time using Windows UI Automation
+5. ✅ **Verifies and recovers** from errors automatically
 
-Instead of using brittle, hardcoded screen coordinates, this agent uses Windows UI Automation to intelligently discover and interact with GUI elements at runtime.
+**Key Innovation:** Claude calls Windows-MCP tools directly through the Model Context Protocol (MCP), enabling true autonomous GUI control without hardcoded actions.
+
+## Key Features
+
+✨ **Autonomous GUI Control:**
+- **Agent takes full control** of asammdf application GUI
+- **Claude calls MCP tools directly** - no wrapper functions needed
+- **Real-time GUI observation** using Windows UI Automation
+- **Dynamic element discovery** - no hardcoded coordinates
+- **Self-healing execution** with automatic retry and error recovery
+
+🎯 **Intelligence Layer:**
+- **Natural language task input** (_"concatenate MF4s and export"_)
+- **RAG-based skill retrieval** from documentation knowledge base
+- **Claude AI planning** - generates step-by-step execution plans
+- **Document-grounded** - only uses features from official docs
+- **Stateful orchestration** via LangGraph
+
+🔧 **MCP Integration:**
+- **Model Context Protocol (MCP)** - Claude calls Windows-MCP tools directly
+- **Separate environments** - Agent (`.agent-venv`) + MCP Server (`.windows-venv`)
+- **13+ GUI automation tools** available to Claude (click, type, state, drag, etc.)
+- **No manual tool wrapping** - MCP protocol handles tool discovery and execution
+
+## Quick Start
+
+### 1. Setup Virtual Environments
+
+This project uses **two separate virtual environments** to isolate dependencies:
+
+#### Environment Architecture
+
+- **`.agent-venv`** (Root Level): Contains agent dependencies (MCP client, Claude SDK, RAG tools)
+- **`.windows-venv`** (Inside `tools/Windows-MCP/`): Contains GUI automation dependencies (pywinauto, uiautomation)
+
+**Why Two Environments?**
+- **Isolation**: GUI automation tools stay separate from agent logic
+- **MCP Server Process**: The MCP client (running in `.agent-venv`) spawns the MCP server as a subprocess using `.windows-venv`'s Python interpreter
+- **Cross-Process Communication**: MCP client and server communicate via stdio (JSON-RPC), allowing them to run in different Python environments
+
+```bash
+# Step 1: Create agent environment (root level)
+python -m venv .agent-venv
+.agent-venv\Scripts\activate
+pip install -r requirements.txt
+
+# Step 2: Create Windows-MCP environment (inside tools/Windows-MCP/)
+cd tools\Windows-MCP
+python -m venv .windows-venv
+.windows-venv\Scripts\activate
+pip install -e .
+deactivate
+
+# Step 3: Return to root
+cd ..\..
+```
+
+### 2. Configure MCP Server
+
+The `mcp_config.json` file is already configured to use `.windows-venv` for the MCP server:
+
+```json
+{
+  "mcpServers": {
+    "windows-mcp": {
+      "command": "D:\\Work\\asammdf_agent\\tools\\Windows-MCP\\.windows-venv\\Scripts\\python.exe",
+      "args": ["D:\\Work\\asammdf_agent\\tools\\Windows-MCP\\main.py"]
+    }
+  }
+}
+```
+
+**How it works:**
+1. Activate `.agent-venv` (agent environment)
+2. MCP client reads `mcp_config.json`
+3. MCP client spawns MCP server subprocess using `.windows-venv`'s Python
+4. MCP server runs `main.py` with GUI automation tools loaded
+5. Client and server communicate via stdio
+
+### 3. Setup API Key
+```bash
+cp .env.example .env
+# Edit .env and add: ANTHROPIC_API_KEY=sk-ant-...
+```
+
+### 4. Run Manual Workflow (asammdf GUI Control)
+
+With `.agent-venv` activated, run manual workflows that control asammdf GUI:
+
+```bash
+.agent-venv\Scripts\activate
+python agent\examples\example_manual_workflow.py
+```
+
+**What happens:**
+1. Script imports `manual_workflow.py` which uses MCP client
+2. MCP client spawns MCP server subprocess (using `.windows-venv` Python)
+3. Workflow sends MCP tool calls (Click-Tool, State-Tool, etc.) to server
+4. Server executes GUI automation using pywinauto/uiautomation
+5. Results flow back to workflow
+
+**Example Output:**
+```
+================================================================================
+Manual Workflow Example: Plot Signal from MF4
+================================================================================
+Environment: .agent-venv (MCP Client) → .windows-venv (MCP Server)
+Approach: Hardcoded action sequence
+
+[Step] Open MF4 file...
+  → Switched to asammdf 8.6.10
+  → Ctrl+O pressed
+  → File dialog opened
+  → Found file input at: [450, 320]
+  → Typed filename: Discrete_deflate.mf4
+  → Found Open button at: [820, 650]
+  → File 'Discrete_deflate.mf4' loaded
+  ✓ Open MF4 file completed
+
+[Step] Drag signal 'ASAM.M.SCALAR.SBYTE.IDENTICAL.DISCRETE'...
+  → Found signal at: [220, 485]
+  → Dragging from (220, 485) to (670, 485)
+  → Dragged 'ASAM.M.SCALAR.SBYTE.IDENTICAL.DISCRETE' to plot area
+  ✓ Drag signal completed
+
+[Step] Create plot...
+  → Found OK button at: [735, 590]
+  → Clicked OK button
+  ✓ Create plot completed
+
+✓ Manual workflow completed successfully!
+```
+
+### 5. Run Autonomous Workflow (Future)
+
+For Claude-driven autonomous workflows:
+```bash
+.agent-venv\Scripts\activate
+python agent\examples\example_autonomous_workflow.py
+```
+
+**See [SETUP_GUIDE.md](SETUP_GUIDE.md) for detailed setup instructions.**
 
 ## Architecture
 
+### High-Level Flow
+
+```
+User Task: "Plot signal from MF4 file"
+    ↓
+┌──────────────────────────────────────────────────────────────────┐
+│  Agent Process (.agent-venv)                                     │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │ Manual Workflow (manual_workflow.py)                       │  │
+│  │  → Hardcoded action sequence                              │  │
+│  │  → Calls: execute_tool('Click-Tool', loc=[x,y])           │  │
+│  │            execute_tool('State-Tool', use_vision=False)    │  │
+│  │            execute_tool('Type-Tool', text="file.mf4")      │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                          ↓                                       │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │ MCP Client (mcp_client.py)                                 │  │
+│  │  → Reads mcp_config.json                                   │  │
+│  │  → Spawns MCP server subprocess (see below)                │  │
+│  │  → Maintains ClientSession                                 │  │
+│  │  → Forwards tool calls via stdio (JSON-RPC)                │  │
+│  └────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
+                        ↓ stdio (JSON-RPC over pipes)
+┌──────────────────────────────────────────────────────────────────┐
+│  MCP Server Subprocess (.windows-venv - separate process)       │
+│  Command: tools/Windows-MCP/.windows-venv/Scripts/python.exe    │
+│  Args: tools/Windows-MCP/main.py                                │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │ Windows-MCP Server (main.py)                               │  │
+│  │  → Receives tool calls via stdin                           │  │
+│  │  → Executes: State-Tool, Click-Tool, Type-Tool, etc.       │  │
+│  │  → Returns results via stdout                              │  │
+│  │                                                             │  │
+│  │  Tools Available:                                          │  │
+│  │  • State-Tool → Observe GUI (pywinauto)                    │  │
+│  │  • Click-Tool → Click coordinates (pywinauto)              │  │
+│  │  • Type-Tool → Type text (pywinauto)                       │  │
+│  │  • Drag-Tool → Drag and drop (pywinauto)                   │  │
+│  │  • Switch-Tool → Switch window focus                       │  │
+│  │  • + 8 more automation tools                               │  │
+│  └────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
+                        ↓ Windows UI Automation API
+┌──────────────────────────────────────────────────────────────────┐
+│  asammdf GUI (Controlled via UI Automation)                      │
+│  → MCP Server reads UI state, clicks buttons, types text         │
+│  → Real-time element discovery (no hardcoded coordinates)        │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Key Points:**
+- **Two Python Processes**: Agent process (`.agent-venv`) and MCP server subprocess (`.windows-venv`)
+- **Communication**: MCP client and server communicate via **stdio pipes** (JSON-RPC protocol)
+- **Environment Isolation**: Agent dependencies stay in `.agent-venv`, GUI automation deps in `.windows-venv`
+- **MCP Server Spawning**: Client reads `mcp_config.json` and spawns server using `.windows-venv`'s Python interpreter
+
+### Key Integration Points
+
+1. **Workflow ↔ MCP Client**: Manual workflow calls `execute_tool()` which wraps MCP client calls
+2. **MCP Client ↔ MCP Server**: JSON-RPC over stdio, separate Python processes (`.agent-venv` ↔ `.windows-venv`)
+3. **MCP Server ↔ GUI**: Windows UI Automation (pywinauto, uiautomation)
+4. **Environment Isolation**: Agent runs in `.agent-venv`, MCP server runs in `.windows-venv` subprocess
+
+### How MCP Client Spawns Server
+
+When you run a workflow from `.agent-venv`:
+
+```python
+# In manual_workflow.py (running in .agent-venv)
+from execution.mcp_client import get_mcp_client
+
+client = get_mcp_client()
+asyncio.run(client.connect('windows-mcp'))  # Spawns server subprocess
+```
+
+**What happens in `mcp_client.py`:**
+
+1. **Read Config**: Loads `mcp_config.json` to get server command
+   ```json
+   {
+     "command": "D:\\...\\tools\\Windows-MCP\\.windows-venv\\Scripts\\python.exe",
+     "args": ["D:\\...\\tools\\Windows-MCP\\main.py"]
+   }
+   ```
+
+2. **Spawn Subprocess**: Starts MCP server as separate process
+   ```python
+   # Simplified version of what happens
+   server_params = StdioServerParameters(
+       command=".windows-venv/Scripts/python.exe",
+       args=["main.py"]
+   )
+   read, write = await stdio_client(server_params)  # Spawns subprocess
+   ```
+
+3. **Establish Session**: Creates ClientSession with stdio pipes
+   ```python
+   session = ClientSession(read, write)  # JSON-RPC over pipes
+   await session.initialize()
+   ```
+
+4. **Tool Calls**: Forward tool calls to server via stdin
+   ```python
+   result = await session.call_tool('Click-Tool', {'loc': [450, 320]})
+   # Sent via stdin → MCP server executes → Returns via stdout
+   ```
+
+### Project Structure
+
 ```
 asammdf_agent/
+├── .agent-venv/                         # Agent Python environment (root level)
+│   └── ...                              # Agent dependencies (MCP client, Claude SDK, RAG)
 ├── agent/
+│   ├── execution/
+│   │   ├── mcp_client.py                # MCP client (spawns server, calls tools)
+│   │   ├── claude_mcp_executor.py       # Claude + MCP integration ⭐
+│   │   ├── action_primitives.py         # Legacy wrapper functions
+│   │   └── state_based_executor.py      # State-based executor
+│   ├── rag/
+│   │   ├── doc_parser.py                # Auto skill extraction from docs
+│   │   ├── skill_retriever.py           # RAG queries (ChromaDB)
+│   │   ├── skill_catalog.json           # Extracted skills
+│   │   └── vector_store/                # ChromaDB vector database
+│   ├── planning/
+│   │   ├── schemas.py                   # Pydantic models (Skills, Plans)
+│   │   └── workflow_planner.py          # Claude-based planner
 │   ├── workflows/
-│   │   └── asammdf_workflow.py    # Core workflow orchestrator
+│   │   ├── autonomous_workflow.py       # LangGraph orchestrator
+│   │   └── manual_workflow.py           # Manual workflow (uses MCP client)
 │   └── examples/
-│       └── example_1_basic_usage.py  # Usage examples
+│       ├── example_autonomous_workflow.py  # Autonomous examples (.agent-venv)
+│       └── example_manual_workflow.py      # Manual examples (.agent-venv)
 ├── tools/
-│   └── Windows-MCP/                # Windows automation tools
-└── docs/
-    └── README.md                   # This file
+│   └── Windows-MCP/                     # MCP server package
+│       ├── .windows-venv/               # MCP Server Python environment (nested)
+│       │   └── ...                      # GUI automation deps (pywinauto, uiautomation)
+│       ├── main.py                      # MCP server entry point
+│       └── ...                          # MCP server implementation
+├── mcp_config.json                      # MCP server configuration
+├── SETUP_GUIDE.md                       # Detailed setup guide
+└── requirements.txt                     # Agent dependencies
 ```
 
 ## Installation
@@ -34,157 +308,359 @@ asammdf_agent/
 - **Python 3.13+** (required by Windows-MCP)
 - **Windows OS** (required for Windows UI Automation)
 - **asammdf** application installed and accessible from command line
-- **uv** package manager ([install instructions](https://github.com/astral-sh/uv))
 
-### Setup Steps
+### Detailed Setup Steps
 
-1. **Clone the repository** (if not already done):
-   ```bash
-   git clone <your-repo-url>
-   cd asammdf_agent
-   ```
+#### Step 1: Create Agent Environment (Root Level)
 
-2. **Install Windows-MCP tools**:
+This environment contains agent dependencies (MCP client, ChromaDB, etc.):
 
-   Navigate to the Windows-MCP directory:
-   ```bash
-   cd tools/Windows-MCP
-   ```
+```bash
+# From project root
+python -m venv .agent-venv
+.agent-venv\Scripts\activate
+pip install -r requirements.txt
+```
 
-   **Option A: Using PowerShell virtual environment**
-   ```powershell
-   # Activate the virtual environment
-   .\.windows-venv\Scripts\Activate.ps1
+**Dependencies installed:**
+- `mcp` - MCP client SDK
+- `anthropic` - Claude API client (for autonomous workflows)
+- `chromadb` - Vector database for RAG
+- `sentence-transformers` - Embeddings
+- Other agent dependencies
 
-   # Sync dependencies
-   uv sync --active
-   ```
+#### Step 2: Create MCP Server Environment (Inside tools/Windows-MCP/)
 
-   **Option B: Direct installation with uv**
-   ```bash
-   # Install in editable mode with specified Python interpreter
-   uv pip install -e . --python .windows-venv/Scripts/python.exe
-   ```
+This environment contains GUI automation dependencies:
 
-3. **Verify installation**:
-   ```bash
-   # Return to project root
-   cd ../..
+```bash
+# From project root, navigate to Windows-MCP
+cd tools\Windows-MCP
 
-   # Test Python import (from project root)
-   python -c "from agent.workflows.asammdf_workflow import AsammdfWorkflow; print('✓ Installation successful')"
-   ```
+# Create venv inside Windows-MCP directory
+python -m venv .windows-venv
+.windows-venv\Scripts\activate
 
-## Usage
+# Install Windows-MCP in editable mode
+pip install -e .
 
-### Basic Example
+# Deactivate and return to root
+deactivate
+cd ..\..
+```
 
-The simplest way to use the agent is through the convenience function:
+**Dependencies installed (in .windows-venv):**
+- `pywinauto` - Windows GUI automation
+- `uiautomation-py` - UI Automation API wrapper
+- `mcp` - MCP server SDK
+- Other GUI automation tools
+
+#### Step 3: Update mcp_config.json with Absolute Paths
+
+Edit `mcp_config.json` to point to your `.windows-venv` Python:
+
+```json
+{
+  "mcpServers": {
+    "windows-mcp": {
+      "command": "D:\\Work\\asammdf_agent\\tools\\Windows-MCP\\.windows-venv\\Scripts\\python.exe",
+      "args": ["D:\\Work\\asammdf_agent\\tools\\Windows-MCP\\main.py"]
+    }
+  }
+}
+```
+
+**Replace paths with your actual project location.**
+
+#### Step 4: Verify Installation
+
+From **agent environment** (`.agent-venv`), test MCP connection:
+
+```bash
+# Activate agent environment
+.agent-venv\Scripts\activate
+
+# Run manual workflow example
+python agent\examples\example_manual_workflow.py
+```
+
+**Expected output:**
+- MCP server spawns successfully
+- Workflow controls asammdf GUI
+- Signal is plotted
+
+If you see "RuntimeError: Attempted to exit cancel scope in a different task", ensure you're using the **fixed version** of `manual_workflow.py` with the global event loop fix.
+
+## Usage Examples
+
+### Claude + MCP Direct Execution (Recommended)
+
+**Agent takes full control** of the GUI - Claude calls MCP tools directly:
 
 ```python
-from agent.workflows.asammdf_workflow import plot_signal_from_mf4
+from agent.execution.claude_mcp_executor import execute_with_claude_mcp
 
-# Plot a signal from an MF4 file
+# Simple GUI task
+results = execute_with_claude_mcp("Open Notepad and type 'Hello World'")
+
+# asammdf-specific task
+results = execute_with_claude_mcp(
+    "Open asammdf, load sample.mf4, and plot the first signal"
+)
+
+print(f"Success: {results['success']}")
+print(f"Claude's response: {results['response']}")
+print(f"Conversation turns: {results['turns']}")
+```
+
+**What happens:**
+1. MCP server starts in `.windows-venv`
+2. Claude receives 13+ MCP tools (State-Tool, Click-Tool, etc.)
+3. **Claude autonomously controls the GUI** by calling tools
+4. Agent forwards tool calls to MCP server
+5. Results flow back to Claude
+
+### RAG-Powered Autonomous Workflow
+
+Combines **knowledge base retrieval** with **Claude + MCP execution**:
+
+```python
+from agent.workflows.autonomous_workflow import execute_autonomous_task
+
+# Retrieves relevant skills from docs, then executes
+results = execute_autonomous_task("Open an MF4 file called sample.mf4")
+
+# Complex multi-step task
+results = execute_autonomous_task(
+    "Concatenate all MF4 files in C:\\data folder and export to Excel"
+)
+
+print(f"Success: {results['success']}")
+print(f"Steps completed: {results['steps_completed']}")
+```
+
+### Legacy: Manual Workflow
+
+Hardcoded action sequences (pre-MCP approach):
+
+```python
+from agent.workflows.manual_workflow import plot_signal_from_mf4
+
 results = plot_signal_from_mf4(
     mf4_file="Discrete_deflate.mf4",
     signal_name="ASAM.M.SCALAR.SBYTE.IDENTICAL.DISCRETE"
 )
-
-if results['success']:
-    print("✓ Workflow completed successfully!")
-else:
-    print(f"✗ Workflow failed: {results['error']}")
 ```
 
-### Running the Example
+### Running Interactive Examples
 
+**Autonomous Examples** (requires `.agent-venv`):
 ```bash
-python agent/examples/example_1_basic_usage.py
+.agent-venv\Scripts\activate
+python agent\examples\example_autonomous_workflow.py
 ```
 
-### Advanced Usage
+Choose from:
+1. Claude + MCP Direct (Simple GUI task)
+2. RAG + Autonomous (Open MF4 file)
+3. RAG + Autonomous (Concatenate & Export)
+4. Custom Task (Your own prompt)
 
-For more control, use the `AsammdfWorkflow` class directly:
-
-```python
-from agent.workflows.asammdf_workflow import AsammdfWorkflow
-
-# Initialize workflow with custom fuzzy matching threshold
-workflow = AsammdfWorkflow(fuzzy_threshold=70)
-
-# Execute complete workflow
-results = workflow.plot_signal(
-    mf4_file="my_measurement.mf4",
-    signal_name="Engine.Speed.RPM"
-)
-
-# Inspect results
-print(f"Success: {results['success']}")
-print(f"Steps executed: {len(results['steps'])}")
-for step in results['steps']:
-    print(f"  - {step['name']}: {'✓' if step['success'] else '✗'}")
+**Manual Examples** (requires `.agent-venv` - MCP client spawns server):
+```bash
+.agent-venv\Scripts\activate
+python agent\examples\example_manual_workflow.py
 ```
+
+Choose from:
+1. Plot Signal from MF4 (hardcoded workflow using MCP tools)
 
 ## How It Works
 
-### Intelligent UI Discovery
+### 1. Automatic Skill Extraction (One-time Setup)
 
-The agent uses Windows UI Automation (via Windows-MCP tools) to:
+`doc_parser.py` uses Claude to parse asammdf documentation:
 
-1. **Query UI elements** - Retrieve all interactive elements with their properties and coordinates
-2. **Parse and match** - Find elements by name and control type (Button, Edit, Tree Item, etc.)
-3. **Execute actions** - Click, type, drag, and keyboard shortcuts at discovered locations
+**Input:** HTML from https://asammdf.readthedocs.io/en/stable/gui.html
+**Process:** Claude extracts 15-20 GUI skills with structured output
+**Output:** `skill_catalog.json` with skills like `concatenate_mf4`, `export_excel`
 
-### Workflow Steps
+Example skill:
+```json
+{
+  "skill_id": "concatenate_mf4",
+  "description": "Concatenate multiple MF4 files into one",
+  "ui_location": "Multiple files tab",
+  "action_sequence": ["select_tab", "add_files", "set_mode", "run"],
+  "doc_citation": "https://asammdf.readthedocs.io/..."
+}
+```
 
-The `plot_signal()` workflow executes these steps:
+### 2. Task Planning (RAG + LLM)
 
-1. ~~**Launch asammdf**~~ (disabled - assumes application already running)
-2. **Open MF4 file** - Use Ctrl+O shortcut, dynamically locate file input and Open button
-3. **Drag signal to plot** - Find signal in Natural Sort tree, drag to plot area
-4. **Create plot** - Click OK button to finalize plot creation
+When you give a task:
 
-Each step uses dynamic element discovery, making the workflow resilient to:
-- Different screen resolutions
-- Window positions and sizes
-- UI element repositioning in new asammdf versions
+1. **RAG Retrieval:** ChromaDB finds top-5 relevant skills via semantic search
+2. **Plan Generation:** Claude generates step-by-step plan using ONLY those skills
+3. **Validation:** Ensures all skill IDs exist and have required arguments
+4. **Output:** Validated plan with doc citations
 
-### Windows-MCP Tools
+### 3. Autonomous Execution (Claude + MCP)
 
-The workflow uses these tools from Windows-MCP:
+**Key Innovation:** Claude calls MCP tools directly via the Anthropic API.
 
-- `launch_tool` - Launch applications by name
-- `switch_tool` - Switch focus to application window
-- `click_tool` - Click at coordinates
-- `type_tool` - Type text with optional clear and enter
-- `drag_tool` - Drag from source to destination
-- `shortcut_tool` - Press keyboard shortcuts (Ctrl+O, etc.)
-- `key_tool` - Press individual keys (Enter, Home, etc.)
-- `wait_tool` - Wait for specified duration
-- `state_tool` - Get current UI state and interactive elements
+**Execution Flow:**
 
-## Customization
+1. **Initialize MCP Client**
+   ```python
+   from agent.execution.claude_mcp_executor import ClaudeMCPExecutor
 
-### Modifying Workflows
+   executor = ClaudeMCPExecutor()
+   # Fetches available tools from Windows-MCP server
+   # Tools: State-Tool, Click-Tool, Type-Tool, Switch-Tool, etc.
+   ```
 
-Edit `agent/workflows/asammdf_workflow.py` to:
+2. **Claude Takes Control**
+   ```python
+   response = client.messages.create(
+       model="claude-sonnet-4-20250514",
+       tools=mcp_tools,  # ← MCP tools passed to Claude
+       messages=[{"role": "user", "content": task}]
+   )
+   ```
 
-- Add new workflow steps
-- Change element discovery strategies
-- Adjust wait times for slower/faster systems
-- Add error recovery logic
+3. **Claude Calls MCP Tools Autonomously**
+   - Claude decides which tools to use and when
+   - Example: `State-Tool` → observes GUI → `Click-Tool` → clicks button
+   - Agent forwards tool calls to Windows-MCP server
+   - Results flow back to Claude for next decision
 
-### Fuzzy Matching
+4. **Real-time GUI Control**
+   - Windows-MCP server executes GUI actions in `.windows-venv`
+   - No hardcoded coordinates - dynamic element discovery
+   - Self-healing: Claude observes failures and retries
 
-The `fuzzy_threshold` parameter (0-100) controls how closely element names must match:
+**Example Tool Call by Claude:**
+```json
+{
+  "name": "Click-Tool",
+  "input": {
+    "loc": [450, 320],
+    "button": "left",
+    "clicks": 1
+  }
+}
+```
 
-- **100** - Exact match only
-- **70-90** - Recommended range for flexibility
-- **< 70** - May match unintended elements
+Agent forwards to MCP server → GUI action executed → Result returned to Claude
 
-### File Paths
+### 4. Verification & Recovery
 
-By default, the workflow assumes MF4 files are in the Downloads folder. Modify `_open_mf4_file()` to use absolute paths or different directories.
+- After each step: Check success/failure
+- On failure: Retry up to 2 times
+- On max retries: Abort with detailed error report
+
+### Windows-MCP Tools (Called Directly by Claude)
+
+The agent provides Claude with 13+ MCP tools for autonomous GUI control:
+
+**Observation Tools:**
+- `State-Tool` - Get current UI state: windows, buttons, fields, coordinates
+- `Clipboard-Tool` - Read/write system clipboard
+
+**Action Tools:**
+- `Click-Tool` - Click at coordinates (left/right/middle, single/double/triple)
+- `Type-Tool` - Type text into fields (with auto-clear and enter options)
+- `Drag-Tool` - Drag and drop operations
+- `Key-Tool` - Press individual keys (Enter, Tab, Arrow keys, etc.)
+- `Shortcut-Tool` - Keyboard shortcuts (Ctrl+O, Alt+Tab, etc.)
+- `Scroll-Tool` - Scroll vertical/horizontal
+
+**Window Management:**
+- `Switch-Tool` - Switch focus to application by name
+- `Launch-Tool` - Launch applications from Start Menu
+- `Resize-Tool` - Resize/move windows
+
+**Utilities:**
+- `Wait-Tool` - Wait for specified duration
+- `Scrape-Tool` - Fetch and convert web content to markdown
+
+**Claude calls these tools autonomously** - the agent just:
+1. Fetches tool definitions from MCP server (`list_tools()`)
+2. Passes them to Claude via Anthropic API
+3. Forwards Claude's tool calls to MCP server (`call_tool()`)
+4. Returns results back to Claude
+
+## Technology Stack
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **🤖 AI Orchestration** | **Claude 4 Sonnet** | Task planning & autonomous GUI control |
+| **🔧 Tool Protocol** | **MCP (Model Context Protocol)** | Claude ↔ MCP Server communication |
+| **🖥️ GUI Automation** | **Windows-MCP Server** | Windows UI Automation (pywinauto, uiautomation) |
+| **📊 Knowledge Base** | **ChromaDB** | Vector database for skill retrieval |
+| **🧠 Embeddings** | **sentence-transformers** | Semantic skill search |
+| **🔄 Workflow Engine** | **LangGraph** | Stateful orchestration with retry logic |
+| **📝 Schema Validation** | **Pydantic** | Type-safe data models |
+| **🌐 API Client** | **Anthropic SDK** | Claude API with tool calling |
+| **📖 Doc Parsing** | **BeautifulSoup** | Extract skills from HTML docs |
+
+### Key Technology Integrations
+
+1. **Model Context Protocol (MCP)**
+   - Standardized protocol for LLM ↔ Tool communication
+   - Claude calls GUI tools without manual wrapper functions
+   - Server runs in isolated Python environment (`.windows-venv`)
+
+2. **RAG (Retrieval-Augmented Generation)**
+   - ChromaDB stores skill embeddings from documentation
+   - Semantic search retrieves relevant skills for each task
+   - Grounds Claude's planning in actual documented features
+
+3. **Windows UI Automation**
+   - Real-time GUI state observation (`State-Tool`)
+   - Dynamic element discovery (coordinates, control types)
+   - Cross-process GUI control (agent controls asammdf)
+
+## Extending the Agent
+
+### Add New Skills
+
+**Option 1:** Re-extract from updated docs
+```bash
+python agent/rag/doc_parser.py
+python agent/rag/skill_retriever.py --rebuild-index
+```
+
+**Option 2:** Manually add to `skill_catalog.json`
+```json
+{
+  "skill_id": "your_skill",
+  "description": "What it does",
+  "ui_location": "Tab/menu location",
+  "action_sequence": ["step1", "step2"],
+  "prerequisites": [],
+  "output_state": "expected result",
+  "doc_citation": "URL"
+}
+```
+
+### Implement Custom Executors
+
+Add methods to `agent/execution/state_based_executor.py`:
+
+```python
+def _execute_your_skill(self, args: Dict[str, Any]) -> str:
+    """Custom skill implementation"""
+    switch_tool(self.app_name)
+    wait_tool(1)
+
+    # Use state_tool to find GUI elements
+    state_output = state_tool(use_vision=False)
+    # ... your logic here
+
+    return "Success message"
+```
 
 ## Troubleshooting
 
