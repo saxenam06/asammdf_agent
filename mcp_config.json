@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "windows-mcp": {
+      "command": "D:\\Work\\asammdf_agent\\tools\\Windows-MCP\\.windows-venv\\Scripts\\python.exe",
+      "args": [
+        "D:\\Work\\asammdf_agent\\tools\\Windows-MCP\\main.py"
+      ],
+      "env": {}
+    }
+  }
+}
