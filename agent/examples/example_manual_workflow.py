@@ -59,7 +59,7 @@ if __name__ == '__main__':
     }
 
     # Choose example
-    choice = input(f"Choose example (1-{len(examples)}, default=1): ").strip() or '1'
+    choice = '1' # input(f"Choose example (1-{len(examples)}, default=1): ").strip() or '1'
 
     if choice in examples:
         name, func = examples[choice]
