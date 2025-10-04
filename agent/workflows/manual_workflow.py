@@ -5,40 +5,26 @@ Uses dynamic UI element discovery instead of hardcoded coordinates
 
 import sys
 import os
-import asyncio
 from typing import Optional, Dict, Any, List
 
-# Import MCP client
+# Import MCP executor
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from execution.mcp_client import get_mcp_client
+from execution.mcp_executor import MCPExecutor
 
-# Global MCP client instance and event loop
-_mcp_client = None
-_event_loop = None
+# Global MCP executor instance
+_executor = None
 
-def get_event_loop():
-    """Get or create the global event loop"""
-    global _event_loop
-    if _event_loop is None or _event_loop.is_closed():
-        _event_loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(_event_loop)
-    return _event_loop
+def get_executor():
+    """Get or create the global MCP executor"""
+    global _executor
+    if _executor is None:
+        _executor = MCPExecutor()
+    return _executor
 
-def get_connected_client():
-    """Get or create connected MCP client"""
-    global _mcp_client
-    if _mcp_client is None:
-        _mcp_client = get_mcp_client()
-        loop = get_event_loop()
-        loop.run_until_complete(_mcp_client.connect('windows-mcp'))
-    return _mcp_client
-
-# Function to execute MCP tools (synchronous wrapper)
 def execute_tool(tool_name: str, **kwargs):
     """Execute an MCP tool by name with arguments"""
-    client = get_connected_client()
-    loop = get_event_loop()
-    return loop.run_until_complete(client.call_tool(tool_name, kwargs))
+    executor = get_executor()
+    return executor.call_tool(tool_name, kwargs)
 
 
 class AsammdfWorkflow:
@@ -481,3 +467,9 @@ def plot_signal_from_mf4(mf4_file: str = "sample_compressed.mf4",
     """
     workflow = AsammdfWorkflow()
     return workflow.plot_signal(mf4_file=mf4_file, signal_name=signal_name)
+
+
+if __name__ == "__main__":
+    # Run the workflow when script is executed directly
+    result = plot_signal_from_mf4()
+    print("\nFinal Result:", result)
