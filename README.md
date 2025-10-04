@@ -1311,3 +1311,148 @@ Output:
 | **Location** | `core/autonomous_workflow.py` | `workflows/autonomous_workflow.py` |
 
 **Key Insight:** The executor doesn't "know" about tasks - it only knows primitives. The skill catalog bridges the gap between high-level tasks and low-level primitives.
+
+
+# Autonomous Workflow Refactoring
+
+## Overview
+
+Refactored the autonomous workflow to use MCP client directly (same pattern as `manual_workflow.py`), eliminating unnecessary abstraction layers.
+
+## Changes Made
+
+### 1. Updated Schemas (`agent/planning/schemas.py`)
+
+**ActionSchema** now includes:
+- `tool_name`: MCP tool to execute (e.g., 'Click-Tool', 'State-Tool')
+- `tool_arguments`: Arguments for the MCP tool
+- `skill_id`: Kept for documentation/context purposes
+
+**Before:**
+```python
+{
+  "skill_id": "click_button",
+  "args": {"name": "OK"},
+  "doc_citation": "..."
+}
+```
+
+**After:**
+```python
+{
+  "skill_id": "click_button_ok",
+  "tool_name": "Click-Tool",
+  "tool_arguments": {"loc": [450, 300], "button": "left"},
+  "doc_citation": "..."
+}
+```
+
+### 2. Created MCPExecutor (`agent/execution/mcp_executor.py`)
+
+Simple executor that:
+- Directly calls MCP tools via `mcp_client.call_tool(tool_name, arguments)`
+- No string parsing or wrapper methods
+- Centralized MCP client management
+
+**Two interfaces:**
+1. `call_tool(tool_name, tool_arguments)` - Direct tool execution (for manual workflows)
+2. `execute_action(action: ActionSchema)` - Wrapped execution (for autonomous workflows)
+
+**Key method:**
+```python
+def execute_action(self, action: ActionSchema) -> ExecutionResult:
+    client = self._get_connected_client()
+    loop = self._get_event_loop()
+    result = loop.run_until_complete(
+        client.call_tool(action.tool_name, action.tool_arguments)
+    )
+    return ExecutionResult(success=True, action=action.skill_id, evidence=output)
+```
+
+### 3. Updated WorkflowPlanner (`agent/planning/workflow_planner.py`)
+
+**Planning prompt now:**
+- Describes available MCP tools (State-Tool, Click-Tool, etc.)
+- Instructs Claude to generate plans with actual MCP tool calls
+- Emphasizes using State-Tool to discover UI coordinates dynamically
+
+**Validation:**
+- Validates tool_name against known MCP tools
+- Validates required arguments for each tool type
+- skill_id is now just for documentation (warning if not in catalog)
+
+### 4. Updated AutonomousWorkflow (`agent/workflows/autonomous_workflow.py`)
+
+- Replaced `StateBasedExecutor` with `MCPExecutor`
+- Removed skill lookup logic (no longer needed)
+- Simplified execution node to directly call `executor.execute_action(action)`
+
+### 5. Refactored ManualWorkflow (`agent/workflows/manual_workflow.py`)
+
+- Replaced duplicated MCP client connection logic with `MCPExecutor`
+- Now uses shared `execute_tool()` function that wraps `MCPExecutor.call_tool()`
+- Reduced code from ~30 lines to ~15 lines
+- Single source of truth for MCP client management
+
+## Architecture Comparison
+
+### Old Architecture (Before)
+```
+User Task
+  → RAG (retrieve skills)
+  → WorkflowPlanner (generate plan with skill_id + args)
+  → StateBasedExecutor
+      → Parses action_sequence strings
+      → ActionPrimitives (wrapper methods)
+          → MCP Client
+```
+
+### New Architecture (After)
+```
+User Task
+  → RAG (retrieve skills for reference)
+  → WorkflowPlanner (generate plan with MCP tool calls)
+  → MCPExecutor
+      → MCP Client (direct call)
+```
+
+## Deprecated Files
+
+The following files are no longer used and can be deleted later:
+- `agent/execution/action_primitives.py` - Redundant wrapper methods
+- `agent/execution/state_based_executor.py` - String parsing layer
+- `agent/execution/claude_mcp_executor.py` - Alternative approach
+
+## Benefits
+
+1. **Simpler**: Fewer abstraction layers, easier to understand
+2. **Consistent**: Same pattern as verified `manual_workflow.py`
+3. **Flexible**: Direct MCP tool access, no hardcoded methods
+4. **Debuggable**: Clear flow from plan to MCP tool execution
+5. **Maintainable**: Changes to MCP tools don't require updating wrapper code
+
+## Testing
+
+Run tests:
+```bash
+# Test executor directly
+python -m agent.execution.mcp_executor
+
+# Test autonomous workflow execution
+python test_refactored_workflow.py
+
+# Test manual workflow with new executor
+python test_manual_workflow_refactored.py
+
+# Test full autonomous workflow
+python -m agent.workflows.autonomous_workflow "Open sample.mf4"
+```
+
+**All tests passed successfully!** ✓
+
+## Migration Notes
+
+- Skill catalog format remains unchanged (high-level action_sequence)
+- WorkflowPlanner translates skills into MCP tool calls
+- Existing RAG and skill retrieval unchanged
+- LangGraph workflow structure unchanged
