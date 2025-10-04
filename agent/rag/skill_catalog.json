@@ -1,0 +1,359 @@
+[
+  {
+    "skill_id": "open_file",
+    "description": "Open a single MDF file for visualization and processing.",
+    "ui_location": "File menu",
+    "action_sequence": [
+      "click_menu('File')",
+      "select('Open')",
+      "choose_file"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "file_opened",
+    "doc_citation": "GUI#File",
+    "parameters": {}
+  },
+  {
+    "skill_id": "open_folder",
+    "description": "Open all MDF files in the selected folder recursively.",
+    "ui_location": "File menu",
+    "action_sequence": [
+      "click_menu('File')",
+      "select('Open folder')",
+      "choose_folder"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "files_opened",
+    "doc_citation": "GUI#File",
+    "parameters": {}
+  },
+  {
+    "skill_id": "save_configuration",
+    "description": "Save the current display configuration, including channel selection and window arrangements.",
+    "ui_location": "Command buttons",
+    "action_sequence": [
+      "click_button('Save configuration')",
+      "enter_filename",
+      "click_button('Save')"
+    ],
+    "prerequisites": [
+      "file_opened"
+    ],
+    "output_state": "configuration_saved",
+    "doc_citation": "GUI#Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "load_configuration",
+    "description": "Load a previously saved display configuration.",
+    "ui_location": "Command buttons",
+    "action_sequence": [
+      "click_button('Load configuration')",
+      "choose_configuration_file",
+      "click_button('Open')"
+    ],
+    "prerequisites": [
+      "file_opened"
+    ],
+    "output_state": "configuration_loaded",
+    "doc_citation": "GUI#Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "concatenate_files",
+    "description": "Concatenate multiple MDF files into a single file maintaining the file structure.",
+    "ui_location": "Batch processing tab",
+    "action_sequence": [
+      "click_menu('Mode')",
+      "select_option('Batch processing')",
+      "multi_select_files",
+      "click_button('Open')",
+      "select_operation('Concatenate')",
+      "click_button('Save')"
+    ],
+    "prerequisites": [
+      "multiple_files_available"
+    ],
+    "output_state": "concatenated_file_created",
+    "doc_citation": "GUI#Batch-processing",
+    "parameters": {}
+  },
+  {
+    "skill_id": "stack_files",
+    "description": "Stack multiple MDF files into a single measurement file containing all channel groups.",
+    "ui_location": "Batch processing tab",
+    "action_sequence": [
+      "click_menu('Mode')",
+      "select_option('Batch processing')",
+      "multi_select_files",
+      "click_button('Open')",
+      "select_operation('Stack')",
+      "click_button('Save')"
+    ],
+    "prerequisites": [
+      "multiple_files_available"
+    ],
+    "output_state": "stacked_file_created",
+    "doc_citation": "GUI#Batch-processing",
+    "parameters": {}
+  },
+  {
+    "skill_id": "create_plot_window",
+    "description": "Create a new plot window for visualizing selected channels.",
+    "ui_location": "Command buttons",
+    "action_sequence": [
+      "check_channels_in_tree",
+      "click_button('Create window')",
+      "select_plot_type('Plot')"
+    ],
+    "prerequisites": [
+      "channels_selected"
+    ],
+    "output_state": "plot_window_created",
+    "doc_citation": "GUI#Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "create_numeric_window",
+    "description": "Create a new numeric window to view channel values numerically.",
+    "ui_location": "Command buttons",
+    "action_sequence": [
+      "check_channels_in_tree",
+      "click_button('Create window')",
+      "select_plot_type('Numeric')"
+    ],
+    "prerequisites": [
+      "channels_selected"
+    ],
+    "output_state": "numeric_window_created",
+    "doc_citation": "GUI#Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "create_tabular_window",
+    "description": "Create a new tabular window similar to an Excel/CSV sheet for selected channels.",
+    "ui_location": "Command buttons",
+    "action_sequence": [
+      "check_channels_in_tree",
+      "click_button('Create window')",
+      "select_plot_type('Tabular')"
+    ],
+    "prerequisites": [
+      "channels_selected"
+    ],
+    "output_state": "tabular_window_created",
+    "doc_citation": "GUI#Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "toggle_fullscreen",
+    "description": "Toggle full screen mode in single file mode.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('F11')"
+    ],
+    "prerequisites": [
+      "file_opened"
+    ],
+    "output_state": "fullscreen_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "save_plot_channels",
+    "description": "Save channels from the current active plot window to a new MDF file.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Ctrl+S')",
+      "enter_filename",
+      "click_button('Save')"
+    ],
+    "prerequisites": [
+      "plot_window_created"
+    ],
+    "output_state": "plot_channels_saved",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "save_all_channels",
+    "description": "Save all channels from all sub-windows to a new MDF file.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Ctrl+Shift+S')",
+      "enter_filename",
+      "click_button('Save')"
+    ],
+    "prerequisites": [
+      "file_opened"
+    ],
+    "output_state": "all_channels_saved",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "toggle_grid",
+    "description": "Toggle grid lines on the plot.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('G')"
+    ],
+    "prerequisites": [
+      "plot_window_created"
+    ],
+    "output_state": "grid_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "edit_signal_color",
+    "description": "Open a dialog to select the color for signals in a plot.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('C')",
+      "select_color",
+      "click_button('OK')"
+    ],
+    "prerequisites": [
+      "plot_window_created"
+    ],
+    "output_state": "signal_color_edited",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "fit_all",
+    "description": "Fit all active channels on the plot to the current X-axis range on the Y-axis.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('F')"
+    ],
+    "prerequisites": [
+      "plot_window_created"
+    ],
+    "output_state": "fit_all_applied",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "fit_selected",
+    "description": "Fit selected channels on the plot to the current X-axis range on the Y-axis.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Shift+F')"
+    ],
+    "prerequisites": [
+      "plot_window_created"
+    ],
+    "output_state": "fit_selected_applied",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "zoom_in_plot",
+    "description": "Zoom in on the X-axis in a plot window.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('I')"
+    ],
+    "prerequisites": [
+      "plot_window_created"
+    ],
+    "output_state": "plot_zoomed_in",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "zoom_out_plot",
+    "description": "Zoom out on the X-axis in a plot window.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('O')"
+    ],
+    "prerequisites": [
+      "plot_window_created"
+    ],
+    "output_state": "plot_zoomed_out",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "insert_computation",
+    "description": "Insert a new channel in the plot using functions and operations.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Ins')",
+      "select_function_or_operation",
+      "confirm_insertion"
+    ],
+    "prerequisites": [
+      "plot_window_created"
+    ],
+    "output_state": "computed_channel_inserted",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "advanced_search_select",
+    "description": "Open an advanced search dialog to use wildcard and regex patterns to search and select channels.",
+    "ui_location": "Command buttons",
+    "action_sequence": [
+      "click_button('Advanced search & select')",
+      "perform_search",
+      "confirm_selection"
+    ],
+    "prerequisites": [
+      "file_opened"
+    ],
+    "output_state": "channels_selected_via_search",
+    "doc_citation": "GUI#Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "cascade_sub_windows",
+    "description": "Cascade all the sub-plot windows.",
+    "ui_location": "Plot window area",
+    "action_sequence": [
+      "press_key('Shift+C')"
+    ],
+    "prerequisites": [
+      "multiple_sub_windows"
+    ],
+    "output_state": "sub_windows_cascaded",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "tile_sub_windows_grid",
+    "description": "Tile all sub-windows in a grid layout.",
+    "ui_location": "Plot window area",
+    "action_sequence": [
+      "press_key('Shift+T')"
+    ],
+    "prerequisites": [
+      "multiple_sub_windows"
+    ],
+    "output_state": "sub_windows_tiled_grid",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "drag_drop_channels",
+    "description": "Drag and drop channels between sub-windows for easier configuration.",
+    "ui_location": "Windows area",
+    "action_sequence": [
+      "drag_channel",
+      "drop_channel_in_target_sub_window"
+    ],
+    "prerequisites": [
+      "multiple_sub_windows"
+    ],
+    "output_state": "channels_dragged_and_dropped",
+    "doc_citation": "GUI#Drag-.-Drop",
+    "parameters": {}
+  }
+]
