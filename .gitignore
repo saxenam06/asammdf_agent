@@ -4,6 +4,10 @@
 
 # # Byte-compiled / optimized / DLL files
 __pycache__/
+
+## Skills Vector store
+agent/skills/vector_store
+
 # *.py[cod]
 # *$py.class
 
