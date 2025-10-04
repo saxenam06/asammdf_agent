@@ -8,6 +8,9 @@ __pycache__/
 ## Skills Vector store
 agent/skills/vector_store
 
+## Ignore
+.env
+
 # *.py[cod]
 # *$py.class
 
