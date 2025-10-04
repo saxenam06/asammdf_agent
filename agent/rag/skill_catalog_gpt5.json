@@ -1,0 +1,1650 @@
+[
+  {
+    "skill_id": "open_files",
+    "description": "Open one or multiple MDF files for the current mode (Single files, Batch processing, or Comparison).",
+    "ui_location": "File menu",
+    "action_sequence": [
+      "click_menu('File')",
+      "select_option('Open')",
+      "multi_select_files_in_dialog()",
+      "click_button('Open')"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "file_opened",
+    "doc_citation": "GUI#Menu-File",
+    "parameters": {}
+  },
+  {
+    "skill_id": "open_folder_recursive",
+    "description": "Open all MDF files found recursively in a selected root folder.",
+    "ui_location": "File menu",
+    "action_sequence": [
+      "click_menu('File')",
+      "select_option('Open folder')",
+      "choose_folder()",
+      "confirm_selection()"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "folder_opened",
+    "doc_citation": "GUI#Menu-File",
+    "parameters": {}
+  },
+  {
+    "skill_id": "open_configuration",
+    "description": "Load a display configuration (channels tree and sub-windows layout) for the current opened file.",
+    "ui_location": "File menu or Single files → Command buttons",
+    "action_sequence": [
+      "click_menu('File')",
+      "select_option('Open configuration')",
+      "choose_file('*.cfg')",
+      "click_button('Open')"
+    ],
+    "prerequisites": [
+      "app_open",
+      "single_files_mode"
+    ],
+    "output_state": "configuration_loaded",
+    "doc_citation": "GUI#Menu-File; GUI#Single-files-Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "save_configuration",
+    "description": "Save current channel tree selection and all sub-windows (channels, colors, axes, enabled state) to a configuration file.",
+    "ui_location": "File menu or Single files → Command buttons",
+    "action_sequence": [
+      "click_menu('File')",
+      "select_option('Save configuration')",
+      "enter_filename('*.cfg')",
+      "click_button('Save')"
+    ],
+    "prerequisites": [
+      "app_open",
+      "single_files_mode"
+    ],
+    "output_state": "configuration_saved",
+    "doc_citation": "GUI#Menu-File; GUI#Single-files-Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "switch_mode_single_files",
+    "description": "Switch to Single files mode to open and process files individually.",
+    "ui_location": "Mode menu",
+    "action_sequence": [
+      "click_menu('Mode')",
+      "select_option('Single files')"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "mode_switched",
+    "doc_citation": "GUI#Mode",
+    "parameters": {}
+  },
+  {
+    "skill_id": "switch_mode_batch_processing",
+    "description": "Switch to Batch processing mode to process multiple files together (concatenate, stack, or bulk modify/export).",
+    "ui_location": "Mode menu",
+    "action_sequence": [
+      "click_menu('Mode')",
+      "select_option('Batch processing')"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "mode_switched",
+    "doc_citation": "GUI#Mode",
+    "parameters": {}
+  },
+  {
+    "skill_id": "switch_mode_comparison",
+    "description": "Switch to Comparison mode to compare channels across multiple opened files.",
+    "ui_location": "Mode menu",
+    "action_sequence": [
+      "click_menu('Mode')",
+      "select_option('Comparison')"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "mode_switched",
+    "doc_citation": "GUI#Mode",
+    "parameters": {}
+  },
+  {
+    "skill_id": "toggle_subwindows",
+    "description": "Enable or disable creation of multiple subplots when creating new windows.",
+    "ui_location": "Settings menu",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "toggle_option('Sub-windows', 'Enabled'|'Disabled')"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Settings",
+    "parameters": {}
+  },
+  {
+    "skill_id": "link_subwindows_x_axis",
+    "description": "Toggle linking the X-axis across subplots so zooming affects all sub-windows.",
+    "ui_location": "Settings menu",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "toggle_option('Link sub-windows X-axis', 'Enabled'|'Disabled')"
+    ],
+    "prerequisites": [
+      "app_open",
+      "subwindows_enabled"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Settings",
+    "parameters": {}
+  },
+  {
+    "skill_id": "ignore_value2text_conversions",
+    "description": "Enable or disable applying value-to-text conversions for channels.",
+    "ui_location": "Settings menu",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "toggle_option('Ignore value2text conversions', 'Enabled'|'Disabled')"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Settings",
+    "parameters": {}
+  },
+  {
+    "skill_id": "set_plot_background",
+    "description": "Switch the default plot background color for new plots.",
+    "ui_location": "Settings menu",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "select_option('Plot background')",
+      "select_option('Black'|'White')"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Settings",
+    "parameters": {}
+  },
+  {
+    "skill_id": "set_plot_x_axis_format",
+    "description": "Set plot X-axis formatting to seconds, time (hh:mm:ss), or date (measurement start datetime).",
+    "ui_location": "Settings menu",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "select_option('Plot X axis')",
+      "select_option('seconds'|'time'|'date')"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Settings",
+    "parameters": {}
+  },
+  {
+    "skill_id": "set_theme",
+    "description": "Switch application theme between Dark and Light.",
+    "ui_location": "Settings menu",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "select_option('Theme')",
+      "select_option('Dark'|'Light')"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Settings",
+    "parameters": {}
+  },
+  {
+    "skill_id": "set_step_mode",
+    "description": "Control how signal samples are visually interconnected in Plot step mode.",
+    "ui_location": "Settings menu",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "select_option('Step mode')",
+      "choose_value()"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Settings",
+    "parameters": {}
+  },
+  {
+    "skill_id": "set_integer_interpolation",
+    "description": "Select interpolation mode for integer channels: repeat previous sample, linear, or hybrid.",
+    "ui_location": "Settings menu",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "select_option('Integer interpolation')",
+      "select_option('0 - repeat previous sample'|'1 - linear interpolation'|'2 - hybrid interpolation')"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Settings",
+    "parameters": {}
+  },
+  {
+    "skill_id": "set_float_interpolation",
+    "description": "Select interpolation mode for float channels: repeat previous sample or linear.",
+    "ui_location": "Settings menu",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "select_option('Float interpolation')",
+      "select_option('0 - repeat previous sample'|'1 - linear interpolation')"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Settings",
+    "parameters": {}
+  },
+  {
+    "skill_id": "open_help",
+    "description": "Open the online GUI help page.",
+    "ui_location": "Anywhere",
+    "action_sequence": [
+      "press_key('F1')"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "help_opened",
+    "doc_citation": "GUI#General-shortcuts",
+    "parameters": {}
+  },
+  {
+    "skill_id": "create_plot_from_selection",
+    "description": "Create a new Plot window using the checked channels from the selection tree.",
+    "ui_location": "Single files → Command buttons or keyboard",
+    "action_sequence": [
+      "ensure_channels_checked_in_tree()",
+      "press_key('F2')"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "file_loaded",
+      "channels_checked"
+    ],
+    "output_state": "plot_created",
+    "doc_citation": "GUI#General-shortcuts; GUI#Single-files-Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "create_numeric_from_selection",
+    "description": "Create a new Numeric window using the checked channels from the selection tree.",
+    "ui_location": "Single files → Command buttons or keyboard",
+    "action_sequence": [
+      "ensure_channels_checked_in_tree()",
+      "press_key('F3')"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "file_loaded",
+      "channels_checked"
+    ],
+    "output_state": "numeric_created",
+    "doc_citation": "GUI#General-shortcuts; GUI#Single-files-Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "create_tabular_from_selection",
+    "description": "Create a new Tabular window using the checked channels from the selection tree.",
+    "ui_location": "Single files → Command buttons or keyboard",
+    "action_sequence": [
+      "ensure_channels_checked_in_tree()",
+      "press_key('F4')"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "file_loaded",
+      "channels_checked"
+    ],
+    "output_state": "tabular_created",
+    "doc_citation": "GUI#General-shortcuts; GUI#Single-files-Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "toggle_fullscreen",
+    "description": "Toggle fullscreen view for the current opened file (Single files mode).",
+    "ui_location": "Keyboard",
+    "action_sequence": [
+      "press_key('F11')"
+    ],
+    "prerequisites": [
+      "single_files_mode"
+    ],
+    "output_state": "fullscreen_toggled",
+    "doc_citation": "GUI#General-shortcuts; GUI#Plot-shortcuts",
+    "parameters": {}
+  },
+  {
+    "skill_id": "select_all_channels_in_tree",
+    "description": "Check all channels in the channels tree.",
+    "ui_location": "Single files → Command buttons",
+    "action_sequence": [
+      "click_button('Select all channels')"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "file_loaded"
+    ],
+    "output_state": "channels_selected",
+    "doc_citation": "GUI#Single-files-Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "reset_channel_selection",
+    "description": "Uncheck all channels in the channels tree.",
+    "ui_location": "Single files → Command buttons",
+    "action_sequence": [
+      "click_button('Reset selection')"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "file_loaded"
+    ],
+    "output_state": "selection_reset",
+    "doc_citation": "GUI#Single-files-Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "advanced_search_select_channels",
+    "description": "Open advanced search dialog to select channels using wildcard or regex and check them in the tree.",
+    "ui_location": "Single files → Command buttons",
+    "action_sequence": [
+      "click_button('Advanced search & select')",
+      "enter_pattern()",
+      "preview_matches()",
+      "confirm_selection()"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "file_loaded"
+    ],
+    "output_state": "channels_selected",
+    "doc_citation": "GUI#Single-files-Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "create_pattern_based_window",
+    "description": "Define a pattern-based window that filters channels by name and optionally by value condition; saved in the window configuration.",
+    "ui_location": "Single files → Advanced search & select dialog → Pattern based window tab",
+    "action_sequence": [
+      "click_button('Advanced search & select')",
+      "switch_tab('Pattern based window')",
+      "define_name_pattern()",
+      "define_value_condition_optional()",
+      "click_button('Create window')"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "file_loaded"
+    ],
+    "output_state": "plot_created",
+    "doc_citation": "GUI#Single-files-Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "toggle_channel_tree_display_mode",
+    "description": "Switch channel tree between natural sorted list, grouped by internal file structure, or only selected channels.",
+    "ui_location": "Single files → Channel tree display mode",
+    "action_sequence": [
+      "open_display_mode_selector()",
+      "select_option('Natural'|'File structure'|'Only selected')"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "file_loaded"
+    ],
+    "output_state": "tree_display_mode_changed",
+    "doc_citation": "GUI#Single-files-Channel-tree-display-mode",
+    "parameters": {}
+  },
+  {
+    "skill_id": "view_channel_metadata",
+    "description": "Open pop-up window to view channel, conversion, and source metadata (CNBLOCK, CCBLOCK, SIBLOCK/CEBLOCK).",
+    "ui_location": "Single files → Channel tree",
+    "action_sequence": [
+      "double_click_tree_item('channel')"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "file_loaded"
+    ],
+    "output_state": "channel_metadata_shown",
+    "doc_citation": "GUI#Single-files-Complete-channels-tree",
+    "parameters": {}
+  },
+  {
+    "skill_id": "rearrange_subwindows",
+    "description": "Rearrange plot sub-windows using drag and drop within the windows area.",
+    "ui_location": "Single files → Windows area",
+    "action_sequence": [
+      "drag_subwindow()",
+      "drop_subwindow(new_position)"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "subwindows_enabled"
+    ],
+    "output_state": "subwindows_tiled",
+    "doc_citation": "GUI#Single-files-Windows-area",
+    "parameters": {}
+  },
+  {
+    "skill_id": "numeric_set_integer_format",
+    "description": "Set integer numeric display format to physical, hex, or binary in Numeric window.",
+    "ui_location": "Numeric window",
+    "action_sequence": [
+      "open_dropdown('integer format')",
+      "select_option('physical'|'hex'|'binary')"
+    ],
+    "prerequisites": [
+      "numeric_window_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Single-files-Numeric-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "numeric_set_float_decimals",
+    "description": "Choose float precision for displaying values in Numeric window.",
+    "ui_location": "Numeric window",
+    "action_sequence": [
+      "open_dropdown('float decimals')",
+      "select_value()"
+    ],
+    "prerequisites": [
+      "numeric_window_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Single-files-Numeric-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "numeric_set_timestamp",
+    "description": "Adjust timestamp using input box or slider to display instantaneous values at that time.",
+    "ui_location": "Numeric window",
+    "action_sequence": [
+      "set_input('timestamp')|set_slider('timestamp')"
+    ],
+    "prerequisites": [
+      "numeric_window_open"
+    ],
+    "output_state": "values_updated",
+    "doc_citation": "GUI#Single-files-Numeric-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "numeric_search_value",
+    "description": "Search for channels with values matching criteria (raw or scaled, operator, target, direction) at/around a timestamp.",
+    "ui_location": "Numeric window",
+    "action_sequence": [
+      "select_option('signal values search mode', 'raw'|'scaled')",
+      "enter_text('signal name pattern')",
+      "select_option('operator')",
+      "enter_value('target value')",
+      "select_option('direction')",
+      "click_button('Search')"
+    ],
+    "prerequisites": [
+      "numeric_window_open"
+    ],
+    "output_state": "search_results_displayed",
+    "doc_citation": "GUI#Single-files-Numeric-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "open_range_editor_from_numeric",
+    "description": "Open range editor for a signal from Numeric window.",
+    "ui_location": "Numeric window",
+    "action_sequence": [
+      "double_click_row('signal')"
+    ],
+    "prerequisites": [
+      "numeric_window_open"
+    ],
+    "output_state": "range_editor_opened",
+    "doc_citation": "GUI#Single-files-Numeric-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_edit_signal_color",
+    "description": "Edit the color of selected signal(s) in Plot window.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('C')",
+      "choose_color()",
+      "confirm_selection()"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "channel_color_changed",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_toggle_grid",
+    "description": "Toggle grid lines in Plot window.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('G')"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "grid_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_fit_all_y",
+    "description": "Fit Y-axis for all active channels while keeping current X-axis range.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('F')"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "fit_applied",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_fit_selected_y",
+    "description": "Fit Y-axis for selected channels only while keeping current X-axis range.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Shift+F')"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "channels_selected_in_plot"
+    ],
+    "output_state": "fit_applied",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_home_xy",
+    "description": "Home view to show all signals in both X and Y (whole signals fit).",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('W')"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "zoom_applied",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_honeywell_zoom",
+    "description": "Zoom in on current cursor position with a fixed zoom level (0.1s/cm).",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('H')"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "cursor_active"
+    ],
+    "output_state": "zoom_applied",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_zoom_in_out",
+    "description": "Zoom X-axis in (I) or out (O), centered on cursor if present.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('I'|'O')"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "zoom_applied",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_zoom_to_range",
+    "description": "Zoom to the defined range region if enabled.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('X')"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "region_visible"
+    ],
+    "output_state": "zoom_applied",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_toggle_statistics_panel",
+    "description": "Toggle the display of the statistics panel for plot channels.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('M')"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "statistics_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_toggle_range_region",
+    "description": "Toggle a movable range region that shows delta values for channels.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('R')"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "range_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_stack_all",
+    "description": "Stack all active channels vertically to avoid overlap, keeping X-axis range.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('S')"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "stack_applied",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_stack_selected",
+    "description": "Stack only selected channels vertically to avoid overlap.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Shift+S')"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "channels_selected_in_plot"
+    ],
+    "output_state": "stack_applied",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_lock_unlock_region",
+    "description": "Lock or unlock the left margin of the range region.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Y')"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "region_visible"
+    ],
+    "output_state": "region_locked",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_toggle_sample_dots",
+    "description": "Toggle drawing signal samples as dots.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('.')"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "dots_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_move_cursor_left_right",
+    "description": "Move the cursor to the previous or next sample.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Left')|press_key('Right')"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "cursor_active"
+    ],
+    "output_state": "cursor_moved",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_insert_computation",
+    "description": "Insert a computed channel using operations/functions or an expression based on existing plot signals.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Ins')",
+      "select_computation_type('operation'|'function'|'expression')",
+      "define_inputs()",
+      "confirm()"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "computed_channel_inserted",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_toggle_trigger_texts",
+    "description": "Toggle the display of trigger text boxes.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Alt+I')"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "trigger_texts_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_toggle_raw_scaled_samples",
+    "description": "Toggle between raw and scaled samples for selected channels.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Alt+R')|press_key('Alt+S')"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "channels_selected_in_plot"
+    ],
+    "output_state": "samples_mode_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_toggle_integer_representation",
+    "description": "Toggle integer representation of channels between binary, hex, and physical.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Ctrl+B')|press_key('Ctrl+H')|press_key('Ctrl+P')"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "integer_channels_present"
+    ],
+    "output_state": "int_repr_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_insert_cursor_comment",
+    "description": "Insert a vertical line and a comment at the current cursor position.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Ctrl+I')",
+      "enter_text('comment')",
+      "confirm()"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "cursor_active"
+    ],
+    "output_state": "cursor_comment_inserted",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_edit_color_ranges",
+    "description": "Open dialog to edit color ranges for a channel or channel group.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Ctrl+R')",
+      "edit_ranges()",
+      "confirm()"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "color_ranges_edited",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_edit_y_axis_scaling",
+    "description": "Visually edit Y-axis ranges according to expected signal values.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Ctrl+G')",
+      "adjust_scaling()",
+      "confirm()"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "y_axis_scaled_edited",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "save_plot_channels_to_mf4",
+    "description": "Save channels from the current active subplot to a new MF4 file.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Ctrl+S')",
+      "enter_filename('*.mf4')",
+      "click_button('Save')"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "plot_channels_saved",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "save_all_plot_channels_to_mf4",
+    "description": "Save all channels from all sub-windows to a new MF4 file.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Ctrl+Shift+S')",
+      "enter_filename('*.mf4')",
+      "click_button('Save')"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "all_channels_saved",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "cascade_subwindows",
+    "description": "Cascade all plot sub-windows.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Shift+C')"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "subwindows_enabled"
+    ],
+    "output_state": "subwindows_tiled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "toggle_mdi_frames",
+    "description": "Toggle MDI window frames for subplots.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Shift+Alt+F')"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "subwindows_enabled"
+    ],
+    "output_state": "frames_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "toggle_channel_list",
+    "description": "Toggle visibility of the channel selection tree for the current file.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Shift+L')"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "channel_list_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "tile_subwindows_grid",
+    "description": "Tile sub-windows in a grid.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Shift+T')"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "subwindows_enabled"
+    ],
+    "output_state": "subwindows_tiled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "tile_subwindows_vertically",
+    "description": "Tile sub-windows vertically.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Shift+V')"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "subwindows_enabled"
+    ],
+    "output_state": "subwindows_tiled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "tile_subwindows_horizontally",
+    "description": "Tile sub-windows horizontally.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Shift+H')"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "subwindows_enabled"
+    ],
+    "output_state": "subwindows_tiled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "shift_channels_time_and_axis",
+    "description": "Shift selected channels left/right in time or up/down in Y.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('Shift+Left'|'Shift+Right'|'Shift+Up'|'Shift+Down')"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "channels_selected_in_plot"
+    ],
+    "output_state": "channels_shifted",
+    "doc_citation": "GUI#Plot",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_adjust_axis_width_buttons",
+    "description": "Adjust each vertical axis width using + and - buttons.",
+    "ui_location": "Plot window axis controls",
+    "action_sequence": [
+      "click_button('+')|click_button('-')"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "axis_width_adjusted",
+    "doc_citation": "GUI#Single-files-Plot-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_change_signal_color_button",
+    "description": "Change a signal color using the color select button next to it in the selection tree.",
+    "ui_location": "Plot window → signal selection tree",
+    "action_sequence": [
+      "click_button('color swatch' for signal)",
+      "choose_color()",
+      "confirm()"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "channel_color_changed",
+    "doc_citation": "GUI#Single-files-Plot-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_toggle_common_axis",
+    "description": "Assign signals to a common Y-axis using the common axis checkbox.",
+    "ui_location": "Plot window → signal selection tree",
+    "action_sequence": [
+      "check_box('common axis' for selected signals)"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "axis_assignment_changed",
+    "doc_citation": "GUI#Single-files-Plot-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "plot_toggle_individual_axis",
+    "description": "Assign a signal to its own individual Y-axis.",
+    "ui_location": "Plot window → signal selection tree",
+    "action_sequence": [
+      "check_box('individual axis' for signal)"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "axis_assignment_changed",
+    "doc_citation": "GUI#Single-files-Plot-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "create_channel_group",
+    "description": "Create a simple channel group for organizing signals in the selection tree.",
+    "ui_location": "Plot window → signal selection tree context menu",
+    "action_sequence": [
+      "right_click_selection_tree()",
+      "select_option('New group')",
+      "enter_group_name()",
+      "confirm()"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "channel_group_created",
+    "doc_citation": "GUI#Single-files-Plot-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "create_pattern_based_channel_group",
+    "description": "Create a pattern-based channel group to filter signals by name or sample values.",
+    "ui_location": "Plot window → signal selection tree context menu",
+    "action_sequence": [
+      "right_click_selection_tree()",
+      "select_option('New pattern group')",
+      "define_name_pattern()",
+      "define_value_condition_optional()",
+      "confirm()"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "channel_group_pattern_created",
+    "doc_citation": "GUI#Single-files-Plot-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "open_range_editor_from_plot",
+    "description": "Open range editor dialog for a signal from the Plot window by double-clicking its item.",
+    "ui_location": "Plot window → signal selection tree",
+    "action_sequence": [
+      "double_click_signal_item()"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "range_editor_opened",
+    "doc_citation": "GUI#Single-files-Plot-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "create_tabular_filters",
+    "description": "Define one or multiple filters for signals in Tabular window.",
+    "ui_location": "Tabular window",
+    "action_sequence": [
+      "toggle_filters_view_if_hidden()",
+      "click_button('Add filter')",
+      "select_filter_signal()",
+      "select_filter_operator()",
+      "enter_target_value()",
+      "select_logic_relation_if_multiple()",
+      "click_button('Apply filters')"
+    ],
+    "prerequisites": [
+      "tabular_window_open"
+    ],
+    "output_state": "filters_applied",
+    "doc_citation": "GUI#Single-files-Tabular-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "tabular_header_context_menu",
+    "description": "Sort, define signal ranges, and adjust column width via column header right-click menu.",
+    "ui_location": "Tabular window",
+    "action_sequence": [
+      "right_click_column_header()",
+      "select_option('Sort'|'Ranges'|'Adjust width')",
+      "apply_changes()"
+    ],
+    "prerequisites": [
+      "tabular_window_open"
+    ],
+    "output_state": "filters_modified",
+    "doc_citation": "GUI#Single-files-Tabular-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "tabular_set_integer_format",
+    "description": "Choose integer display format (physical, hex, binary) in Tabular window.",
+    "ui_location": "Tabular window",
+    "action_sequence": [
+      "open_dropdown('integer format')",
+      "select_option('physical'|'hex'|'binary')"
+    ],
+    "prerequisites": [
+      "tabular_window_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Single-files-Tabular-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "tabular_set_float_decimals",
+    "description": "Set float precision for Tabular display.",
+    "ui_location": "Tabular window",
+    "action_sequence": [
+      "open_dropdown('float decimals')",
+      "select_value()"
+    ],
+    "prerequisites": [
+      "tabular_window_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Single-files-Tabular-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "tabular_set_timestamp_format",
+    "description": "Display timestamps as float or datetime.",
+    "ui_location": "Tabular window",
+    "action_sequence": [
+      "open_dropdown('timestamp format')",
+      "select_option('float'|'datetime')"
+    ],
+    "prerequisites": [
+      "tabular_window_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Single-files-Tabular-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "tabular_remove_prefix",
+    "description": "Remove prefixes from column names to reduce column width.",
+    "ui_location": "Tabular window",
+    "action_sequence": [
+      "check_box('remove prefix')"
+    ],
+    "prerequisites": [
+      "tabular_window_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Single-files-Tabular-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "tabular_toggle_filters_view",
+    "description": "Toggle visibility of the filters panel in Tabular window.",
+    "ui_location": "Tabular window",
+    "action_sequence": [
+      "click_button('toggle filters view')"
+    ],
+    "prerequisites": [
+      "tabular_window_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Single-files-Tabular-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "tabular_query_dataframe",
+    "description": "Run a pandas-like query on the underlying dataframe to filter displayed data.",
+    "ui_location": "Tabular window",
+    "action_sequence": [
+      "enter_text('query')",
+      "click_button('Apply filters')"
+    ],
+    "prerequisites": [
+      "tabular_window_open"
+    ],
+    "output_state": "filters_applied",
+    "doc_citation": "GUI#Single-files-Tabular-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "open_bus_trace_window",
+    "description": "Create CAN/LIN/FlexRay Bus Trace window from current selection if measurement contains corresponding bus logging.",
+    "ui_location": "Single files → Command buttons (Create window)",
+    "action_sequence": [
+      "ensure_channels_checked_in_tree_optional()",
+      "click_button('Create window')",
+      "select_option('CAN Bus Trace'|'LIN Bus Trace'|'FlexRay Bus Trace')"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "file_loaded",
+      "bus_logging_present"
+    ],
+    "output_state": "bus_trace_created",
+    "doc_citation": "GUI#Single-files-CAN/LIN/FlexRay-Bus-Trace",
+    "parameters": {}
+  },
+  {
+    "skill_id": "decode_bus_logging",
+    "description": "Decode CAN/LIN bus logging using database files (.dbc, .ldf, .arxml).",
+    "ui_location": "Single files → bus logging tab or Batch processing → bus logging tab",
+    "action_sequence": [
+      "switch_tab('bus logging')",
+      "click_button('Load database')",
+      "choose_file('*.dbc|*.ldf|*.arxml')",
+      "confirm()",
+      "click_button('Decode')"
+    ],
+    "prerequisites": [
+      "file_loaded",
+      "bus_logging_present"
+    ],
+    "output_state": "bus_decoded",
+    "doc_citation": "GUI#Single-files-File-operations",
+    "parameters": {}
+  },
+  {
+    "skill_id": "extract_attachments",
+    "description": "Extract and save attachments embedded in the measurement file.",
+    "ui_location": "Single files → attachments tab",
+    "action_sequence": [
+      "switch_tab('attachments')",
+      "select_attachment()",
+      "click_button('Extract')",
+      "choose_save_location()",
+      "click_button('Save')"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "file_loaded",
+      "attachments_present"
+    ],
+    "output_state": "attachment_extracted",
+    "doc_citation": "GUI#Single-files-File-operations",
+    "parameters": {}
+  },
+  {
+    "skill_id": "view_file_info_overview",
+    "description": "View file overview including channel groups, header comments, and total channel count.",
+    "ui_location": "Single files → info tab",
+    "action_sequence": [
+      "switch_tab('info')"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "file_loaded"
+    ],
+    "output_state": "overview_displayed",
+    "doc_citation": "GUI#Single-files-File-operations",
+    "parameters": {}
+  },
+  {
+    "skill_id": "modify_export_filter_channels",
+    "description": "Filter channels included in the output during modify & export operations.",
+    "ui_location": "Single files → modify & export tab or Batch processing → modify & export tab",
+    "action_sequence": [
+      "switch_tab('modify & export')",
+      "open_filter_channels_dialog()",
+      "select_channels_or_pattern()",
+      "confirm()"
+    ],
+    "prerequisites": [
+      "file_loaded"
+    ],
+    "output_state": "filters_applied",
+    "doc_citation": "GUI#Single-files-File-operations",
+    "parameters": {}
+  },
+  {
+    "skill_id": "modify_export_cut_time_range",
+    "description": "Cut measurement to a specified time interval.",
+    "ui_location": "Single files → modify & export tab or Batch processing → modify & export tab",
+    "action_sequence": [
+      "switch_tab('modify & export')",
+      "select_operation('Cut')",
+      "set_time_range(start, end)",
+      "click_button('Apply'|'Save as')",
+      "enter_filename()",
+      "save_output()"
+    ],
+    "prerequisites": [
+      "file_loaded"
+    ],
+    "output_state": "file_saved",
+    "doc_citation": "GUI#GUI-intro-and-Single-files-File-operations",
+    "parameters": {}
+  },
+  {
+    "skill_id": "modify_export_resample",
+    "description": "Resample the measurement to a new sampling rate or grid.",
+    "ui_location": "Single files → modify & export tab or Batch processing → modify & export tab",
+    "action_sequence": [
+      "switch_tab('modify & export')",
+      "select_operation('Resample')",
+      "set_resample_parameters()",
+      "click_button('Apply'|'Save as')",
+      "enter_filename()",
+      "save_output()"
+    ],
+    "prerequisites": [
+      "file_loaded"
+    ],
+    "output_state": "file_saved",
+    "doc_citation": "GUI#GUI-intro-and-Single-files-File-operations",
+    "parameters": {}
+  },
+  {
+    "skill_id": "modify_export_convert_format",
+    "description": "Convert the measurement to another supported format (e.g., MF4, CSV, HDF5).",
+    "ui_location": "Single files → modify & export tab or Batch processing → modify & export tab",
+    "action_sequence": [
+      "switch_tab('modify & export')",
+      "select_operation('Convert')",
+      "choose_output_format('MF4'|'CSV'|'HDF5')",
+      "set_options_optional()",
+      "enter_filename()",
+      "save_output()"
+    ],
+    "prerequisites": [
+      "file_loaded"
+    ],
+    "output_state": "file_saved",
+    "doc_citation": "GUI#GUI-intro-and-Single-files-File-operations",
+    "parameters": {}
+  },
+  {
+    "skill_id": "modify_export_export_csv",
+    "description": "Export channels to CSV format.",
+    "ui_location": "Single files → modify & export tab or Batch processing → modify & export tab",
+    "action_sequence": [
+      "switch_tab('modify & export')",
+      "select_operation('Export')",
+      "choose_output_format('CSV')",
+      "select_channels_optional()",
+      "enter_filename('*.csv')",
+      "save_output()"
+    ],
+    "prerequisites": [
+      "file_loaded"
+    ],
+    "output_state": "file_saved",
+    "doc_citation": "GUI#Single-files-File-operations",
+    "parameters": {}
+  },
+  {
+    "skill_id": "modify_export_export_hdf5",
+    "description": "Export channels to HDF5 format.",
+    "ui_location": "Single files → modify & export tab or Batch processing → modify & export tab",
+    "action_sequence": [
+      "switch_tab('modify & export')",
+      "select_operation('Export')",
+      "choose_output_format('HDF5')",
+      "select_channels_optional()",
+      "enter_filename('*.h5')",
+      "save_output()"
+    ],
+    "prerequisites": [
+      "file_loaded"
+    ],
+    "output_state": "file_saved",
+    "doc_citation": "GUI#Single-files-File-operations",
+    "parameters": {}
+  },
+  {
+    "skill_id": "modify_export_scramble",
+    "description": "Scramble the measurement data (obfuscation).",
+    "ui_location": "Single files → modify & export tab or Batch processing → modify & export tab",
+    "action_sequence": [
+      "switch_tab('modify & export')",
+      "select_operation('Scramble')",
+      "set_scramble_parameters()",
+      "click_button('Apply'|'Save as')",
+      "enter_filename()",
+      "save_output()"
+    ],
+    "prerequisites": [
+      "file_loaded"
+    ],
+    "output_state": "file_saved",
+    "doc_citation": "GUI#GUI-intro",
+    "parameters": {}
+  },
+  {
+    "skill_id": "concatenate_files",
+    "description": "Concatenate multiple MDF files into a single file; requires matching internal structure. Optionally synchronize using measurement timestamps.",
+    "ui_location": "Batch processing view",
+    "action_sequence": [
+      "switch_mode('Batch processing')",
+      "click_menu('File')",
+      "select_option('Open')",
+      "multi_select_files_in_dialog()",
+      "click_button('Open')",
+      "reorder_files_by_drag_and_drop()",
+      "set_option('Sync using measurements timestamps', true|false)",
+      "select_operation('concatenate')",
+      "enter_filename('*.mf4')",
+      "click_button('Save')"
+    ],
+    "prerequisites": [
+      "batch_mode",
+      "multiple_files_available"
+    ],
+    "output_state": "files_concatenated",
+    "doc_citation": "GUI#Batch-processing",
+    "parameters": {}
+  },
+  {
+    "skill_id": "stack_files",
+    "description": "Stack multiple files into a single measurement containing all channel groups; identically named channels are not concatenated.",
+    "ui_location": "Batch processing view",
+    "action_sequence": [
+      "switch_mode('Batch processing')",
+      "open_files_into_list()",
+      "reorder_files_by_drag_and_drop()",
+      "select_operation('stack')",
+      "enter_filename('*.mf4')",
+      "click_button('Save')"
+    ],
+    "prerequisites": [
+      "batch_mode",
+      "multiple_files_available"
+    ],
+    "output_state": "files_stacked",
+    "doc_citation": "GUI#Batch-processing",
+    "parameters": {}
+  },
+  {
+    "skill_id": "batch_remove_files_from_list",
+    "description": "Delete unwanted files from batch list using DEL key.",
+    "ui_location": "Batch processing → file list",
+    "action_sequence": [
+      "select_files_in_list()",
+      "press_key('Del')"
+    ],
+    "prerequisites": [
+      "batch_mode"
+    ],
+    "output_state": "files_list_updated",
+    "doc_citation": "GUI#Batch-processing",
+    "parameters": {}
+  },
+  {
+    "skill_id": "batch_reorder_files",
+    "description": "Reorder files in batch list via drag and drop; order is top to bottom.",
+    "ui_location": "Batch processing → file list",
+    "action_sequence": [
+      "drag_list_item()",
+      "drop_list_item(new_position)"
+    ],
+    "prerequisites": [
+      "batch_mode"
+    ],
+    "output_state": "files_ordered",
+    "doc_citation": "GUI#Batch-processing",
+    "parameters": {}
+  },
+  {
+    "skill_id": "comparison_search_channels",
+    "description": "Search channels across all opened files; channel names are prefixed with measurement index.",
+    "ui_location": "Comparison view",
+    "action_sequence": [
+      "switch_mode('Comparison')",
+      "press_key('Ctrl+F')",
+      "enter_search_pattern()",
+      "select_matches()",
+      "confirm()"
+    ],
+    "prerequisites": [
+      "comparison_mode",
+      "multiple_files_opened"
+    ],
+    "output_state": "channels_selected",
+    "doc_citation": "GUI#Comparison",
+    "parameters": {}
+  },
+  {
+    "skill_id": "drag_drop_channels_between_windows",
+    "description": "Drag and drop channels between sub-windows or into free MDI area to create new windows.",
+    "ui_location": "Single files → Windows area",
+    "action_sequence": [
+      "drag_channel_from_window()",
+      "drop_channel_to_target_window_or_mdi()"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "plot_window_open_or_mdi_available"
+    ],
+    "output_state": "channels_drag_dropped",
+    "doc_citation": "GUI#Single-files-Drag-&-Drop",
+    "parameters": {}
+  },
+  {
+    "skill_id": "toggle_cursor_by_click",
+    "description": "Activate the plot cursor by clicking in the plot area; enables live value readouts.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "click_in_plot_area()"
+    ],
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "cursor_active",
+    "doc_citation": "GUI#Single-files-Plot-window",
+    "parameters": {}
+  },
+  {
+    "skill_id": "move_range_margins",
+    "description": "Move range region margins: left margin by click; right margin by Ctrl+click.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "click_in_plot_area_to_move_left_margin()",
+      "hold_key('Ctrl')",
+      "click_in_plot_area_to_move_right_margin()",
+      "release_key('Ctrl')"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "region_visible"
+    ],
+    "output_state": "range_adjusted",
+    "doc_citation": "GUI#Plot-Footnotes",
+    "parameters": {}
+  },
+  {
+    "skill_id": "create_gps_window",
+    "description": "Create a GPS window from selected channels when available.",
+    "ui_location": "Single files → Command buttons (Create window)",
+    "action_sequence": [
+      "ensure_channels_checked_in_tree()",
+      "click_button('Create window')",
+      "select_option('GPS')"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "file_loaded"
+    ],
+    "output_state": "gps_created",
+    "doc_citation": "GUI#Single-files-Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "toggle_plot_x_axis_format_on_the_fly",
+    "description": "Display X-axis as seconds, time, or date in existing plots via Settings (affects new plots; existing may not change).",
+    "ui_location": "Settings menu",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "select_option('Plot X axis')",
+      "select_option('seconds'|'time'|'date')"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Settings",
+    "parameters": {}
+  },
+  {
+    "skill_id": "open_numeric_plot_tabular_via_button",
+    "description": "Create new Numeric, Plot, Tabular, GPS, or Bus Trace windows from checked channels via the Create window button.",
+    "ui_location": "Single files → Command buttons",
+    "action_sequence": [
+      "ensure_channels_checked_in_tree()",
+      "click_button('Create window')",
+      "select_option('Numeric'|'Plot'|'Tabular'|'GPS'|'CAN Bus Trace'|'LIN Bus Trace'|'FlexRay Bus Trace')"
+    ],
+    "prerequisites": [
+      "single_files_mode",
+      "file_loaded",
+      "channels_checked"
+    ],
+    "output_state": "window_created",
+    "doc_citation": "GUI#Single-files-Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "toggle_subwindow_creation_effect",
+    "description": "Create a new subplot if Sub-windows is enabled; otherwise replace the current window.",
+    "ui_location": "Settings menu → Sub-windows",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "toggle_option('Sub-windows', 'Enabled'|'Disabled')"
+    ],
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "settings_changed",
+    "doc_citation": "GUI#Settings; GUI#Single-files-Command-buttons",
+    "parameters": {}
+  },
+  {
+    "skill_id": "view_channel_value_at_cursor_or_delta_in_tree",
+    "description": "View current or delta values in the signal selection tree when cursor or range is active.",
+    "ui_location": "Plot window → signal selection tree",
+    "action_sequence": [
+      "activate_cursor_or_range()",
+      "observe_value_labels()"
+    ],
+    "prerequisites": [
+      "plot_window_open",
+      "cursor_active|region_visible"
+    ],
+    "output_state": "values_displayed",
+    "doc_citation": "GUI#Single-files-Plot-window",
+    "parameters": {}
+  }
+]

@@ -9,11 +9,15 @@ from typing import List, Optional
 import requests
 from bs4 import BeautifulSoup
 from openai import OpenAI
+from dotenv import load_dotenv
 
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from agent.planning.schemas import SkillSchema
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 class DocumentationParser:
@@ -147,6 +151,9 @@ Extract ALL skills as JSON array:"""
 
             # Extract JSON from response
             content = response.choices[0].message.content
+
+            print(f"DEBUG: Response content length: {len(content) if content else 0}")
+            print(f"DEBUG: First 500 chars of response:\n{content[:500] if content else 'None'}\n")
 
             # Try to find JSON array in response
             if content.strip().startswith('['):
