@@ -483,7 +483,7 @@ Choose from:
 
 **Input:** HTML from https://asammdf.readthedocs.io/en/stable/gui.html
 **Process:** Claude extracts 15-20 GUI skills with structured output
-**Output:** `skill_catalog.json` with skills like `concatenate_mf4`, `export_excel`
+**Output:** `agent/skills/json/skill_catalog.json` with skills like `concatenate_mf4`, `export_excel`
 
 Example skill:
 ```json
@@ -632,7 +632,7 @@ python agent/rag/doc_parser.py
 python agent/rag/skill_retriever.py --rebuild-index
 ```
 
-**Option 2:** Manually add to `skill_catalog.json`
+**Option 2:** Manually add to `agent/skills/json/skill_catalog.json`
 ```json
 {
   "skill_id": "your_skill",
@@ -747,7 +747,7 @@ python agent/rag/doc_parser.py
 This will:
 - Fetch the asammdf GUI documentation
 - Use Claude to extract all GUI skills
-- Save to `agent/rag/skill_catalog.json`
+- Save to `agent/skills/json/skill_catalog.json`
 
 Expected output:
 ```
@@ -758,7 +758,7 @@ Extracted 15-20 skills:
   - concatenate_mf4: Concatenate multiple MF4 files
   - export_excel: Export data to Excel format
   ...
-Saved 20 skills to agent/skills/skill_catalog.json
+Saved 20 skills to agent/skills/json/skill_catalog.json
 ✓ Successfully built skill catalog with 20 skills
 ```
 
@@ -768,7 +768,7 @@ Saved 20 skills to agent/skills/skill_catalog.json
 python agent/rag/skill_retriever.py --rebuild-index
 ```
 
-This creates a ChromaDB vector database at `agent/rag/vector_store/` for fast semantic search.
+This creates a ChromaDB vector database at `agent/skills/vector_store/` for fast semantic search.
 
 ### 5. Run Examples
 
@@ -816,11 +816,12 @@ agent/
 │   └── autonomous_workflow.py       # LangGraph orchestrator
 ├── rag/
 │   ├── doc_parser.py                # Automatic skill extraction
-│   ├── skill_retriever.py           # RAG queries
-│   └── vector_store/                # ChromaDB (generated)
+│   └── skill_retriever.py           # RAG queries
 ├── skills/
-│   ├── skill_catalog.json           # Extracted skills (generated)
-│   └── skill_catalog_gpt5.json      # GPT-5 extracted skills
+│   ├── json/
+│   │   ├── skill_catalog.json       # Extracted skills (generated)
+│   │   └── skill_catalog_gpt5.json  # GPT-5 extracted skills
+│   └── vector_store/                # ChromaDB (generated)
 ├── planning/
 │   ├── schemas.py                   # Pydantic models
 │   └── workflow_planner.py          # Claude-based planner
@@ -840,7 +841,7 @@ examples/
 
 **Input:** HTML documentation
 **Process:** Claude extracts skills with structured output
-**Output:** `skill_catalog.json` with 15-20 GUI skills
+**Output:** `agent/skills/json/skill_catalog.json` with 15-20 GUI skills
 
 Example skill:
 ```json
@@ -927,7 +928,7 @@ The GUI structure may have changed. Options:
    python agent/rag/doc_parser.py
    ```
 
-2. Or manually add to `skill_catalog.json`
+2. Or manually add to `agent/skills/json/skill_catalog.json`
 
 3. Rebuild index:
    ```bash
@@ -1173,7 +1174,7 @@ python agent/rag/doc_parser.py
 
 Claude will parse new GUI features and add skills automatically.
 
-Or manually edit `skill_catalog.json`:
+Or manually edit `agent/skills/json/skill_catalog.json`:
 ```json
 {
   "skill_id": "your_new_skill",
@@ -1237,8 +1238,10 @@ agent/
 │   └── skill_retriever.py         # RAG queries
 │
 ├── skills/
-│   ├── skill_catalog.json         # Extracted skills
-│   └── skill_catalog_gpt5.json    # GPT-5 extracted skills
+│   ├── json/
+│   │   ├── skill_catalog.json     # Extracted skills
+│   │   └── skill_catalog_gpt5.json # GPT-5 extracted skills
+│   └── vector_store/              # ChromaDB vector database
 │
 └── planning/
     ├── schemas.py                 # Data models

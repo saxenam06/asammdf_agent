@@ -200,7 +200,7 @@ Extract ALL skills as JSON array:"""
 
 def build_skill_catalog(
     doc_url: str = "https://asammdf.readthedocs.io/en/stable/gui.html",
-    output_path: str = "agent/skills/skill_catalog_gpt5.json",
+    output_path: str = "agent/skills/json/skill_catalog_gpt5.json",
     api_key: Optional[str] = None
 ) -> List[SkillSchema]:
     """
@@ -248,7 +248,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--output",
-        default="agent/skills/skill_catalog.json",
+        default="agent/skills/json/skill_catalog.json",
         help="Output file path"
     )
 
