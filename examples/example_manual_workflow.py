@@ -7,7 +7,7 @@ REQUIREMENTS:
 
 USAGE:
     .windows-venv\Scripts\activate
-    python agent\examples\example_manual_workflow.py
+    python examples\example_manual_workflow.py
 
 This script demonstrates MANUAL (hardcoded) workflows that directly
 import and use Windows-MCP tools. No agent environment needed.
@@ -17,7 +17,7 @@ import sys
 import os
 
 # Add parent directory to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from agent.workflows.manual_workflow import plot_signal_from_mf4
 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     print("\nThese examples use HARDCODED workflows.")
     print("They directly call Windows-MCP tools without AI planning.")
     print("\nFor AUTONOMOUS AI-driven workflows, use:")
-    print("  → agent/examples/example_autonomous_workflow.py\n")
+    print("  → examples/example_autonomous_workflow.py\n")
 
     examples = {
         '1': ('Plot Signal from MF4', example_plot_signal),

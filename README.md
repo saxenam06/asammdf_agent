@@ -101,7 +101,7 @@ With `.agent-venv` activated, run manual workflows that control asammdf GUI:
 
 ```bash
 .agent-venv\Scripts\activate
-python agent\examples\example_manual_workflow.py
+python examples\example_manual_workflow.py
 ```
 
 **What happens:**
@@ -148,7 +148,7 @@ Approach: Hardcoded action sequence
 For Claude-driven autonomous workflows:
 ```bash
 .agent-venv\Scripts\activate
-python agent\examples\example_autonomous_workflow.py
+python examples\example_autonomous_workflow.py
 ```
 
 **See [SETUP_GUIDE.md](SETUP_GUIDE.md) for detailed setup instructions.**
@@ -287,9 +287,9 @@ asammdf_agent/
 │   ├── workflows/
 │   │   ├── autonomous_workflow.py       # LangGraph orchestrator
 │   │   └── manual_workflow.py           # Manual workflow (uses MCP client)
-│   └── examples/
-│       ├── example_autonomous_workflow.py  # Autonomous examples (.agent-venv)
-│       └── example_manual_workflow.py      # Manual examples (.agent-venv)
+├── examples/
+│   ├── example_autonomous_workflow.py  # Autonomous examples
+│   └── example_manual_workflow.py      # Manual examples
 ├── tools/
 │   └── Windows-MCP/                     # MCP server package
 │       ├── .windows-venv/               # MCP Server Python environment (nested)
@@ -381,7 +381,7 @@ From **agent environment** (`.agent-venv`), test MCP connection:
 .agent-venv\Scripts\activate
 
 # Run manual workflow example
-python agent\examples\example_manual_workflow.py
+python examples\example_manual_workflow.py
 ```
 
 **Expected output:**
@@ -457,7 +457,7 @@ results = plot_signal_from_mf4(
 **Autonomous Examples** (requires `.agent-venv`):
 ```bash
 .agent-venv\Scripts\activate
-python agent\examples\example_autonomous_workflow.py
+python examples\example_autonomous_workflow.py
 ```
 
 Choose from:
@@ -469,7 +469,7 @@ Choose from:
 **Manual Examples** (requires `.agent-venv` - MCP client spawns server):
 ```bash
 .agent-venv\Scripts\activate
-python agent\examples\example_manual_workflow.py
+python examples\example_manual_workflow.py
 ```
 
 Choose from:
@@ -758,7 +758,7 @@ Extracted 15-20 skills:
   - concatenate_mf4: Concatenate multiple MF4 files
   - export_excel: Export data to Excel format
   ...
-Saved 20 skills to agent/rag/skill_catalog.json
+Saved 20 skills to agent/skills/skill_catalog.json
 ✓ Successfully built skill catalog with 20 skills
 ```
 
@@ -775,7 +775,7 @@ This creates a ChromaDB vector database at `agent/rag/vector_store/` for fast se
 #### Option A: Interactive Examples
 
 ```bash
-python agent/examples/example_1_basic_usage.py
+python examples/example_autonomous_workflow.py
 ```
 
 Choose:
@@ -817,16 +817,19 @@ agent/
 ├── rag/
 │   ├── doc_parser.py                # Automatic skill extraction
 │   ├── skill_retriever.py           # RAG queries
-│   ├── skill_catalog.json           # Extracted skills (generated)
 │   └── vector_store/                # ChromaDB (generated)
+├── skills/
+│   ├── skill_catalog.json           # Extracted skills (generated)
+│   └── skill_catalog_gpt5.json      # GPT-5 extracted skills
 ├── planning/
 │   ├── schemas.py                   # Pydantic models
 │   └── workflow_planner.py          # Claude-based planner
 ├── execution/
 │   ├── action_primitives.py         # Primitive GUI actions
 │   └── state_based_executor.py      # Generic action interpreter
-└── examples/
-    └── example_1_basic_usage.py     # Usage examples
+examples/
+├── example_autonomous_workflow.py   # Autonomous examples
+└── example_manual_workflow.py       # Manual examples
 ```
 
 ## How It Works
@@ -1233,9 +1236,16 @@ agent/
 │   ├── doc_parser.py              # Extracts skills from docs
 │   └── skill_retriever.py         # RAG queries
 │
+├── skills/
+│   ├── skill_catalog.json         # Extracted skills
+│   └── skill_catalog_gpt5.json    # GPT-5 extracted skills
+│
 └── planning/
     ├── schemas.py                 # Data models
     └── workflow_planner.py        # Claude-based planner
+examples/
+├── example_autonomous_workflow.py # Autonomous examples
+└── example_manual_workflow.py     # Manual examples
 ```
 
 **Why `autonomous_workflow.py` is in `workflows/`:**
