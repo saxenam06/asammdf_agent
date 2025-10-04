@@ -98,14 +98,14 @@ Focus on capturing every possible GUI capability, including but not limited to:
 6. Step-by-step tasks (e.g., “Open Folder”, “Create Plot from selected channels”, “Save all channels”, “Insert computed signal”, etc.)
 
 For each capability, identify:
-- skill_id: short snake_case identifier (e.g., "concatenate_files", "export_csv", "open_folder")
-- description: clear human-readable explanation of what it does
-- ui_location: where in GUI it is accessed (e.g., "File menu", "Plot window", "Batch processing tab")
-- action_sequence: ordered list of high-level GUI steps (e.g., ["click_menu('File')", "select('Open Folder')", "choose_folder"])
+- skill_id: short snake_case Unique identifier (e.g., "concatenate_files", "export_csv", "open_folder")
+- description: clear human-readable explanation of what this skill does
+- ui_location: where in GUI (tab/menu/toolbar) it is accessed (e.g., "File menu", "Plot window", "Batch processing tab")
+- action_sequence: ordered list of high-level GUI steps to perform this skill (e.g., ["click_menu('File')", "select('Open Folder')", "choose_folder"])
 - shortcut: keyboard shortcut if available (e.g., "Ctrl+O", "F2", null if none)
-- prerequisites: list of required conditions before action (e.g., ["app_open"], ["file_loaded"])
-- output_state: expected result after performing action (e.g., "file_opened", "plot_created", "concatenated_file_loaded")
-- doc_citation: relative section citation string (e.g., "GUI#File-operations")
+- prerequisites: list of required conditions that must be true before executing the action_sequence (e.g., ["app_open"], ["file_loaded"])
+- output_state: expected state of the result after performing action (e.g., "file_opened", "plot_created", "concatenated_file_loaded")
+- doc_citation: relative section citation string in the URL or doc (e.g., "GUI#File-operations")
 - Return ONLY a JSON array of skills. No explanatory text.
 
 Example format:
