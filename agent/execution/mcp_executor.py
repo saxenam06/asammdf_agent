@@ -158,7 +158,8 @@ class MCPExecutor:
         Returns:
             Execution result
         """
-        print(f"[Executing] {action.tool_name} with args {action.tool_arguments}")
+        reasoning = f" - {action.reasoning}" if action.reasoning else ""
+        print(f"[Executing] {action.tool_name} with args {action.tool_arguments}{reasoning}")
 
         try:
             client = self._get_connected_client()
@@ -179,7 +180,7 @@ class MCPExecutor:
 
             return ExecutionResult(
                 success=True,
-                action=action.skill_id,
+                action=action.tool_name,
                 evidence=output_text
             )
 
@@ -187,7 +188,7 @@ class MCPExecutor:
             print(f"  X Execution failed: {e}")
             return ExecutionResult(
                 success=False,
-                action=action.skill_id,
+                action=action.tool_name,
                 error=str(e)
             )
 
@@ -235,18 +236,14 @@ if __name__ == "__main__":
     # Test actions
     test_actions = [
         ActionSchema(
-            skill_id="get_state",
             tool_name="State-Tool",
             tool_arguments={"use_vision": False},
-            doc_citation="Get desktop state",
-            expected_state="state_retrieved"
+            reasoning="Get desktop state"
         ),
         ActionSchema(
-            skill_id="wait",
             tool_name="Wait-Tool",
             tool_arguments={"duration": 1},
-            doc_citation="Wait 1 second",
-            expected_state="waited"
+            reasoning="Wait 1 second"
         )
     ]
 
