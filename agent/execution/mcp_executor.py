@@ -5,8 +5,13 @@ Uses the same pattern as manual_workflow.py
 
 import asyncio
 from typing import Optional, List
-import sys 
+import sys
 import os
+
+# Disable debugger evaluation timeout warnings for async operations
+os.environ.setdefault('PYDEVD_WARN_EVALUATION_TIMEOUT', '30')
+os.environ.setdefault('PYDEVD_UNBLOCK_THREADS_TIMEOUT', '10')
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from agent.execution.mcp_client import get_mcp_client
@@ -33,16 +38,39 @@ class MCPExecutor:
     def _get_event_loop(self):
         """Get or create the global event loop"""
         if self._event_loop is None or self._event_loop.is_closed():
-            self._event_loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(self._event_loop)
+            try:
+                self._event_loop = asyncio.get_event_loop()
+                if self._event_loop.is_closed():
+                    raise RuntimeError("Event loop is closed")
+            except RuntimeError:
+                self._event_loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(self._event_loop)
         return self._event_loop
+
+    def _run_async(self, coro):
+        """Run async coroutine, handling nested event loop issues"""
+        try:
+            # Check if we're already in an event loop
+            asyncio.get_running_loop()
+            # We're in an async context - use nest_asyncio or create task
+            import nest_asyncio
+            nest_asyncio.apply()
+            loop = self._get_event_loop()
+            return loop.run_until_complete(coro)
+        except RuntimeError:
+            # Not in async context, run normally
+            loop = self._get_event_loop()
+            return loop.run_until_complete(coro)
+        except ImportError:
+            # nest_asyncio not available, fall back to normal run
+            loop = self._get_event_loop()
+            return loop.run_until_complete(coro)
 
     def _get_connected_client(self):
         """Get or create connected MCP client"""
         if self._mcp_client is None:
             self._mcp_client = get_mcp_client()
-            loop = self._get_event_loop()
-            loop.run_until_complete(self._mcp_client.connect(self.server_name))
+            self._run_async(self._mcp_client.connect(self.server_name))
         return self._mcp_client
 
     def list_tools(self):
@@ -53,13 +81,7 @@ class MCPExecutor:
             List of tool information dicts with name, description, and schema
         """
         client = self._get_connected_client()
-        loop = self._get_event_loop()
-
-        tools = loop.run_until_complete(
-            client.list_tools()
-        )
-
-        return tools
+        return self._run_async(client.list_tools())
 
     def get_tools_description(self, tools: List = None):
         """
@@ -140,13 +162,7 @@ class MCPExecutor:
             tool_arguments = {}
 
         client = self._get_connected_client()
-        loop = self._get_event_loop()
-
-        result = loop.run_until_complete(
-            client.call_tool(tool_name, tool_arguments)
-        )
-
-        return result
+        return self._run_async(client.call_tool(tool_name, tool_arguments))
 
     def execute_action(self, action: ActionSchema) -> ExecutionResult:
         """
@@ -163,10 +179,9 @@ class MCPExecutor:
 
         try:
             client = self._get_connected_client()
-            loop = self._get_event_loop()
 
             # Call MCP tool directly - same pattern as manual_workflow.py
-            result = loop.run_until_complete(
+            result = self._run_async(
                 client.call_tool(action.tool_name, action.tool_arguments)
             )
 
@@ -218,8 +233,7 @@ class MCPExecutor:
     def cleanup(self):
         """Cleanup MCP connections"""
         if self._mcp_client:
-            loop = self._get_event_loop()
-            loop.run_until_complete(self._mcp_client.disconnect())
+            self._run_async(self._mcp_client.disconnect())
             self._mcp_client = None
 
 

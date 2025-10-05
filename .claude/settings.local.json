@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(git mv:*)",
+      "Bash(.agent-venv\\Scripts\\python.exe test_integration.py:*)",
+      "Bash(\".agent-venv\\Scripts\\pip.exe\" list)",
+      "Bash(\".agent-venv\\Scripts\\python.exe\" test_mcp_connection.py)",
+      "Bash(mv:*)",
+      "Bash(if not exist agentskills mkdir agentskills)",
+      "Bash(copy agentragskill_catalog_gpt5.json agentskillsskill_catalog_gpt5.json)",
+      "Bash(del agentragskill_catalog_gpt5.json)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(rm:*)",
+      "Bash(\".agent-venv\\Scripts\\python.exe\" \"agent\\execution\\mcp_executor.py\")",
+      "Bash(\".agent-venv\\Scripts\\python.exe\" -m agent.execution.mcp_executor)",
+      "Bash(if [ -d \"agent/skills\" ])",
+      "Bash(then git mv agent/skills agent/knowledge_base)",
+      "Bash(else echo \"Skills directory not found\")",
+      "Bash(fi)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

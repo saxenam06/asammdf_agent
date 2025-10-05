@@ -85,7 +85,7 @@ You have access to the following MCP tools for GUI automation:
 Rules:
 1. Use the provided knowledge patterns from documentation as reference for what actions to take
 2. Generate a plan as a sequence of MCP tool calls (tool_name, tool_arguments, and optional reasoning)
-3. Use State-Tool to get UI element coordinates before clicking/typing
+3. Use State-Tool to get UI element coordinates before clicking/typing with argument 'use_vision': False
 4. Use Switch-Tool to activate the application window before other actions
 5. Use ONLY the tool names and arguments exactly as specified above
 6. Output valid JSON matching the required schema
