@@ -6,7 +6,9 @@
 __pycache__/
 
 ## Skills Vector store
-agent/skills/vector_store
+agent/knowledge_base/vector_store
+agent/knowledge_base/vector_store_gpt5
+agent/knowledge_base/vector_store_gpt5_mini
 
 ## Ignore
 .env

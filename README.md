@@ -1456,3 +1456,136 @@ python -m agent.workflows.autonomous_workflow "Open sample.mf4"
 - WorkflowPlanner translates skills into MCP tool calls
 - Existing RAG and skill retrieval unchanged
 - LangGraph workflow structure unchanged
+
+
+# Skills vs Knowledge Base Refactoring Summary
+
+## Overview
+
+This refactoring separates the concept of "skills" into two distinct categories:
+
+1. **Knowledge Base**: Documentation-extracted patterns (formerly called "skills")
+2. **Verified Skills**: Human-verified, proven workflows
+
+## Key Changes
+
+### 1. Schema Changes (`agent/planning/schemas.py`)
+
+#### New Schemas
+- `KnowledgeSchema`: Represents patterns extracted from documentation (renamed from `SkillSchema`)
+  - Field `skill_id` → `knowledge_id`
+  - Represents unverified documentation patterns
+
+- `VerifiedSkillSchema`: NEW - Represents human-verified workflows
+  - Contains `action_plan` (list of `ActionSchema`)
+  - Contains `knowledge_references` (which knowledge patterns were used)
+  - Contains `verification_metadata` (who, when, test cases)
+  - Contains `success_rate` tracking
+
+- `WorkflowState`: Updated to include both:
+  - `retrieved_knowledge`: Knowledge patterns from docs
+  - `available_skills`: Human-verified skills (optional)
+
+### 2. File Renames
+
+- `agent/rag/skill_retriever.py` → `agent/rag/knowledge_retriever.py`
+- `SkillRetriever` class → `KnowledgeRetriever` class
+
+### 3. Directory Structure
+
+```
+agent/
+├── knowledge_base/              # Formerly: agent/skills/
+│   ├── json/
+│   │   ├── knowledge_catalog_gpt5.json       # Formerly: skill_catalog_gpt5.json
+│   │   └── knowledge_catalog_gpt5_mini.json  # Formerly: skill_catalog_gpt5_mini.json
+│   └── vector_store_gpt5_mini/               # Formerly: vector_store_gpt5_mini/
+│
+├── verified_skills/             # NEW
+│   ├── json/
+│   │   └── verified_skills.json              # NEW - Empty initially
+│   └── README.md                             # NEW - Documentation
+│
+├── rag/
+│   ├── knowledge_retriever.py                # Renamed from skill_retriever.py
+│   └── doc_parser.py                         # Updated terminology
+│
+├── planning/
+│   ├── schemas.py                            # Added KnowledgeSchema and VerifiedSkillSchema
+│   └── workflow_planner.py                   # Updated to use knowledge_patterns
+│
+└── workflows/
+    └── autonomous_workflow.py                # Updated to use knowledge_patterns
+```
+
+### 4. Method Renames
+
+#### `KnowledgeRetriever` (formerly `SkillRetriever`)
+- `load_skills()` → `load_knowledge()`
+- `index_skills()` → `index_knowledge()`
+- `retrieve()` → Returns `List[KnowledgeSchema]` (was `List[SkillSchema]`)
+- `get_skill_by_id()` → `get_knowledge_by_id()`
+- `list_all_skills()` → `list_all_knowledge()`
+
+#### `DocumentationParser` (`doc_parser.py`)
+- `extract_skills()` → `extract_knowledge()`
+- `save_skills()` → `save_knowledge()`
+- `build_skill_catalog()` → `build_knowledge_catalog()`
+
+#### `WorkflowPlanner` (`workflow_planner.py`)
+- Parameter `available_skills` → `available_knowledge`
+- Updated prompts to reference "knowledge patterns" instead of "skills"
+
+### 5. Updated Files
+
+All files have been updated to use the new terminology:
+
+- `agent/planning/schemas.py` - Added new schemas
+- `agent/rag/knowledge_retriever.py` - Renamed and updated
+- `agent/rag/doc_parser.py` - Updated terminology
+- `agent/planning/workflow_planner.py` - Updated to use KnowledgeSchema
+- `agent/workflows/autonomous_workflow.py` - Updated to use KnowledgeSchema
+
+### 6. Migration Path
+
+#### For existing JSON catalogs:
+The JSON structure remains compatible, but fields need renaming:
+- `skill_id` → `knowledge_id` in each entry
+
+You can either:
+1. Re-run the doc parser to generate new catalogs
+2. Use a migration script to rename fields in existing catalogs
+
+#### For existing vector databases:
+- Rebuild the index using `KnowledgeRetriever` with `--rebuild-index` flag
+- The collection name changed from `asammdf_skills` to `asammdf_knowledge`
+
+## Conceptual Separation
+
+### Knowledge Base (Documentation Patterns)
+- **What**: Patterns extracted automatically from documentation
+- **Trust Level**: Reference material only
+- **Usage**: Planning inspiration, understanding capabilities
+- **Example**: "Documentation says there's a concatenate feature in the Multiple Files tab"
+
+### Verified Skills (Proven Workflows)
+- **What**: Complete workflows that have been executed and verified to work
+- **Trust Level**: High - human-approved
+- **Usage**: Direct execution, templates, reliable automation
+- **Example**: "I successfully concatenated Tesla Model 3 logs using these exact 15 steps"
+
+## Benefits
+
+1. **Clear Distinction**: No confusion between "documentation knowledge" and "proven workflows"
+2. **Trust Levels**: Users know verified skills are reliable
+3. **Incremental Learning**: System builds library of verified skills over time
+4. **Traceability**: Verified skills reference the knowledge patterns they're based on
+5. **Quality Metrics**: Success rate tracking for verified skills
+
+## Future Enhancements
+
+1. **Skill Retriever**: Create `VerifiedSkillRetriever` similar to `KnowledgeRetriever`
+2. **Automatic Verification**: After successful workflow execution, offer to save as verified skill
+3. **Skill Matching**: Prefer verified skills when available for a task
+4. **Skill Evolution**: Track version history as skills are refined
+5. **Skill Sharing**: Export/import verified skills between systems

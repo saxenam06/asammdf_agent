@@ -45,6 +45,85 @@ class MCPExecutor:
             loop.run_until_complete(self._mcp_client.connect(self.server_name))
         return self._mcp_client
 
+    def list_tools(self):
+        """
+        Get list of available MCP tools with their schemas
+
+        Returns:
+            List of tool information dicts with name, description, and schema
+        """
+        client = self._get_connected_client()
+        loop = self._get_event_loop()
+
+        tools = loop.run_until_complete(
+            client.list_tools()
+        )
+
+        return tools
+
+    def get_tools_description(self, tools: List = None):
+        """
+        Format MCP tools into a readable description for the LLM
+
+        Args:
+            tools: List of tool dictionaries from MCP (fetches if None)
+
+        Returns:
+            Formatted string describing all tools and their parameters
+        """
+        if tools is None:
+            tools = self.list_tools()
+
+        descriptions = []
+        for tool in tools:
+            name = tool.get('name', 'Unknown')
+            desc = tool.get('description', 'No description')
+            schema = tool.get('schema', {})
+
+            # Extract parameters from schema
+            properties = schema.get('properties', {})
+            required = schema.get('required', [])
+
+            # Format parameters
+            params = []
+            for param_name, param_info in properties.items():
+                param_type = param_info.get('type', 'any')
+                param_desc = param_info.get('description', '')
+                is_required = ' (required)' if param_name in required else ' (optional)'
+
+                # Handle array types
+                if param_type == 'array':
+                    items_type = param_info.get('items', {}).get('type', 'any')
+                    param_type = f'array of {items_type}'
+
+                # Handle enum values
+                if 'enum' in param_info:
+                    enum_values = ', '.join(f'"{v}"' for v in param_info['enum'])
+                    param_type = f'{param_type} ({enum_values})'
+
+                params.append(f"    - {param_name}: {param_type}{is_required} - {param_desc}")
+
+            params_str = '\n'.join(params) if params else '    (no parameters)'
+
+            descriptions.append(f"- {name}: {desc}\n  Arguments:\n{params_str}")
+
+        return '\n\n'.join(descriptions)
+
+    def get_valid_tool_names(self, tools: List = None):
+        """
+        Extract list of valid tool names from MCP tools
+
+        Args:
+            tools: List of tool dictionaries from MCP (fetches if None)
+
+        Returns:
+            List of tool names
+        """
+        if tools is None:
+            tools = self.list_tools()
+
+        return [tool.get('name') for tool in tools if tool.get('name')]
+
     def call_tool(self, tool_name: str, tool_arguments: dict = None):
         """
         Call an MCP tool directly and return the raw result

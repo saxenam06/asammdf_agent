@@ -1,6 +1,6 @@
 """
-Automatic skill extraction from asammdf GUI documentation
-Uses OpenAI GPT-4 API to parse documentation and extract structured skills
+Automatic knowledge extraction from asammdf GUI documentation
+Uses OpenAI GPT-5-MINI API to parse documentation and extract structured knowledge patterns
 """
 
 import json
@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from agent.planning.schemas import SkillSchema
+from agent.planning.schemas import KnowledgeSchema
 
 # Load environment variables from .env file
 load_dotenv()
@@ -22,7 +22,7 @@ load_dotenv()
 
 class DocumentationParser:
     """
-    Automatically extracts GUI skills from asammdf documentation
+    Automatically extracts GUI knowledge patterns from asammdf documentation
     """
 
     def __init__(self, api_key: Optional[str] = None):
@@ -68,23 +68,23 @@ class DocumentationParser:
 
         return text
 
-    def extract_skills(self, doc_content: str, doc_url: str) -> List[SkillSchema]:
+    def extract_knowledge(self, doc_content: str, doc_url: str) -> List[KnowledgeSchema]:
         """
-        Use GPT-4 to extract structured skills from documentation
+        Use GPT to extract structured knowledge patterns from documentation
 
         Args:
             doc_content: Documentation text content
             doc_url: URL of documentation (for citations)
 
         Returns:
-            List of extracted skills
+            List of extracted knowledge patterns
         """
         prompt = f"""
-        
+
 You are a GUI automation expert analyzing asammdf application documentation. The documentation describes all the interactive options and workflows of the asammdf GUI.
 
-Your task: Extract ALL GUI capabilities, actions, workflows, and Knowledge from the documentation into a structured JSON Knowledge Base. 
-This Knowledge Base will later be used to provide all the information and step-by-step instructions for automating tasks in asammdf GUI. 
+Your task: Extract ALL GUI capabilities, actions, workflows, and knowledge patterns from the documentation into a structured JSON Knowledge Base.
+This Knowledge Base will later be used to provide all the information and step-by-step instructions for automating tasks in asammdf GUI.
 
 Extraction Requirements
 
@@ -95,23 +95,23 @@ Focus on capturing every possible GUI capability, including but not limited to:
 4. Data manipulation (cut, filter, resample, search, pattern-based selection)
 5. Navigation (tabs, menus, dialogs, channel trees, layouts, drag & drop)
 6. Shortcuts (general shortcuts, plot shortcuts for zoom, fit, alignment, representation, layout, saving, toggles, shifting signals)
-6. Step-by-step tasks (e.g., “Open Folder”, “Create Plot from selected channels”, “Save all channels”, “Insert computed signal”, etc.)
+6. Step-by-step tasks (e.g., "Open Folder", "Create Plot from selected channels", "Save all channels", "Insert computed signal", etc.)
 
 For each capability, identify:
-- skill_id: short snake_case Unique identifier (e.g., "concatenate_files", "export_csv", "open_folder")
-- description: clear human-readable explanation of what this skill does
+- knowledge_id: short snake_case Unique identifier (e.g., "concatenate_files", "export_csv", "open_folder")
+- description: clear human-readable explanation of what this knowledge pattern does
 - ui_location: where in GUI (tab/menu/toolbar) it is accessed (e.g., "File menu", "Plot window", "Batch processing tab")
-- action_sequence: ordered list of high-level GUI steps to perform this skill (e.g., ["click_menu('File')", "select('Open Folder')", "choose_folder"])
+- action_sequence: ordered list of high-level GUI steps to perform this action (e.g., ["click_menu('File')", "select('Open Folder')", "choose_folder"])
 - shortcut: keyboard shortcut if available (e.g., "Ctrl+O", "F2", null if none)
 - prerequisites: list of required conditions that must be true before executing the action_sequence (e.g., ["app_open"], ["file_loaded"])
 - output_state: expected state of the result after performing action (e.g., "file_opened", "plot_created", "concatenated_file_loaded")
 - doc_citation: relative section citation string in the URL or doc (e.g., "GUI#File-operations")
-- Return ONLY a JSON array of skills. No explanatory text.
+- Return ONLY a JSON array of knowledge patterns. No explanatory text.
 
 Example format:
 [{
 {
-  "skill_id": "concatenate_files",
+  "knowledge_id": "concatenate_files",
   "description": "Concatenate multiple MDF files into a single continuous measurement file. The files must share the same internal structure (identical channel groups and matching channels in each group). Samples are appended in the given order, optionally synchronized by timestamps.",
   "ui_location": "Batch processing tab → Batch operations",
   "action_sequence": [
@@ -138,7 +138,7 @@ Example format:
 {doc_content}
 </documentation>
 
-Extract ALL skills as JSON array:"""
+Extract ALL knowledge patterns as JSON array:"""
 
         try:
             response = self.client.chat.completions.create(
@@ -146,10 +146,8 @@ Extract ALL skills as JSON array:"""
                 messages=[
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.7,
                 max_completion_tokens=120000,
-                timeout=60.0,
-                stream=True
+                timeout=600.0,
             )
 
             # Extract JSON from response
@@ -160,90 +158,90 @@ Extract ALL skills as JSON array:"""
 
             # Try to find JSON array in response
             if content.strip().startswith('['):
-                skills_data = json.loads(content)
+                knowledge_data = json.loads(content)
             else:
                 # Try to extract JSON from markdown code block
                 if '```json' in content:
                     json_start = content.find('```json') + 7
                     json_end = content.find('```', json_start)
                     json_str = content[json_start:json_end].strip()
-                    skills_data = json.loads(json_str)
+                    knowledge_data = json.loads(json_str)
                 elif '```' in content:
                     json_start = content.find('```') + 3
                     json_end = content.find('```', json_start)
                     json_str = content[json_start:json_end].strip()
-                    skills_data = json.loads(json_str)
+                    knowledge_data = json.loads(json_str)
                 else:
-                    skills_data = json.loads(content)
+                    knowledge_data = json.loads(content)
 
             # Validate with Pydantic
-            skills = [SkillSchema(**skill) for skill in skills_data]
+            knowledge_patterns = [KnowledgeSchema(**item) for item in knowledge_data]
 
-            return skills
+            return knowledge_patterns
 
         except Exception as e:
-            print(f"Error extracting skills: {e}")
+            print(f"Error extracting knowledge patterns: {e}")
             raise
 
-    def save_skills(self, skills: List[SkillSchema], output_path: str):
+    def save_knowledge(self, knowledge_patterns: List[KnowledgeSchema], output_path: str):
         """
-        Save extracted skills to JSON file
+        Save extracted knowledge patterns to JSON file
 
         Args:
-            skills: List of skills
+            knowledge_patterns: List of knowledge patterns
             output_path: Output file path
         """
-        skills_dict = [skill.model_dump() for skill in skills]
+        knowledge_dict = [knowledge.model_dump() for knowledge in knowledge_patterns]
 
         with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(skills_dict, f, indent=2, ensure_ascii=False)
+            json.dump(knowledge_dict, f, indent=2, ensure_ascii=False)
 
-        print(f"Saved {len(skills)} skills to {output_path}")
+        print(f"Saved {len(knowledge_patterns)} knowledge patterns to {output_path}")
 
 
-def build_skill_catalog(
+def build_knowledge_catalog(
     doc_url: str = "https://asammdf.readthedocs.io/en/stable/gui.html",
-    output_path: str = "agent/skills/json/skill_catalog_gpt5.json",
+    output_path: str = "agent/knowledge_base/json/knowledge_catalog_gpt5.json",
     api_key: Optional[str] = None
-) -> List[SkillSchema]:
+) -> List[KnowledgeSchema]:
     """
-    Main function to build skill catalog from documentation
+    Main function to build knowledge catalog from documentation
 
     Args:
         doc_url: Documentation URL
-        output_path: Where to save skill catalog
+        output_path: Where to save knowledge catalog
         api_key: OpenAI API key
 
     Returns:
-        List of extracted skills
+        List of extracted knowledge patterns
     """
     parser = DocumentationParser(api_key=api_key)
 
     print(f"Fetching documentation from {doc_url}...")
     doc_content = parser.fetch_documentation(doc_url)
 
-    print(f"Extracting skills using {parser.model}...")
-    skills = parser.extract_skills(doc_content, doc_url)
+    print(f"Extracting knowledge patterns using {parser.model}...")
+    knowledge_patterns = parser.extract_knowledge(doc_content, doc_url)
 
-    print(f"Extracted {len(skills)} skills:")
-    for skill in skills:
-        print(f"  - {skill.skill_id}: {skill.description}")
+    print(f"Extracted {len(knowledge_patterns)} knowledge patterns:")
+    for knowledge in knowledge_patterns:
+        print(f"  - {knowledge.knowledge_id}: {knowledge.description}")
 
     # Save to file
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    parser.save_skills(skills, output_path)
+    parser.save_knowledge(knowledge_patterns, output_path)
 
-    return skills
+    return knowledge_patterns
 
 
 if __name__ == "__main__":
     """
-    Run skill extraction as standalone script
+    Run knowledge extraction as standalone script
     Usage: python agent/rag/doc_parser.py
     """
     import argparse
 
-    parser = argparse.ArgumentParser(description="Extract skills from asammdf documentation")
+    parser = argparse.ArgumentParser(description="Extract knowledge patterns from asammdf documentation")
     parser.add_argument(
         "--doc-url",
         default="https://asammdf.readthedocs.io/en/stable/gui.html",
@@ -251,18 +249,18 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--output",
-        default="agent/skills/json/skill_catalog_gpt5_mini.json",
+        default="agent/knowledge_base/json/knowledge_catalog_gpt5_mini.json",
         help="Output file path"
     )
 
     args = parser.parse_args()
 
     try:
-        skills = build_skill_catalog(
+        knowledge_patterns = build_knowledge_catalog(
             doc_url=args.doc_url,
             output_path=args.output
         )
-        print(f"\n✓ Successfully built skill catalog with {len(skills)} skills")
+        print(f"\n✓ Successfully built knowledge catalog with {len(knowledge_patterns)} patterns")
 
     except Exception as e:
         print(f"\n✗ Error: {e}")
