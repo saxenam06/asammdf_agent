@@ -36,8 +36,8 @@ class DocumentationParser:
         if not self.api_key:
             raise ValueError("OPENAI_API_KEY environment variable or api_key parameter required")
 
-        self.client = OpenAI(api_key=self.api_key)
-        self.model = "gpt-5"
+        self.client = OpenAI(api_key=self.api_key, timeout=3000.0)
+        self.model = "gpt-5-mini"
 
     def fetch_documentation(self, url: str) -> str:
         """
@@ -143,10 +143,13 @@ Extract ALL skills as JSON array:"""
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
-                max_completion_tokens=16000,
                 messages=[
                     {"role": "user", "content": prompt}
-                ]
+                ],
+                temperature=0.7,
+                max_completion_tokens=120000,
+                timeout=60.0,
+                stream=True
             )
 
             # Extract JSON from response
@@ -248,7 +251,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--output",
-        default="agent/skills/json/skill_catalog.json",
+        default="agent/skills/json/skill_catalog_gpt5_mini.json",
         help="Output file path"
     )
 

@@ -1,284 +1,202 @@
 [
   {
     "skill_id": "open_file",
-    "description": "Open a single MDF file for visualization and processing.",
+    "description": "Open individual MDF files for visualization and processing.",
     "ui_location": "File menu",
     "action_sequence": [
       "click_menu('File')",
-      "select('Open')",
+      "select_option('Open')",
       "choose_file"
     ],
+    "shortcut": "Ctrl+O",
     "prerequisites": [
       "app_open"
     ],
     "output_state": "file_opened",
-    "doc_citation": "GUI#File",
+    "doc_citation": "GUI#File-operations",
     "parameters": {}
   },
   {
     "skill_id": "open_folder",
-    "description": "Open all MDF files in the selected folder recursively.",
+    "description": "Open all MDF files recursively from the selected root folder.",
     "ui_location": "File menu",
     "action_sequence": [
       "click_menu('File')",
-      "select('Open folder')",
+      "select_option('Open folder')",
       "choose_folder"
     ],
+    "shortcut": null,
     "prerequisites": [
       "app_open"
     ],
-    "output_state": "files_opened",
-    "doc_citation": "GUI#File",
+    "output_state": "multiple_files_opened",
+    "doc_citation": "GUI#File-operations",
     "parameters": {}
   },
   {
     "skill_id": "save_configuration",
-    "description": "Save the current display configuration, including channel selection and window arrangements.",
-    "ui_location": "Command buttons",
+    "description": "Save current display configuration including the channels tree and all sub-plot windows.",
+    "ui_location": "File menu",
     "action_sequence": [
-      "click_button('Save configuration')",
+      "click_menu('File')",
+      "select_option('Save configuration')",
       "enter_filename",
       "click_button('Save')"
     ],
+    "shortcut": null,
     "prerequisites": [
       "file_opened"
     ],
     "output_state": "configuration_saved",
-    "doc_citation": "GUI#Command-buttons",
+    "doc_citation": "GUI#File-operations",
     "parameters": {}
   },
   {
-    "skill_id": "load_configuration",
+    "skill_id": "open_configuration",
     "description": "Load a previously saved display configuration.",
-    "ui_location": "Command buttons",
+    "ui_location": "File menu",
     "action_sequence": [
-      "click_button('Load configuration')",
-      "choose_configuration_file",
-      "click_button('Open')"
+      "click_menu('File')",
+      "select_option('Open configuration')",
+      "choose_file"
     ],
+    "shortcut": null,
     "prerequisites": [
       "file_opened"
     ],
     "output_state": "configuration_loaded",
-    "doc_citation": "GUI#Command-buttons",
+    "doc_citation": "GUI#File-operations",
     "parameters": {}
   },
   {
-    "skill_id": "concatenate_files",
-    "description": "Concatenate multiple MDF files into a single file maintaining the file structure.",
-    "ui_location": "Batch processing tab",
+    "skill_id": "create_plot",
+    "description": "Create a new Plot window using the checked channels from the selection tree.",
+    "ui_location": "Plot window",
     "action_sequence": [
-      "click_menu('Mode')",
-      "select_option('Batch processing')",
-      "multi_select_files",
-      "click_button('Open')",
-      "select_operation('Concatenate')",
-      "click_button('Save')"
+      "select_channels",
+      "press_key('F2')"
     ],
+    "shortcut": "F2",
     "prerequisites": [
-      "multiple_files_available"
-    ],
-    "output_state": "concatenated_file_created",
-    "doc_citation": "GUI#Batch-processing",
-    "parameters": {}
-  },
-  {
-    "skill_id": "stack_files",
-    "description": "Stack multiple MDF files into a single measurement file containing all channel groups.",
-    "ui_location": "Batch processing tab",
-    "action_sequence": [
-      "click_menu('Mode')",
-      "select_option('Batch processing')",
-      "multi_select_files",
-      "click_button('Open')",
-      "select_operation('Stack')",
-      "click_button('Save')"
-    ],
-    "prerequisites": [
-      "multiple_files_available"
-    ],
-    "output_state": "stacked_file_created",
-    "doc_citation": "GUI#Batch-processing",
-    "parameters": {}
-  },
-  {
-    "skill_id": "create_plot_window",
-    "description": "Create a new plot window for visualizing selected channels.",
-    "ui_location": "Command buttons",
-    "action_sequence": [
-      "check_channels_in_tree",
-      "click_button('Create window')",
-      "select_plot_type('Plot')"
-    ],
-    "prerequisites": [
+      "app_open",
       "channels_selected"
     ],
-    "output_state": "plot_window_created",
-    "doc_citation": "GUI#Command-buttons",
+    "output_state": "plot_created",
+    "doc_citation": "GUI#Plot-operations",
     "parameters": {}
   },
   {
     "skill_id": "create_numeric_window",
-    "description": "Create a new numeric window to view channel values numerically.",
-    "ui_location": "Command buttons",
+    "description": "Create a new Numeric window using the checked channels from the selection tree.",
+    "ui_location": "Window area",
     "action_sequence": [
-      "check_channels_in_tree",
-      "click_button('Create window')",
-      "select_plot_type('Numeric')"
+      "select_channels",
+      "press_key('F3')"
     ],
+    "shortcut": "F3",
     "prerequisites": [
+      "app_open",
       "channels_selected"
     ],
     "output_state": "numeric_window_created",
-    "doc_citation": "GUI#Command-buttons",
+    "doc_citation": "GUI#Numeric-window",
     "parameters": {}
   },
   {
     "skill_id": "create_tabular_window",
-    "description": "Create a new tabular window similar to an Excel/CSV sheet for selected channels.",
-    "ui_location": "Command buttons",
+    "description": "Create a new Tabular window using the checked channels from the selection tree.",
+    "ui_location": "Window area",
     "action_sequence": [
-      "check_channels_in_tree",
-      "click_button('Create window')",
-      "select_plot_type('Tabular')"
+      "select_channels",
+      "press_key('F4')"
     ],
+    "shortcut": "F4",
     "prerequisites": [
+      "app_open",
       "channels_selected"
     ],
     "output_state": "tabular_window_created",
-    "doc_citation": "GUI#Command-buttons",
+    "doc_citation": "GUI#Tabular-window",
     "parameters": {}
   },
   {
     "skill_id": "toggle_fullscreen",
-    "description": "Toggle full screen mode in single file mode.",
-    "ui_location": "Plot window",
+    "description": "Toggle full screen display for the current opened file in single files mode.",
+    "ui_location": "General",
     "action_sequence": [
       "press_key('F11')"
     ],
+    "shortcut": "F11",
     "prerequisites": [
       "file_opened"
     ],
     "output_state": "fullscreen_toggled",
-    "doc_citation": "GUI#Plot",
+    "doc_citation": "GUI#General-shortcuts",
+    "parameters": {}
+  },
+  {
+    "skill_id": "fit_all",
+    "description": "Y-axis fit all active channels on the screen, keeping the current X-axis range.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('F')"
+    ],
+    "shortcut": "F",
+    "prerequisites": [
+      "plot_created"
+    ],
+    "output_state": "all_channels_fitted",
+    "doc_citation": "GUI#Plot-operations",
+    "parameters": {}
+  },
+  {
+    "skill_id": "edit_signal_color",
+    "description": "Open a dialog to select the signal color for the selected plot.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "press_key('C')",
+      "select_color"
+    ],
+    "shortcut": "C",
+    "prerequisites": [
+      "plot_created"
+    ],
+    "output_state": "signal_color_edited",
+    "doc_citation": "GUI#Plot-operations",
     "parameters": {}
   },
   {
     "skill_id": "save_plot_channels",
-    "description": "Save channels from the current active plot window to a new MDF file.",
+    "description": "Save channels from the current active subplot to a new MF4 file.",
     "ui_location": "Plot window",
     "action_sequence": [
       "press_key('Ctrl+S')",
       "enter_filename",
       "click_button('Save')"
     ],
+    "shortcut": "Ctrl+S",
     "prerequisites": [
-      "plot_window_created"
+      "plot_created"
     ],
     "output_state": "plot_channels_saved",
-    "doc_citation": "GUI#Plot",
+    "doc_citation": "GUI#Plot-operations",
     "parameters": {}
   },
   {
     "skill_id": "save_all_channels",
-    "description": "Save all channels from all sub-windows to a new MDF file.",
+    "description": "Save all channels from all sub-windows to a new MF4 file.",
     "ui_location": "Plot window",
     "action_sequence": [
       "press_key('Ctrl+Shift+S')",
       "enter_filename",
       "click_button('Save')"
     ],
+    "shortcut": "Ctrl+Shift+S",
     "prerequisites": [
-      "file_opened"
+      "multiple_plots_created"
     ],
     "output_state": "all_channels_saved",
-    "doc_citation": "GUI#Plot",
-    "parameters": {}
-  },
-  {
-    "skill_id": "toggle_grid",
-    "description": "Toggle grid lines on the plot.",
-    "ui_location": "Plot window",
-    "action_sequence": [
-      "press_key('G')"
-    ],
-    "prerequisites": [
-      "plot_window_created"
-    ],
-    "output_state": "grid_toggled",
-    "doc_citation": "GUI#Plot",
-    "parameters": {}
-  },
-  {
-    "skill_id": "edit_signal_color",
-    "description": "Open a dialog to select the color for signals in a plot.",
-    "ui_location": "Plot window",
-    "action_sequence": [
-      "press_key('C')",
-      "select_color",
-      "click_button('OK')"
-    ],
-    "prerequisites": [
-      "plot_window_created"
-    ],
-    "output_state": "signal_color_edited",
-    "doc_citation": "GUI#Plot",
-    "parameters": {}
-  },
-  {
-    "skill_id": "fit_all",
-    "description": "Fit all active channels on the plot to the current X-axis range on the Y-axis.",
-    "ui_location": "Plot window",
-    "action_sequence": [
-      "press_key('F')"
-    ],
-    "prerequisites": [
-      "plot_window_created"
-    ],
-    "output_state": "fit_all_applied",
-    "doc_citation": "GUI#Plot",
-    "parameters": {}
-  },
-  {
-    "skill_id": "fit_selected",
-    "description": "Fit selected channels on the plot to the current X-axis range on the Y-axis.",
-    "ui_location": "Plot window",
-    "action_sequence": [
-      "press_key('Shift+F')"
-    ],
-    "prerequisites": [
-      "plot_window_created"
-    ],
-    "output_state": "fit_selected_applied",
-    "doc_citation": "GUI#Plot",
-    "parameters": {}
-  },
-  {
-    "skill_id": "zoom_in_plot",
-    "description": "Zoom in on the X-axis in a plot window.",
-    "ui_location": "Plot window",
-    "action_sequence": [
-      "press_key('I')"
-    ],
-    "prerequisites": [
-      "plot_window_created"
-    ],
-    "output_state": "plot_zoomed_in",
-    "doc_citation": "GUI#Plot",
-    "parameters": {}
-  },
-  {
-    "skill_id": "zoom_out_plot",
-    "description": "Zoom out on the X-axis in a plot window.",
-    "ui_location": "Plot window",
-    "action_sequence": [
-      "press_key('O')"
-    ],
-    "prerequisites": [
-      "plot_window_created"
-    ],
-    "output_state": "plot_zoomed_out",
-    "doc_citation": "GUI#Plot",
+    "doc_citation": "GUI#Plot-operations",
     "parameters": {}
   },
   {
@@ -290,70 +208,99 @@
       "select_function_or_operation",
       "confirm_insertion"
     ],
+    "shortcut": "Ins",
     "prerequisites": [
-      "plot_window_created"
+      "plot_created"
     ],
-    "output_state": "computed_channel_inserted",
-    "doc_citation": "GUI#Plot",
+    "output_state": "computed_signal_inserted",
+    "doc_citation": "GUI#Plot-operations",
+    "parameters": {}
+  },
+  {
+    "skill_id": "concatenate_files",
+    "description": "Concatenate multiple MDF files into a single continuous measurement file.",
+    "ui_location": "Batch processing tab → Batch operations",
+    "action_sequence": [
+      "click_menu('Mode')",
+      "select_option('Batch processing')",
+      "click_menu('File')",
+      "select_option('Open')",
+      "multi_select_files_in_dialog('Ctrl + A' or 'Select Files with Ctrl')",
+      "click_button('Open')",
+      "arrange_files_in_list(order='desired sequence')",
+      "select_operation('Concatenate')",
+      "set_option('Sync using measurement timestamps', true/false)",
+      "enter_filename('Concatenated.mf4')",
+      "click_button('Save')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open",
+      "multiple_files_available"
+    ],
+    "output_state": "concatenated_file_created",
+    "doc_citation": "GUI#Batch-processing",
+    "parameters": {}
+  },
+  {
+    "skill_id": "stack_files",
+    "description": "Stack multiple MDF files, creating an output file containing all channel groups from the input.",
+    "ui_location": "Batch processing tab → Batch operations",
+    "action_sequence": [
+      "click_menu('Mode')",
+      "select_option('Batch processing')",
+      "click_menu('File')",
+      "select_option('Open')",
+      "multi_select_files_in_dialog('Ctrl + A' or 'Select Files with Ctrl')",
+      "click_button('Open')",
+      "arrange_files_in_list(order='desired sequence')",
+      "select_operation('Stack')",
+      "enter_filename('Stacked.mf4')",
+      "click_button('Save')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open",
+      "multiple_files_available"
+    ],
+    "output_state": "stacked_file_created",
+    "doc_citation": "GUI#Batch-processing",
     "parameters": {}
   },
   {
     "skill_id": "advanced_search_select",
-    "description": "Open an advanced search dialog to use wildcard and regex patterns to search and select channels.",
+    "description": "Use advanced search dialog to find channels using patterns, regex, or conditions.",
     "ui_location": "Command buttons",
     "action_sequence": [
       "click_button('Advanced search & select')",
-      "perform_search",
+      "enter_search_pattern",
+      "apply_conditions",
       "confirm_selection"
     ],
+    "shortcut": "Ctrl+F",
     "prerequisites": [
       "file_opened"
     ],
-    "output_state": "channels_selected_via_search",
+    "output_state": "channels_selected",
     "doc_citation": "GUI#Command-buttons",
     "parameters": {}
   },
   {
-    "skill_id": "cascade_sub_windows",
-    "description": "Cascade all the sub-plot windows.",
-    "ui_location": "Plot window area",
+    "skill_id": "export_csv",
+    "description": "Export current measurement to a CSV file.",
+    "ui_location": "Modify & export tab",
     "action_sequence": [
-      "press_key('Shift+C')"
+      "select_option('Export to CSV')",
+      "set_csv_options",
+      "enter_filename",
+      "click_button('Export')"
     ],
+    "shortcut": null,
     "prerequisites": [
-      "multiple_sub_windows"
+      "file_opened"
     ],
-    "output_state": "sub_windows_cascaded",
-    "doc_citation": "GUI#Plot",
-    "parameters": {}
-  },
-  {
-    "skill_id": "tile_sub_windows_grid",
-    "description": "Tile all sub-windows in a grid layout.",
-    "ui_location": "Plot window area",
-    "action_sequence": [
-      "press_key('Shift+T')"
-    ],
-    "prerequisites": [
-      "multiple_sub_windows"
-    ],
-    "output_state": "sub_windows_tiled_grid",
-    "doc_citation": "GUI#Plot",
-    "parameters": {}
-  },
-  {
-    "skill_id": "drag_drop_channels",
-    "description": "Drag and drop channels between sub-windows for easier configuration.",
-    "ui_location": "Windows area",
-    "action_sequence": [
-      "drag_channel",
-      "drop_channel_in_target_sub_window"
-    ],
-    "prerequisites": [
-      "multiple_sub_windows"
-    ],
-    "output_state": "channels_dragged_and_dropped",
-    "doc_citation": "GUI#Drag-.-Drop",
+    "output_state": "file_exported_to_csv",
+    "doc_citation": "GUI#Modify-export",
     "parameters": {}
   }
 ]
