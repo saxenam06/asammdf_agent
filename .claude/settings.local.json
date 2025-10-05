@@ -18,7 +18,8 @@
       "Bash(if [ -d \"agent/skills\" ])",
       "Bash(then git mv agent/skills agent/knowledge_base)",
       "Bash(else echo \"Skills directory not found\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(if not exist plans mkdir plans)"
     ],
     "deny": [],
     "ask": []

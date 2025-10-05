@@ -4,6 +4,7 @@ Workflow planner using OpenAI API to generate action plans from skills
 
 import json
 import os
+import hashlib
 from typing import List, Optional, Dict, Any
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -16,6 +17,83 @@ from agent.execution.mcp_executor import MCPExecutor
 
 # Load environment variables
 load_dotenv()
+
+# Plan cache directory
+PLANS_DIR = os.path.join(os.path.dirname(__file__), "..", "plans")
+
+
+def _get_plan_filename(task: str) -> str:
+    """Generate a safe filename from task name"""
+    # Create a hash of the task for unique identification
+    task_hash = hashlib.md5(task.encode()).hexdigest()[:8]
+    # Create a safe filename from task (first 50 chars)
+    safe_task = "".join(c if c.isalnum() or c in (' ', '_', '-') else '_' for c in task[:50])
+    safe_task = safe_task.strip().replace(' ', '_')
+    return f"{safe_task}_{task_hash}.json"
+
+
+def save_plan(task: str, plan: PlanSchema) -> str:
+    """
+    Save a plan to the plans directory
+
+    Args:
+        task: Task description
+        plan: Plan to save
+
+    Returns:
+        Path to saved plan file
+    """
+    os.makedirs(PLANS_DIR, exist_ok=True)
+    filename = _get_plan_filename(task)
+    filepath = os.path.join(PLANS_DIR, filename)
+
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump({
+            "task": task,
+            "plan": plan.model_dump()
+        }, f, indent=2)
+
+    return filepath
+
+
+def load_plan(task: str) -> Optional[PlanSchema]:
+    """
+    Load a cached plan for a task
+
+    Args:
+        task: Task description
+
+    Returns:
+        Cached plan if exists, None otherwise
+    """
+    filename = _get_plan_filename(task)
+    filepath = os.path.join(PLANS_DIR, filename)
+
+    if not os.path.exists(filepath):
+        return None
+
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            return PlanSchema(**data["plan"])
+    except Exception as e:
+        print(f"Error loading cached plan: {e}")
+        return None
+
+
+def plan_exists(task: str) -> bool:
+    """
+    Check if a plan exists for a task
+
+    Args:
+        task: Task description
+
+    Returns:
+        True if plan exists, False otherwise
+    """
+    filename = _get_plan_filename(task)
+    filepath = os.path.join(PLANS_DIR, filename)
+    return os.path.exists(filepath)
 
 
 class WorkflowPlanner:
@@ -44,7 +122,8 @@ class WorkflowPlanner:
         self,
         task: str,
         available_knowledge: List[KnowledgeSchema],
-        context: Optional[str] = None
+        context: Optional[str] = None,
+        force_regenerate: bool = False
     ) -> PlanSchema:
         """
         Generate an execution plan for a task
@@ -53,10 +132,18 @@ class WorkflowPlanner:
             task: Natural language task description
             available_knowledge: Knowledge patterns retrieved from documentation
             context: Optional additional context
+            force_regenerate: If True, regenerate even if cached plan exists
 
         Returns:
             Validated execution plan
         """
+        # Check for cached plan first (unless force regenerate)
+        if not force_regenerate:
+            cached_plan = load_plan(task)
+            if cached_plan is not None:
+                print(f"  ✓ Using cached plan from: {_get_plan_filename(task)}")
+                return cached_plan
+
         # Fetch MCP tools if not already cached
         if self.available_tools is None:
             print("Fetching available MCP tools...")
@@ -172,6 +259,10 @@ Return ONLY valid JSON matching the schema. No explanatory text outside JSON."""
 
             # Validate with Pydantic
             plan = PlanSchema(**plan_data)
+
+            # Save the generated plan to cache
+            saved_path = save_plan(task, plan)
+            print(f"  ✓ Plan saved to: {saved_path}")
 
             return plan
 

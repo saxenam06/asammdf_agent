@@ -33,6 +33,7 @@ class WorkflowState(TypedDict):
     error: Optional[str]  # Error message if workflow failed
     completed: bool  # Whether the workflow has completed successfully
     retry_count: int  # Current retry count for the current step
+    force_regenerate_plan: bool  # Whether to force plan regeneration even if cached plan exists
 
 def get_executor():
     """Get or create the global MCP executor"""
@@ -182,7 +183,8 @@ class AutonomousWorkflow:
         try:
             plan = self.planner.generate_plan(
                 task=state["task"],
-                available_knowledge=state["retrieved_knowledge"]
+                available_knowledge=state["retrieved_knowledge"],
+                force_regenerate=state.get("force_regenerate_plan", False)
             )
 
             print(f"  Generated plan with {len(plan.plan)} steps:")
@@ -305,12 +307,13 @@ class AutonomousWorkflow:
     # Public API
     # ============================================================================
 
-    def run(self, task: str) -> dict:
+    def run(self, task: str, force_regenerate_plan: bool = False) -> dict:
         """
         Execute a task autonomously
 
         Args:
             task: Natural language task description
+            force_regenerate_plan: If True, regenerate plan even if cached plan exists
 
         Returns:
             Execution results
@@ -329,7 +332,8 @@ class AutonomousWorkflow:
             execution_log=[],
             error=None,
             completed=False,
-            retry_count=0
+            retry_count=0,
+            force_regenerate_plan=force_regenerate_plan
         )
 
         # Run workflow
