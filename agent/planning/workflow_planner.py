@@ -173,19 +173,38 @@ Return ONLY valid JSON matching the schema. No explanatory text outside JSON."""
             # Validate with Pydantic
             plan = PlanSchema(**plan_data)
 
-            # Validate tool names are valid MCP tools
-            for i, action in enumerate(plan.plan, 1):
-                if action.tool_name not in valid_tool_names:
-                    raise ValueError(
-                        f"Step {i}: Invalid MCP tool '{action.tool_name}'. "
-                        f"Must use one of: {', '.join(valid_tool_names)}"
-                    )
-
             return plan
 
         except Exception as e:
             print(f"Error generating plan: {e}")
             raise
+
+    def validate_plan(self, plan: PlanSchema) -> tuple[bool, Optional[str]]:
+        """
+        Validate a plan's tool names against available MCP tools
+
+        Args:
+            plan: Plan to validate
+
+        Returns:
+            (is_valid, error_message)
+        """
+        # Fetch MCP tools if not already cached
+        if self.available_tools is None:
+            self.available_tools = self.mcp_executor.list_tools()
+
+        # Get valid tool names
+        valid_tool_names = self.mcp_executor.get_valid_tool_names(self.available_tools)
+
+        # Validate each action's tool name
+        for i, action in enumerate(plan.plan, 1):
+            if action.tool_name not in valid_tool_names:
+                return False, (
+                    f"Step {i}: Invalid MCP tool '{action.tool_name}'. "
+                    f"Must use one of: {', '.join(valid_tool_names)}"
+                )
+
+        return True, None
 
     def refine_plan(
         self,
