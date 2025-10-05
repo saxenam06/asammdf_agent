@@ -137,12 +137,13 @@ class WorkflowState(BaseModel):
     """State of the autonomous workflow"""
     task: str = Field(..., description="The user's task description")
     retrieved_knowledge: List[KnowledgeSchema] = Field(default_factory=list, description="Knowledge patterns retrieved from documentation using RAG")
-    available_skills: List[VerifiedSkillSchema] = Field(default_factory=list, description="Human-verified skills available for this task (if any)")
+    verified_skills: List[VerifiedSkillSchema] = Field(default_factory=list, description="Human-verified skills available for this task (if any)")
     plan: Optional[PlanSchema] = Field(None, description="Generated execution plan (sequence of MCP tool actions)")
     current_step: int = Field(0, description="Current step index in plan execution (0-based)")
     execution_log: List[ExecutionResult] = Field(default_factory=list, description="Log of executed actions and their results")
     error: Optional[str] = Field(None, description="Error message if workflow failed")
     completed: bool = Field(False, description="Whether the workflow has completed successfully")
+    retry_count: int = Field(0, description="Current retry count for the current step")
 
     class Config:
         arbitrary_types_allowed = True

@@ -1484,7 +1484,7 @@ This refactoring separates the concept of "skills" into two distinct categories:
 
 - `WorkflowState`: Updated to include both:
   - `retrieved_knowledge`: Knowledge patterns from docs
-  - `available_skills`: Human-verified skills (optional)
+  - `verified_skills`: Human-verified skills (optional)
 
 ### 2. File Renames
 
