@@ -282,10 +282,10 @@ Return ONLY valid JSON matching the schema. No explanatory text outside JSON."""
         """
         # Fetch MCP tools if not already cached
         if self.available_tools is None:
-            self.available_tools = self.mcp_executor.list_tools()
+            self.available_tools = self.mcp_client.list_tools()
 
         # Get valid tool names
-        valid_tool_names = self.mcp_executor.get_valid_tool_names(self.available_tools)
+        valid_tool_names = self.mcp_client.get_valid_tool_names(self.available_tools)
 
         # Validate each action's tool name
         for i, action in enumerate(plan.plan, 1):

@@ -16,6 +16,7 @@ from agent.planning.schemas import KnowledgeSchema, PlanSchema, ExecutionResult,
 from agent.rag.knowledge_retriever import KnowledgeRetriever
 from agent.planning.workflow_planner import WorkflowPlanner
 from agent.execution.mcp_client import get_mcp_client
+from agent.execution.adaptive_executor import AdaptiveExecutor
 
 
 class WorkflowState(TypedDict):
@@ -62,6 +63,7 @@ class AutonomousWorkflow:
         self._planner = None
         self._graph = None
         self._client = None
+        self._executor = None
 
     @property
     def retriever(self):
@@ -96,6 +98,13 @@ class AutonomousWorkflow:
         if self._client is None:
             self._client = get_mcp_client()
         return self._client
+
+    @property
+    def executor(self):
+        """Lazy load adaptive executor"""
+        if self._executor is None:
+            self._executor = AdaptiveExecutor(self.client)
+        return self._executor
 
     def _build_graph(self) -> StateGraph:
         """Build LangGraph workflow"""
@@ -215,7 +224,7 @@ class AutonomousWorkflow:
         return state
 
     def _execute_step_node(self, state: WorkflowState) -> WorkflowState:
-        """Execute current step"""
+        """Execute current step using adaptive executor"""
         step_num = state["current_step"]
         total_steps = len(state["plan"].plan) if state["plan"] else 0
 
@@ -228,11 +237,12 @@ class AutonomousWorkflow:
         print(f"\n[4/5] Executing step {step_num + 1}/{total_steps}: {action.tool_name}")
         print(f"  Tool arguments: {action.tool_arguments}")
 
-        switch_result = self.client.call_tool('Switch-Tool', {'name': self.app_name})
-        print(f"  → {switch_result}")
+        # Focus application window
+        self.client.call_tool('Switch-Tool', {'name': self.app_name})
 
-        # Execute action directly via MCP (no skill lookup needed)
-        result = self.client.execute_action(action)
+        # Execute action with adaptive resolution (passes context for better interpretation)
+        context_actions = state["plan"].plan[:step_num]
+        result = self.executor.execute_action(action, context=context_actions)
 
         state["execution_log"] = [result]
         state["current_step"] += 1
