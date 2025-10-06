@@ -13,7 +13,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from agent.planning.schemas import KnowledgeSchema, PlanSchema
-from agent.execution.mcp_executor import MCPExecutor
+from agent.execution.mcp_client import MCPClient
 
 # Load environment variables
 load_dotenv()
@@ -101,13 +101,13 @@ class WorkflowPlanner:
     Generates execution plans using OpenAI and retrieved knowledge patterns
     """
 
-    def __init__(self, api_key: Optional[str] = None, mcp_executor: MCPExecutor = None):
+    def __init__(self, api_key: Optional[str] = None, mcp_client: MCPClient = None):
         """
         Initialize planner
 
         Args:
             api_key: OpenAI API key (defaults to OPENAI_API_KEY env var)
-            mcp_executor: MCPExecutor instance (creates new one if None)
+            mcp_client: MCPClient instance (creates new one if None)
         """
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         if not self.api_key:
@@ -115,7 +115,7 @@ class WorkflowPlanner:
 
         self.client = OpenAI(api_key=self.api_key, timeout=120.0)
         self.model = "gpt-5-mini"
-        self.mcp_executor = mcp_executor or MCPExecutor()
+        self.mcp_client = mcp_client or MCPClient()
         self.available_tools = None
 
     def generate_plan(
@@ -147,12 +147,12 @@ class WorkflowPlanner:
         # Fetch MCP tools if not already cached
         if self.available_tools is None:
             print("Fetching available MCP tools...")
-            self.available_tools = self.mcp_executor.list_tools()
+            self.available_tools = self.mcp_client.list_tools()
             print(f"Found {len(self.available_tools)} MCP tools")
 
-        # Format tools description using MCPExecutor
-        tools_description = self.mcp_executor.get_tools_description(self.available_tools)
-        valid_tool_names = self.mcp_executor.get_valid_tool_names(self.available_tools)
+        # Format tools description using MCPClient
+        tools_description = self.mcp_client.get_tools_description(self.available_tools)
+        valid_tool_names = self.mcp_client.get_valid_tool_names(self.available_tools)
 
         # Format knowledge for prompt
         knowledge_json = json.dumps(

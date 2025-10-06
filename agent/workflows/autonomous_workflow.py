@@ -15,11 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from agent.planning.schemas import KnowledgeSchema, PlanSchema, ExecutionResult, VerifiedSkillSchema, ActionSchema
 from agent.rag.knowledge_retriever import KnowledgeRetriever
 from agent.planning.workflow_planner import WorkflowPlanner
-from agent.execution.mcp_executor import MCPExecutor
-
-# Global MCP executor instance
-
-_executor = None
+from agent.execution.mcp_client import get_mcp_client
 
 
 class WorkflowState(TypedDict):
@@ -35,17 +31,6 @@ class WorkflowState(TypedDict):
     retry_count: int  # Current retry count for the current step
     force_regenerate_plan: bool  # Whether to force plan regeneration even if cached plan exists
 
-def get_executor():
-    """Get or create the global MCP executor"""
-    global _executor
-    if _executor is None:
-        _executor = MCPExecutor()
-    return _executor
-
-def execute_tool(tool_name: str, **kwargs):
-    """Execute an MCP tool by name with arguments"""
-    executor = get_executor()
-    return executor.call_tool(tool_name, kwargs)
 
 class AutonomousWorkflow:
     """
@@ -76,6 +61,7 @@ class AutonomousWorkflow:
         self._retriever = None
         self._planner = None
         self._graph = None
+        self._client = None
 
     @property
     def retriever(self):
@@ -103,6 +89,13 @@ class AutonomousWorkflow:
             print("Building workflow graph...")
             self._graph = self._build_graph()
         return self._graph
+
+    @property
+    def client(self):
+        """Lazy load MCP client"""
+        if self._client is None:
+            self._client = get_mcp_client()
+        return self._client
 
     def _build_graph(self) -> StateGraph:
         """Build LangGraph workflow"""
@@ -235,12 +228,11 @@ class AutonomousWorkflow:
         print(f"\n[4/5] Executing step {step_num + 1}/{total_steps}: {action.tool_name}")
         print(f"  Tool arguments: {action.tool_arguments}")
 
-        executor = get_executor()
-        switch_result = executor.call_tool('Switch-Tool', {'name': self.app_name})
+        switch_result = self.client.call_tool('Switch-Tool', {'name': self.app_name})
         print(f"  → {switch_result}")
 
         # Execute action directly via MCP (no skill lookup needed)
-        result = executor.execute_action(action)
+        result = self.client.execute_action(action)
 
         state["execution_log"] = [result]
         state["current_step"] += 1

@@ -9,7 +9,7 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 
 from agent.planning.schemas import ActionSchema
-from agent.execution.mcp_executor import MCPExecutor
+from agent.execution.mcp_client import MCPClient
 
 def test_simple_execution():
     """Test simple MCP tool execution via new executor"""
@@ -43,7 +43,7 @@ def test_simple_execution():
         )
     ]
 
-    executor = MCPExecutor()
+    executor = MCPClient()
 
     try:
         results = executor.execute_actions(actions)

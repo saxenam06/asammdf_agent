@@ -1347,26 +1347,31 @@ Refactored the autonomous workflow to use MCP client directly (same pattern as `
 }
 ```
 
-### 2. Created MCPExecutor (`agent/execution/mcp_executor.py`)
+### 2. Unified MCPClient (`agent/execution/mcp_client.py`)
 
-Simple executor that:
-- Directly calls MCP tools via `mcp_client.call_tool(tool_name, arguments)`
+Unified client that combines connection and execution functionality:
+- Directly calls MCP tools via `call_tool(tool_name, arguments)`
 - No string parsing or wrapper methods
 - Centralized MCP client management
+- Supports both async and sync interfaces
 
-**Two interfaces:**
-1. `call_tool(tool_name, tool_arguments)` - Direct tool execution (for manual workflows)
-2. `execute_action(action: ActionSchema)` - Wrapped execution (for autonomous workflows)
+**Three interfaces:**
+1. `call_tool_sync(tool_name, arguments)` - Sync tool execution (for manual workflows)
+2. `call_tool(tool_name, arguments)` - Async tool execution (for async workflows)
+3. `execute_action(action: ActionSchema)` - Wrapped execution (for autonomous workflows)
 
-**Key method:**
+**Key methods:**
 ```python
+def call_tool_sync(self, tool_name: str, arguments: Dict[str, Any] = None) -> Any:
+    """Sync wrapper for manual workflows"""
+    self.ensure_connected()
+    return self._run_async(self.call_tool(tool_name, arguments))
+
 def execute_action(self, action: ActionSchema) -> ExecutionResult:
-    client = self._get_connected_client()
-    loop = self._get_event_loop()
-    result = loop.run_until_complete(
-        client.call_tool(action.tool_name, action.tool_arguments)
-    )
-    return ExecutionResult(success=True, action=action.skill_id, evidence=output)
+    """Execute action for autonomous workflows"""
+    self.ensure_connected()
+    result = self._run_async(self.call_tool(action.tool_name, action.tool_arguments))
+    return ExecutionResult(success=True, action=action.tool_name, evidence=output)
 ```
 
 ### 3. Updated WorkflowPlanner (`agent/planning/workflow_planner.py`)
@@ -1383,15 +1388,16 @@ def execute_action(self, action: ActionSchema) -> ExecutionResult:
 
 ### 4. Updated AutonomousWorkflow (`agent/workflows/autonomous_workflow.py`)
 
-- Replaced `StateBasedExecutor` with `MCPExecutor`
+- Replaced `MCPExecutor` with unified `MCPClient`
 - Removed skill lookup logic (no longer needed)
-- Simplified execution node to directly call `executor.execute_action(action)`
+- Simplified execution node to directly call `client.execute_action(action)`
+- Uses `call_tool_sync()` for direct tool calls
 
 ### 5. Refactored ManualWorkflow (`agent/workflows/manual_workflow.py`)
 
-- Replaced duplicated MCP client connection logic with `MCPExecutor`
-- Now uses shared `execute_tool()` function that wraps `MCPExecutor.call_tool()`
-- Reduced code from ~30 lines to ~15 lines
+- Uses unified `MCPClient` via `execute_tool()` convenience function
+- Single import: `from execution.mcp_client import execute_tool`
+- Reduced code and eliminated duplication
 - Single source of truth for MCP client management
 
 ## Architecture Comparison
@@ -1412,8 +1418,8 @@ User Task
 User Task
   → RAG (retrieve skills for reference)
   → WorkflowPlanner (generate plan with MCP tool calls)
-  → MCPExecutor
-      → MCP Client (direct call)
+  → MCPClient (unified client with execution methods)
+      → Direct MCP tool calls (async/sync)
 ```
 
 ## Deprecated Files
@@ -1435,13 +1441,13 @@ The following files are no longer used and can be deleted later:
 
 Run tests:
 ```bash
-# Test executor directly
-python -m agent.execution.mcp_executor
+# Test unified client directly
+python -m agent.execution.mcp_client
 
 # Test autonomous workflow execution
 python test_refactored_workflow.py
 
-# Test manual workflow with new executor
+# Test manual workflow with unified client
 python test_manual_workflow_refactored.py
 
 # Test full autonomous workflow

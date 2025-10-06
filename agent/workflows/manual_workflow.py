@@ -7,24 +7,9 @@ import sys
 import os
 from typing import Optional, Dict, Any, List
 
-# Import MCP executor
+# Import MCP client
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from execution.mcp_executor import MCPExecutor
-
-# Global MCP executor instance
-_executor = None
-
-def get_executor():
-    """Get or create the global MCP executor"""
-    global _executor
-    if _executor is None:
-        _executor = MCPExecutor()
-    return _executor
-
-def execute_tool(tool_name: str, **kwargs):
-    """Execute an MCP tool by name with arguments"""
-    executor = get_executor()
-    return executor.call_tool(tool_name, kwargs)
+from execution.mcp_client import get_mcp_client
 
 
 class AsammdfWorkflow:
@@ -39,6 +24,7 @@ class AsammdfWorkflow:
 
         """
         self.app_name = "asammdf 8.6.10"
+        self.client = get_mcp_client()  # Initialize MCP client once
 
     def plot_signal(self,
                    mf4_file: str = "sample_compressed.mf4",
@@ -148,11 +134,11 @@ class AsammdfWorkflow:
 
     def _launch_asammdf(self) -> str:
         """Launch asammdf application"""
-        result = execute_tool('Launch-Tool', name="asammdf")
+        result = self.client.call_tool('Launch-Tool', {"name": "asammdf"})
         print(f"  → {result}")
 
         # Wait for app to fully load
-        execute_tool('Wait-Tool', duration=4)
+        self.client.call_tool('Wait-Tool', {"duration": 4})
         print("  → Waiting for GUI to load...")
 
         return "asammdf launched"
@@ -168,20 +154,20 @@ class AsammdfWorkflow:
             Status message
         """
         # Activate asammdf window
-        switch_result = execute_tool('Switch-Tool', name=self.app_name)
+        switch_result = self.client.call_tool('Switch-Tool', {"name": self.app_name})
         print(f"  → {switch_result}")
-        execute_tool('Wait-Tool', duration=1)
+        self.client.call_tool('Wait-Tool', {"duration": 1})
 
         # Press Ctrl+O to open file dialog
-        shortcut_result = execute_tool('Shortcut-Tool', shortcut=["ctrl", "o"])
+        shortcut_result = self.client.call_tool('Shortcut-Tool', {"shortcut": ["ctrl", "o"]})
         print(f"  → {shortcut_result}")
 
         # Wait for file dialog
-        execute_tool('Wait-Tool', duration=2)
+        self.client.call_tool('Wait-Tool', {"duration": 2})
         print("  → File dialog opened")
 
         # Use state_tool to get interactive elements
-        state_output = execute_tool('State-Tool', use_vision=False)
+        state_output = self.client.call_tool('State-Tool', {"use_vision": False})
         # Extract text from CallToolResult
         state_text = state_output.content[0].text if hasattr(state_output, 'content') else str(state_output)
         print("  → Retrieved interactive elements from state tool")
@@ -196,26 +182,28 @@ class AsammdfWorkflow:
         if file_input_coords:
             print(f"  → Found file input at: {file_input_coords}")
             # Type filename
-            execute_tool(
+            self.client.call_tool(
                 'Type-Tool',
-                loc=file_input_coords,
-                text=filename,
-                clear=True,
-                press_enter=False
+                {
+                    "loc": file_input_coords,
+                    "text": filename,
+                    "clear": True,
+                    "press_enter": False
+                }
             )
             print(f"  → Typed filename: {filename}")
         else:
             # Fallback: just type filename (dialog should have focus)
             print(f"  → File name field not found, typing filename directly: {filename}")
-            execute_tool('Key-Tool', key="home")  # Go to start of field
-            execute_tool('Shortcut-Tool', shortcut=["ctrl", "a"])  # Select all
+            self.client.call_tool('Key-Tool', {"key": "home"})  # Go to start of field
+            self.client.call_tool('Shortcut-Tool', {"shortcut": ["ctrl", "a"]})  # Select all
             for char in filename:
-                execute_tool('Key-Tool', key=char)
+                self.client.call_tool('Key-Tool', {"key": char})
 
-        execute_tool('Wait-Tool', duration=1)
+        self.client.call_tool('Wait-Tool', {"duration": 1})
 
         # Get state again to find Open button
-        state_output = execute_tool('State-Tool', use_vision=False)
+        state_output = self.client.call_tool('State-Tool', {"use_vision": False})
         # Extract text from CallToolResult
         state_text = state_output.content[0].text if hasattr(state_output, 'content') else str(state_output)
 
@@ -229,13 +217,13 @@ class AsammdfWorkflow:
 
         if open_button_coords:
             print(f"  → Found Open button at: {open_button_coords}")
-            execute_tool('Click-Tool', loc=open_button_coords)
+            self.client.call_tool('Click-Tool', {"loc": open_button_coords})
         else:
             print("  → Open button not found, pressing Enter to open file")
-            execute_tool('Key-Tool', key="enter")
+            self.client.call_tool('Key-Tool', {"key": "enter"})
 
         # Wait for file to load
-        execute_tool('Wait-Tool', duration=2)
+        self.client.call_tool('Wait-Tool', {"duration": 2})
         print(f"  → File '{filename}' loaded")
 
         return f"Opened {filename}"
@@ -307,12 +295,12 @@ class AsammdfWorkflow:
             Status message
         """
         # Activate asammdf window
-        switch_result = execute_tool('Switch-Tool', name=self.app_name)
+        switch_result = self.client.call_tool('Switch-Tool', {"name": self.app_name})
         print(f"  → {switch_result}")
-        execute_tool('Wait-Tool', duration=1)
+        self.client.call_tool('Wait-Tool', {"duration": 1})
 
         # Use state_tool to get interactive elements
-        state_output = execute_tool('State-Tool', use_vision=False)
+        state_output = self.client.call_tool('State-Tool', {"use_vision": False})
         # Extract text from CallToolResult
         state_text = state_output.content[0].text if hasattr(state_output, 'content') else str(state_output)
         print("  → Retrieved interactive elements from state tool")
@@ -338,16 +326,18 @@ class AsammdfWorkflow:
         print(f"  → Dragging from ({signal_coords[0]}, {signal_coords[1]}) to ({target_x}, {target_y})")
 
         # Perform drag operation
-        execute_tool(
+        self.client.call_tool(
             'Drag-Tool',
-            from_loc=signal_coords,
-            to_loc=[target_x, target_y]
+            {
+                "from_loc": signal_coords,
+                "to_loc": [target_x, target_y]
+            }
         )
 
         print(f"  → Dragged '{signal_name}' to plot area")
 
         # Wait for plot creation dialog
-        execute_tool('Wait-Tool', duration=2)
+        self.client.call_tool('Wait-Tool', {"duration": 2})
 
         return f"Dragged signal '{signal_name}'"
 
@@ -360,13 +350,13 @@ class AsammdfWorkflow:
         """
 
         # Activate asammdf window
-        switch_result = execute_tool('Switch-Tool', name=self.app_name)
+        switch_result = self.client.call_tool('Switch-Tool', {"name": self.app_name})
         print(f"  → {switch_result}")
-        execute_tool('Wait-Tool', duration=1)
+        self.client.call_tool('Wait-Tool', {"duration": 1})
 
         ## Not needed as Plot already selected
         # # Use state_tool to get interactive elements
-        # state_output = execute_tool('State-Tool', use_vision=False)
+        # state_output = self.client.call_tool('State-Tool', use_vision=False)
         # state_text = state_output[0] if isinstance(state_output, list) else state_output
         # print("  → Retrieved interactive elements from state tool")
 
@@ -379,16 +369,16 @@ class AsammdfWorkflow:
 
         # if plot_button_coords:
         #     print(f"  → Found Plot button at: {plot_button_coords}")
-        #     execute_tool('Click-Tool', loc=plot_button_coords)
+        #     self.client.call_tool('Click-Tool', loc=plot_button_coords)
         #     print("  → Clicked Plot button")
         # else:
         #     raise Exception("Could not find Plot button")
 
         # Wait for next dialog/action
-        # execute_tool('Wait-Tool', seconds=1)
+        # self.client.call_tool('Wait-Tool', seconds=1)
 
         # Get state again to find OK button
-        state_output = execute_tool('State-Tool', use_vision=False)
+        state_output = self.client.call_tool('State-Tool', {"use_vision": False})
         # Extract text from CallToolResult
         state_text = state_output.content[0].text if hasattr(state_output, 'content') else str(state_output)
 
@@ -402,15 +392,15 @@ class AsammdfWorkflow:
 
         if ok_button_coords:
             print(f"  → Found OK button at: {ok_button_coords}")
-            execute_tool('Click-Tool', loc=ok_button_coords)
+            self.client.call_tool('Click-Tool', {"loc": ok_button_coords})
             print("  → Clicked OK button")
         else:
             # Try pressing Enter as fallback
             print("  → OK button not found, pressing Enter")
-            execute_tool('Key-Tool', key="enter")
+            self.client.call_tool('Key-Tool', {"key": "enter"})
 
         # Wait for plot to render
-        execute_tool('Wait-Tool', duration=2)
+        self.client.call_tool('Wait-Tool', {"duration": 2})
 
         return "Plot created successfully"
 
@@ -422,12 +412,12 @@ class AsammdfWorkflow:
                 Status message
             """
             # Activate asammdf window
-            switch_result = execute_tool('Switch-Tool', name=self.app_name)
+            switch_result = self.client.call_tool('Switch-Tool', {"name": self.app_name})
             print(f"  → {switch_result}")
-            execute_tool('Wait-Tool', duration=1)
+            self.client.call_tool('Wait-Tool', {"duration": 1})
 
             # Use state_tool to find Natural Sort button
-            state_output = execute_tool('State-Tool', use_vision=False)
+            state_output = self.client.call_tool('State-Tool', {"use_vision": False})
             # Extract text from CallToolResult
             state_text = state_output.content[0].text if hasattr(state_output, 'content') else str(state_output)
             print("  → Retrieved interactive elements from state tool")
@@ -441,13 +431,13 @@ class AsammdfWorkflow:
 
             if natural_sort_coords:
                 print(f"  → Found Natural Sort at: {natural_sort_coords}")
-                execute_tool('Click-Tool', loc=natural_sort_coords)
+                self.client.call_tool('Click-Tool', {"loc": natural_sort_coords})
                 print("  → Clicked Natural Sort")
             else:
                 raise Exception("Could not find Natural Sort button")
 
             # Wait for signals to load
-            execute_tool('Wait-Tool', duration=2)
+            self.client.call_tool('Wait-Tool', {"duration": 2})
 
             return "Selected Natural Sort view"
 
