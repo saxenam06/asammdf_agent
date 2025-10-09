@@ -23,7 +23,9 @@
       "Bash(\".agent-venv\\Scripts\\python.exe\" \"agent\\execution\\mcp_client.py\")",
       "Bash(timeout:*)",
       "Bash(\".agent-venv\\Scripts\\python.exe\":*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(python test:*)",
+      "Bash(\".agent-venv\\Scripts\\python.exe\" test_revert_retain.py)"
     ],
     "deny": [],
     "ask": []

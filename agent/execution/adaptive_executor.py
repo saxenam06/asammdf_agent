@@ -6,6 +6,7 @@ Uses a lightweight LLM (GPT-4o-mini) to understand intent and make execution dec
 import json
 import re
 from typing import Dict, Any, List, Optional, Tuple
+from dataclasses import dataclass, field
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
@@ -17,6 +18,124 @@ from agent.planning.schemas import ActionSchema, ExecutionResult
 from agent.execution.mcp_client import MCPClient
 
 load_dotenv()
+
+
+@dataclass
+class LocalActionNode:
+    """Single local action with exploration and progress tracking"""
+    action: ActionSchema
+    state_before: str
+    state_after: str
+    result: ExecutionResult
+    distance_to_goal_before: float = 0.0  # 0-10 scale
+    distance_to_goal_after: float = 0.0   # 0-10 scale
+    exploration_options: List[Dict[str, str]] = field(default_factory=list)  # Suggested exploration branches
+    explored_count: int = 0  # How many exploration options tried
+    reverted: bool = False
+
+    @property
+    def progress_made(self) -> float:
+        """Calculate progress made by this action"""
+        return self.distance_to_goal_after - self.distance_to_goal_before
+
+    @property
+    def has_unexplored_options(self) -> bool:
+        """Check if there are unexplored options"""
+        return self.explored_count < len(self.exploration_options)
+
+
+class LocalActionHistory:
+    """Stack of local actions with revert capability"""
+
+    def __init__(self):
+        self.actions: List[LocalActionNode] = []
+        self.state_history: List[str] = []  # Track state sequence for loop detection
+
+    def push(
+        self,
+        action: ActionSchema,
+        state_before: str,
+        state_after: str,
+        result: ExecutionResult,
+        distance_before: float = 0.0,
+        distance_after: float = 0.0
+    ) -> LocalActionNode:
+        """
+        Record a local action with its before/after states
+
+        Returns:
+            The created LocalActionNode
+        """
+        node = LocalActionNode(
+            action=action,
+            state_before=state_before,
+            state_after=state_after,
+            result=result,
+            distance_to_goal_before=distance_before,
+            distance_to_goal_after=distance_after
+        )
+        self.actions.append(node)
+        self.state_history.append(state_after)
+        return node
+
+    def peek_last(self) -> Optional[LocalActionNode]:
+        """Get the last action without removing it"""
+        return self.actions[-1] if self.actions else None
+
+    def pop(self) -> Optional[LocalActionNode]:
+        """Remove and return the last action"""
+        if self.actions:
+            node = self.actions.pop()
+            if self.state_history:
+                self.state_history.pop()
+            return node
+        return None
+
+    def get_depth(self) -> int:
+        """Get current exploration depth"""
+        return len(self.actions)
+
+    def is_stuck_in_loop(self, window_size: int = 3) -> bool:
+        """
+        Detect if we're stuck in a loop by checking for repeated states
+
+        Args:
+            window_size: Number of recent states to check for repetition
+
+        Returns:
+            True if same state appears multiple times in recent history
+        """
+        if len(self.state_history) < window_size:
+            return False
+
+        recent_states = self.state_history[-window_size:]
+        # Simple heuristic: if we see the same state hash multiple times, we're looping
+        # Use first 500 chars of state as fingerprint
+        state_fingerprints = [s[:500] if s else "" for s in recent_states]
+        return len(state_fingerprints) != len(set(state_fingerprints))
+
+    def has_consistent_regression(self, window_size: int = 3, threshold: float = -0.5) -> bool:
+        """
+        Check if distance to goal has been consistently decreasing
+
+        Args:
+            window_size: Number of recent actions to check
+            threshold: Progress threshold (negative = regression)
+
+        Returns:
+            True if consistently regressing
+        """
+        if len(self.actions) < window_size:
+            return False
+
+        recent_actions = self.actions[-window_size:]
+        regression_count = sum(1 for node in recent_actions if node.progress_made < threshold)
+        return regression_count >= window_size
+
+    def clear(self):
+        """Clear all history"""
+        self.actions.clear()
+        self.state_history.clear()
 
 
 class StateCache:
@@ -312,6 +431,118 @@ Respond ONLY with JSON:
             print(f"  ! Error checking goal: {e}")
             return False
 
+    def _evaluate_distance_to_goal(self, current_state: str, goal: str) -> float:
+        """
+        Evaluate how close current state is to achieving the goal
+
+        Args:
+            current_state: Current UI state
+            goal: Goal condition to achieve
+
+        Returns:
+            Distance score from 0.0 (far) to 10.0 (achieved)
+        """
+        if not current_state or not goal:
+            return 0.0
+
+        prompt = f"""Evaluate how close the current UI state is to achieving the goal.
+
+Goal to Achieve:
+{goal}
+
+Current UI State:
+```
+{current_state[:2000]}
+```
+
+Rate the proximity on a scale of 0-10:
+- 0: Completely unrelated state, no progress toward goal
+- 3: Somewhat related, but far from goal
+- 5: Halfway there, some relevant elements present
+- 7: Close to goal, most elements in place
+- 10: Goal fully achieved
+
+Respond with JSON:
+{{
+  "distance_score": <0-10 float>,
+  "reasoning": "brief explanation of the score",
+  "missing_elements": "what's still needed to reach goal"
+}}
+"""
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=250,
+                temperature=0,
+                response_format={"type": "json_object"}
+            )
+            result = json.loads(response.choices[0].message.content.strip())
+            score = float(result.get('distance_score', 0.0))
+            print(f"  → Distance to goal: {score:.1f}/10 - {result.get('reasoning', '')}")
+            return score
+        except Exception as e:
+            print(f"  ! Error evaluating distance: {e}")
+            return 0.0
+
+    def _decide_revert_or_retain(
+        self,
+        history: LocalActionHistory,
+        last_node: LocalActionNode,
+        goal: str
+    ) -> str:
+        """
+        Decide whether to revert last action or retain it
+
+        Args:
+            history: Action history
+            last_node: Last executed action node
+            goal: Goal condition
+
+        Returns:
+            "retain", "revert", "explore", or "cancel"
+        """
+        progress = last_node.progress_made
+
+        print(f"\n  [Decision Point]")
+        print(f"    Progress: {progress:+.2f} (before: {last_node.distance_to_goal_before:.1f}, after: {last_node.distance_to_goal_after:.1f})")
+        print(f"    Depth: {history.get_depth()}")
+
+        # Check for cancellation conditions
+        if history.is_stuck_in_loop():
+            print(f"    → CANCEL: Stuck in loop")
+            return "cancel"
+
+        if history.has_consistent_regression():
+            print(f"    → CANCEL: Consistent regression")
+            return "cancel"
+
+        # Significant progress made - retain and continue
+        if progress > 0.5:
+            print(f"    → RETAIN: Good progress made")
+            return "retain"
+
+        # Moderate progress - retain and keep exploring
+        if progress > 0:
+            print(f"    → RETAIN: Some progress made")
+            return "retain"
+
+        # No progress or slight regression
+        if progress <= 0:
+            # Check if there are unexplored options
+            if last_node.has_unexplored_options:
+                print(f"    → EXPLORE: Try alternative option ({last_node.explored_count}/{len(last_node.exploration_options)} explored)")
+                return "explore"
+            else:
+                # No progress and no more options - revert
+                print(f"    → REVERT: No progress and all options exhausted")
+                return "revert"
+
+        # Default: retain
+        print(f"    → RETAIN: Default continue")
+        return "retain"
+
     def _interpret_and_adapt(
         self,
         action: ActionSchema,
@@ -524,7 +755,7 @@ Respond with JSON:
         max_local_iterations: int = 10
     ) -> ExecutionResult:
         """
-        Execute a high-level action using iterative 2-step local planning
+        Execute a high-level action using iterative 2-step local planning with revert/retain logic
 
         Args:
             high_level_action: The original high-level action to achieve
@@ -535,21 +766,27 @@ Respond with JSON:
         Returns:
             Execution result
         """
+        from agent.execution.action_reverter import ActionReverter
+
         print(f"\n  [Local Planning Mode] Achieving: {high_level_action.reasoning}")
 
+        # Initialize tracking structures
+        history = LocalActionHistory()
+        reverter = ActionReverter(self.mcp_client, self.client)
         kb_context = None
+        goal_condition = None
 
         for iteration in range(max_local_iterations):
             print(f"\n  --- Local Iteration {iteration + 1}/{max_local_iterations} ---")
 
             # Get current state
-            latest_state = self.state_cache.get_latest_state()
+            state_before = self.state_cache.get_latest_state()
 
             # Interpret and adapt with KB context
             adaptation = self._interpret_and_adapt(
                 high_level_action,
                 context,
-                latest_state,
+                state_before,
                 kb_context
             )
 
@@ -568,6 +805,8 @@ Respond with JSON:
             # Execute the 2-step local plan (action + state check)
             print(f"  → Executing {len(concrete_actions)}-step local plan")
 
+            # Execute only the first action (not State-Tool)
+            main_action = None
             for local_action in concrete_actions:
                 # Execute local action with is_local=True to cache as 8.1, 8.2, etc.
                 result = self.execute_action(local_action, context, step_num=step_num, is_local=True)
@@ -579,15 +818,88 @@ Respond with JSON:
                         error=f"Local plan failed: {result.error}"
                     )
 
+                # Track the main action (not State-Tool)
+                if local_action.tool_name != 'State-Tool':
+                    main_action = local_action
+
+            # Get state after execution
+            state_after = self.state_cache.get_latest_state()
+
+            # Evaluate distance to goal before and after
+            dist_before = self._evaluate_distance_to_goal(state_before, goal_condition) if state_before and goal_condition else 0.0
+            dist_after = self._evaluate_distance_to_goal(state_after, goal_condition) if state_after and goal_condition else 0.0
+
+            # Record in history
+            action_node = history.push(
+                action=main_action if main_action else concrete_actions[0],
+                state_before=state_before or "",
+                state_after=state_after or "",
+                result=result,
+                distance_before=dist_before,
+                distance_after=dist_after
+            )
+
+            # Get exploration options for this action
+            if dist_after < 9.0:  # Not yet at goal
+                exploration_options = reverter.suggest_exploration_options(
+                    action_node.action,
+                    state_after or "",
+                    goal_condition or ""
+                )
+                action_node.exploration_options = exploration_options
+
             # Check if goal is met
-            latest_state = self.state_cache.get_latest_state()
-            if goal_condition and self._check_goal_condition(goal_condition, latest_state):
+            if goal_condition and self._check_goal_condition(goal_condition, state_after or ""):
                 print(f"  ✓ High-level goal achieved via local planning")
                 return ExecutionResult(
                     success=True,
                     action=high_level_action.tool_name,
                     evidence=f"Achieved via {iteration + 1} local planning iterations"
                 )
+
+            # Decide: revert, retain, or explore?
+            decision = self._decide_revert_or_retain(history, action_node, goal_condition or "")
+
+            if decision == "cancel":
+                return ExecutionResult(
+                    success=False,
+                    action=high_level_action.tool_name,
+                    error="Local planning cancelled: stuck in loop or consistent regression"
+                )
+
+            elif decision == "revert":
+                # Generate and execute revert action
+                print(f"  → Reverting action: {action_node.action.tool_name}")
+                revert_action = reverter.generate_revert_action(
+                    action_node.action,
+                    state_after or "",
+                    state_before
+                )
+
+                if revert_action:
+                    print(f"    Revert strategy: {revert_action.reasoning}")
+                    revert_result = self.execute_action(revert_action, context, step_num=step_num, is_local=True)
+
+                    if not revert_result.success:
+                        print(f"    ! Revert failed: {revert_result.error}")
+                    else:
+                        print(f"    ✓ Reverted successfully")
+                        action_node.reverted = True
+                        # Pop this action from history since it's been reverted
+                        history.pop()
+                else:
+                    print(f"    ! No revert strategy available")
+
+            elif decision == "explore":
+                # Try an unexplored option
+                if action_node.exploration_options:
+                    option = action_node.exploration_options[action_node.explored_count]
+                    action_node.explored_count += 1
+                    print(f"  → Exploring option: {option.get('name')} - {option.get('description')}")
+                    # Next iteration will plan based on this hint
+                    # (LLM will consider the exploration hint in context)
+
+            # else: "retain" - just continue to next iteration
 
         # Max iterations reached
         return ExecutionResult(

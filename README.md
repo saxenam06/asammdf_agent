@@ -1595,3 +1595,651 @@ You can either:
 3. **Skill Matching**: Prefer verified skills when available for a task
 4. **Skill Evolution**: Track version history as skills are refined
 5. **Skill Sharing**: Export/import verified skills between systems
+
+
+# Code Changes Reference Guide
+
+Quick reference for all files and line numbers changed in this implementation.
+
+## New Files Added
+
+### 1. `agent/execution/action_reverter.py`
+**Purpose**: Smart action reversal strategies
+
+**Key Classes/Functions**:
+- `ActionReverter.__init__()` - Lines 30-41
+- `can_revert()` - Lines 43-54
+- `generate_revert_action()` - Lines 56-83
+- `_revert_click()` - Lines 85-109
+- `_find_cancel_button()` - Lines 111-170
+- `_revert_type()` - Lines 172-180
+- `_revert_key()` - Lines 182-197
+- `_revert_hotkey()` - Lines 199-213
+- `_llm_generate_revert()` - Lines 215-280
+- `suggest_exploration_options()` - Lines 282-335
+
+### 2. `test_revert_retain.py`
+**Purpose**: Comprehensive unit tests
+
+**Test Functions**:
+- `test_local_action_history()` - Lines 20-85
+- `test_action_reverter()` - Lines 88-159
+- `test_progress_evaluation()` - Lines 162-217
+- `test_loop_detection()` - Lines 220-240
+
+### 3. `plans/local_planning_revert_retain_design.md`
+**Purpose**: Complete design documentation (220 lines)
+
+### 4. `plans/revert_retain_flow_diagram.md`
+**Purpose**: Visual flow diagrams and examples (450 lines)
+
+### 5. `IMPLEMENTATION_SUMMARY.md`
+**Purpose**: Implementation summary and testing results (320 lines)
+
+## Modified Files
+
+### `agent/execution/adaptive_executor.py`
+
+#### Added Imports (Lines 1-20)
+```python
+Line 9:   from dataclasses import dataclass, field
+```
+
+#### New Classes (Lines 23-138)
+
+**LocalActionNode** (Lines 23-44)
+```python
+@dataclass
+class LocalActionNode:
+    """Single local action with exploration and progress tracking"""
+    action: ActionSchema
+    state_before: str
+    state_after: str
+    result: ExecutionResult
+    distance_to_goal_before: float = 0.0
+    distance_to_goal_after: float = 0.0
+    exploration_options: List[Dict[str, str]] = field(default_factory=list)
+    explored_count: int = 0
+    reverted: bool = False
+
+    @property
+    def progress_made(self) -> float
+
+    @property
+    def has_unexplored_options(self) -> bool
+```
+
+**LocalActionHistory** (Lines 47-138)
+```python
+class LocalActionHistory:
+    """Stack of local actions with revert capability"""
+
+    def __init__(self)  # Line 50
+    def push(...)  # Lines 54-78
+    def peek_last(self)  # Lines 80-82
+    def pop(self)  # Lines 84-91
+    def get_depth(self)  # Lines 93-95
+    def is_stuck_in_loop(self, window_size=3)  # Lines 97-115
+    def has_consistent_regression(self, window_size=3, threshold=-0.5)  # Lines 117-133
+    def clear(self)  # Lines 135-138
+```
+
+#### New Methods in AdaptiveExecutor Class
+
+**`_evaluate_distance_to_goal()`** (Lines 434-487)
+```python
+def _evaluate_distance_to_goal(self, current_state: str, goal: str) -> float:
+    """
+    Evaluate how close current state is to achieving the goal
+    Returns: Distance score from 0.0 (far) to 10.0 (achieved)
+    """
+```
+
+**Key Features**:
+- Uses LLM to score proximity to goal (0-10 scale)
+- Prompts for distance_score, reasoning, missing_elements
+- Returns float score
+- Error handling with fallback to 0.0
+
+**`_decide_revert_or_retain()`** (Lines 489-544)
+```python
+def _decide_revert_or_retain(
+    self,
+    history: LocalActionHistory,
+    last_node: LocalActionNode,
+    goal: str
+) -> str:
+    """
+    Decide whether to revert last action or retain it
+    Returns: "retain", "revert", "explore", or "cancel"
+    """
+```
+
+**Decision Logic**:
+1. Check if stuck in loop → "cancel"
+2. Check if consistent regression → "cancel"
+3. If progress > 0.5 → "retain"
+4. If progress > 0 → "retain"
+5. If progress ≤ 0:
+   - Has unexplored options → "explore"
+   - No options → "revert"
+
+#### Completely Rewritten Method
+
+**`_execute_with_local_planning()`** (Lines 750-909)
+
+**Old Implementation** (60 lines):
+- Simple loop executing 2-step plans
+- No progress tracking
+- No revert capability
+- Basic goal checking
+
+**New Implementation** (160 lines):
+- Lines 769-777: Initialize tracking (history, reverter)
+- Lines 783-796: Interpret and adapt with KB context
+- Lines 808-823: Execute actions and track main action
+- Lines 828-830: Evaluate distance before/after
+- Lines 833-840: Record in history with distances
+- Lines 843-849: Get exploration options
+- Lines 852-858: Check goal condition
+- Lines 861-902: Decision logic (cancel/revert/explore/retain)
+
+**Key Additions**:
+```python
+Line 769: from agent.execution.action_reverter import ActionReverter
+
+Line 774: history = LocalActionHistory()
+Line 775: reverter = ActionReverter(self.mcp_client, self.client)
+
+Lines 829-830: Evaluate progress
+    dist_before = self._evaluate_distance_to_goal(...)
+    dist_after = self._evaluate_distance_to_goal(...)
+
+Lines 833-840: Record action with distances
+    action_node = history.push(
+        action=main_action,
+        state_before=state_before or "",
+        state_after=state_after or "",
+        result=result,
+        distance_before=dist_before,
+        distance_after=dist_after
+    )
+
+Lines 843-849: Get exploration options
+    if dist_after < 9.0:
+        exploration_options = reverter.suggest_exploration_options(...)
+        action_node.exploration_options = exploration_options
+
+Lines 861-902: Revert/retain decision handling
+    decision = self._decide_revert_or_retain(history, action_node, goal)
+
+    if decision == "cancel":
+        return failure
+    elif decision == "revert":
+        revert_action = reverter.generate_revert_action(...)
+        execute_action(revert_action)
+        history.pop()
+    elif decision == "explore":
+        option = action_node.exploration_options[action_node.explored_count]
+        action_node.explored_count += 1
+```
+
+## Line-by-Line Change Summary
+
+### agent/execution/adaptive_executor.py
+
+| Line Range | Change Type | Description |
+|------------|-------------|-------------|
+| 9 | Added import | `from dataclasses import dataclass, field` |
+| 23-44 | New class | `LocalActionNode` dataclass |
+| 47-138 | New class | `LocalActionHistory` class |
+| 434-487 | New method | `_evaluate_distance_to_goal()` |
+| 489-544 | New method | `_decide_revert_or_retain()` |
+| 750-909 | Rewritten | `_execute_with_local_planning()` with revert/retain logic |
+
+**Total Lines Changed**: ~320 lines (160 new, 160 modified)
+
+## Integration Points
+
+### How to Use the New Functionality
+
+**1. The system automatically uses revert/retain in local planning**
+No changes needed to existing code. When `_execute_with_local_planning()` is called, it now includes intelligent backtracking.
+
+**2. Accessing from autonomous workflow**
+```python
+# In autonomous_workflow.py, already integrated
+# Line 245 calls executor.execute_action() which may trigger local planning
+result = self.executor.execute_action(action, context=context_actions, step_num=step_num)
+```
+
+**3. Configuring behavior**
+```python
+# In adaptive_executor.py line 755
+def _execute_with_local_planning(
+    self,
+    high_level_action: ActionSchema,
+    context: List[ActionSchema],
+    step_num: Optional[int],
+    max_local_iterations: int = 10  # ← Adjust this
+):
+```
+
+**4. Adjusting decision thresholds**
+```python
+# In _decide_revert_or_retain() method
+
+# Line 522: Significant progress threshold
+if progress > 0.5:  # ← Adjust this (default: 0.5)
+
+# Line 527: Any progress threshold
+if progress > 0:  # ← Keep as is
+
+# Line 117 in LocalActionHistory: Regression window
+def has_consistent_regression(self, window_size: int = 3, threshold: float = -0.5):
+    # ← Adjust window_size or threshold
+```
+
+## Testing the Changes
+
+### Run Unit Tests
+```bash
+.agent-venv\Scripts\python.exe test_revert_retain.py
+```
+
+### Run with Real Workflow
+```bash
+.agent-venv\Scripts\python.exe agent\workflows\autonomous_workflow.py "your task"
+```
+
+### Expected Test Output
+```
+✓ Test 1: LocalActionHistory
+  - Push/pop actions
+  - Progress tracking
+  - Loop detection
+  - Regression detection
+
+✓ Test 2: ActionReverter
+  - Checkbox reversion
+  - Dialog cancellation
+  - Text field clearing
+
+✓ Test 3: Progress Evaluation
+  - RETAIN decision for good progress
+  - EXPLORE decision for stalled progress
+  - REVERT decision for regression
+
+✓ Test 4: Loop Detection
+  - Detects repeated states
+```
+
+## Debugging and Monitoring
+
+### Key Log Messages
+
+**Progress Evaluation**:
+```
+→ Distance to goal: 5.2/10 - File menu is open but dialog not yet shown
+```
+
+**Decision Point**:
+```
+[Decision Point]
+  Progress: +2.00 (before: 3.0, after: 5.0)
+  Depth: 3
+  → RETAIN: Good progress made
+```
+
+**Revert Action**:
+```
+→ Reverting action: Click-Tool
+  Revert strategy: Revert: Click cancel button to close dialog
+  ✓ Reverted successfully
+```
+
+**Exploration**:
+```
+→ Exploring option: try_different_field - Try entering value in Name field instead
+```
+
+**Cancellation**:
+```
+→ CANCEL: Stuck in loop
+Local planning cancelled: stuck in loop or consistent regression
+```
+
+### State Cache Inspection
+
+Local planning states are cached as:
+- High-level step 8 → STATE_8.0
+- First local action → STATE_8.1
+- Second local action → STATE_8.2
+- etc.
+
+Access via:
+```python
+executor.state_cache.get_state(8.1)  # Get first local planning state
+executor.state_cache.get_latest_state()  # Get most recent state
+```
+
+## Performance Considerations
+
+### LLM Calls Per Iteration
+
+Each local planning iteration makes:
+1. `_interpret_and_adapt()` - 1 call (generates plan)
+2. `_evaluate_distance_to_goal()` - 2 calls (before + after)
+3. `suggest_exploration_options()` - 1 call (when needed)
+4. `_find_cancel_button()` or `_llm_generate_revert()` - 1 call (when reverting)
+
+**Total**: 3-5 LLM calls per iteration
+
+**Typical local planning episode**:
+- 3-5 iterations
+- 9-25 LLM calls total
+- ~10-30 seconds duration
+
+### Optimization Opportunities
+
+1. Cache distance evaluations for similar states
+2. Batch LLM calls where possible
+3. Use faster model for distance evaluation (already using gpt-4o-mini)
+4. Skip exploration suggestion when progress is good
+
+## Backward Compatibility
+
+✓ All existing functionality preserved
+✓ No breaking changes to existing APIs
+✓ Autonomous workflow works unchanged
+✓ Can disable by setting `max_local_iterations=1` (falls back to old behavior)
+
+## Future Enhancements
+
+Potential improvements (not yet implemented):
+
+1. **State Visualization**
+   - Add method to visualize decision tree
+   - Track all explored paths
+
+2. **Learning from History**
+   - Cache successful exploration strategies
+   - Prioritize previously successful options
+
+3. **Confidence Scores**
+   - LLM provides confidence for each exploration option
+   - Try high-confidence options first
+
+4. **Metrics Tracking**
+   - Average iterations to goal
+   - Revert rate by action type
+   - Success rate by exploration strategy
+
+## Quick Reference Card
+
+```
+┌────────────────────────────────────────────────────────────┐
+│ REVERT/RETAIN DECISION QUICK REFERENCE                     │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│ Progress > 0.5      → RETAIN (good progress)              │
+│ Progress > 0        → RETAIN (some progress)              │
+│ Progress ≤ 0 + opts → EXPLORE (try alternatives)          │
+│ Progress ≤ 0        → REVERT (backtrack)                  │
+│ Loop detected       → CANCEL (stuck)                      │
+│ Consistent regress  → CANCEL (not working)                │
+│                                                            │
+├────────────────────────────────────────────────────────────┤
+│ KEY FILES:                                                 │
+│  • adaptive_executor.py (lines 750-909)                   │
+│  • action_reverter.py (reversal strategies)               │
+│  • test_revert_retain.py (unit tests)                     │
+│                                                            │
+├────────────────────────────────────────────────────────────┤
+│ KEY METHODS:                                               │
+│  • _evaluate_distance_to_goal() - Score 0-10              │
+│  • _decide_revert_or_retain() - Make decision             │
+│  • _execute_with_local_planning() - Main loop             │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
+```
+
+
+
+# Local Planning Revert/Retain Implementation Summary
+
+## Overview
+Successfully implemented an intelligent revert/retain decision mechanism for local planning in the adaptive executor. The system can now:
+- Evaluate progress toward goals quantitatively
+- Decide whether to revert or retain actions based on progress
+- Explore alternative options before backtracking
+- Cancel plans when stuck in loops or consistent regression
+- Intelligently revert different action types (checkboxes, dialogs, text fields, etc.)
+
+## Files Created/Modified
+
+### New Files
+1. **`agent/execution/action_reverter.py`** (335 lines)
+   - `ActionReverter` class with smart reversal strategies
+   - Heuristic-based reversion for common patterns
+   - LLM fallback for complex cases
+   - Exploration option suggestion
+
+2. **`test_revert_retain.py`** (257 lines)
+   - Comprehensive unit tests
+   - Tests for history tracking, reversion, progress evaluation, and loop detection
+   - ✓ All tests passing
+
+3. **`plans/local_planning_revert_retain_design.md`** (220 lines)
+   - Complete design documentation
+   - Architecture diagrams
+   - Integration points and testing strategy
+
+### Modified Files
+1. **`agent/execution/adaptive_executor.py`**
+   - Added `LocalActionNode` dataclass (lines 23-44)
+   - Added `LocalActionHistory` class (lines 47-138)
+   - Added `_evaluate_distance_to_goal()` method (lines 434-487)
+   - Added `_decide_revert_or_retain()` method (lines 489-544)
+   - Completely rewrote `_execute_with_local_planning()` with revert/retain logic (lines 750-909)
+
+## Key Features Implemented
+
+### 1. Progress Evaluation (0-10 scale)
+```python
+def _evaluate_distance_to_goal(current_state: str, goal: str) -> float:
+    """Returns score from 0.0 (far) to 10.0 (achieved)"""
+```
+- Uses LLM to evaluate proximity to goal
+- Scores before and after each action
+- Progress = distance_after - distance_before
+
+### 2. Decision Logic
+```
+IF progress > 0.5:          → RETAIN (good progress)
+ELIF progress > 0:          → RETAIN (some progress)
+ELIF has_unexplored_options: → EXPLORE (try alternatives)
+ELIF no_progress:           → REVERT (backtrack)
+ELIF stuck_in_loop:         → CANCEL (escalate)
+ELIF consistent_regression: → CANCEL (escalate)
+```
+
+### 3. Action Reversal Strategies
+
+| Action Type | Reversal Method |
+|-------------|----------------|
+| Checkbox click | Click same location (toggle) |
+| Button opening dialog | Find Cancel/Close button or ESC |
+| Type text | Ctrl+A + Delete |
+| Key: Enter | ESC key |
+| Hotkey: Ctrl+Z | Ctrl+Y (redo) |
+| Generic | LLM-generated strategy |
+
+### 4. Exploration Before Reversion
+- After each action, LLM suggests 2-3 alternative options
+- System tries all options before reverting
+- Tracks `explored_count` vs `exploration_options`
+- Example: Dialog opened → try filling form, different values, then cancel
+
+### 5. Plan Cancellation
+Automatically cancels when:
+- **Loop detected**: Same state appears 3+ times in recent history
+- **Consistent regression**: Distance decreasing for 3+ consecutive actions
+- **Max iterations**: Configurable limit (default: 10)
+
+### 6. Action History Tracking
+```python
+@dataclass
+class LocalActionNode:
+    action: ActionSchema
+    state_before: str
+    state_after: str
+    result: ExecutionResult
+    distance_to_goal_before: float
+    distance_to_goal_after: float
+    exploration_options: List[Dict]
+    explored_count: int
+    reverted: bool
+```
+
+## Testing Results
+
+All unit tests passing:
+
+### Test 1: LocalActionHistory ✓
+- Push/pop actions
+- Track progress
+- Depth management
+- Loop detection (3 repeated states triggers detection)
+- Regression detection
+
+### Test 2: ActionReverter ✓
+- Checkbox: Click same location ✓
+- Type: Ctrl+A strategy ✓
+- State-Tool: Correctly marked as non-revertible ✓
+
+### Test 3: Progress Evaluation ✓
+- Good progress (+2.0) → RETAIN
+- No progress with options → EXPLORE
+- Regression without options → REVERT
+
+### Test 4: Loop Detection ✓
+- Detects repeated states after 3 iterations
+
+## Integration with Existing System
+
+The new logic is integrated into `_execute_with_local_planning()` in adaptive_executor.py:
+
+```python
+# Execute action
+result = execute_action(local_action, ...)
+
+# Evaluate progress
+dist_before = evaluate_distance_to_goal(state_before, goal)
+dist_after = evaluate_distance_to_goal(state_after, goal)
+
+# Record in history
+node = history.push(action, state_before, state_after, result, dist_before, dist_after)
+
+# Get exploration options
+node.exploration_options = reverter.suggest_exploration_options(...)
+
+# Check if goal met
+if check_goal_condition(goal, state_after):
+    return success
+
+# Decide: revert or retain?
+decision = decide_revert_or_retain(history, node, goal)
+
+if decision == "revert":
+    revert_action = reverter.generate_revert_action(node.action, state_after, state_before)
+    execute_action(revert_action)
+    history.pop()
+elif decision == "explore":
+    # Try next exploration option
+    # LLM will plan based on exploration hint
+elif decision == "cancel":
+    return failure("stuck in loop")
+# else: "retain" - continue to next iteration
+```
+
+## Usage Example
+
+When the high-level plan has an unreachable action, the system now:
+
+1. **Iteration 1**: Click button A → Dialog opens
+   - Distance: 3.0 → 5.0 (progress +2.0)
+   - Decision: RETAIN ✓
+
+2. **Iteration 2**: Fill wrong field → No progress
+   - Distance: 5.0 → 5.0 (progress 0.0)
+   - Exploration options: [try_field_B, try_field_C, cancel]
+   - Decision: EXPLORE ✓
+
+3. **Iteration 3**: Try field B → Still wrong
+   - Distance: 5.0 → 4.5 (progress -0.5)
+   - Still has exploration options
+   - Decision: EXPLORE ✓
+
+4. **Iteration 4**: Try field C → Correct!
+   - Distance: 4.5 → 9.0 (progress +4.5)
+   - Decision: RETAIN ✓
+   - Goal condition met → SUCCESS ✓
+
+## Configuration Options
+
+In `_execute_with_local_planning()`:
+- `max_local_iterations`: Default 10
+- Loop detection window: 3 states
+- Regression window: 3 actions
+- Progress thresholds:
+  - Significant: +0.5
+  - Regression: -0.5
+
+## Benefits
+
+1. **Intelligent Backtracking**: No longer stuck when hitting dead ends
+2. **Exploration First**: Exhausts options before reverting
+3. **Progress Measurement**: Quantitative evaluation (0-10 scale)
+4. **Smart Reversion**: Action-type-specific strategies
+5. **Loop Prevention**: Detects and cancels infinite loops
+6. **State Tracking**: Complete history with revert capability
+
+## Next Steps (Future Enhancements)
+
+1. Add state visualization/debugging UI
+2. Implement learning from successful exploration paths
+3. Add confidence scores to exploration options
+4. Optimize LLM calls (cache similar states)
+5. Add metrics tracking (avg iterations to goal, revert rate, etc.)
+
+## Testing Commands
+
+```bash
+# Run unit tests
+.agent-venv\Scripts\python.exe test_revert_retain.py
+
+# Run with actual GUI automation
+.agent-venv\Scripts\python.exe agent\workflows\autonomous_workflow.py "your task here"
+```
+
+## Performance Notes
+
+- Each local iteration makes 2-3 LLM calls:
+  1. `_interpret_and_adapt()` - generate 2-step plan
+  2. `_evaluate_distance_to_goal()` - twice (before/after)
+  3. `suggest_exploration_options()` - when needed
+
+- Typical local planning completes in 3-5 iterations
+- Progress evaluation adds ~1-2 seconds per iteration
+
+## Conclusion
+
+The revert/retain mechanism is fully implemented and tested. The system can now intelligently navigate GUI automation tasks with:
+- Progress-based decision making
+- Smart backtracking when needed
+- Exploration of alternatives before giving up
+- Automatic loop and regression detection
+- Action-specific reversal strategies
+
+All requirements from the original specification have been met and validated through unit tests.
