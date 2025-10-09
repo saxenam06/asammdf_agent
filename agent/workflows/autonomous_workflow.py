@@ -103,7 +103,7 @@ class AutonomousWorkflow:
     def executor(self):
         """Lazy load adaptive executor"""
         if self._executor is None:
-            self._executor = AdaptiveExecutor(self.client)
+            self._executor = AdaptiveExecutor(self.client, knowledge_retriever=self.retriever)
         return self._executor
 
     def _build_graph(self) -> StateGraph:
@@ -237,12 +237,12 @@ class AutonomousWorkflow:
         print(f"\n[4/5] Executing step {step_num + 1}/{total_steps}: {action.tool_name}")
         print(f"  Tool arguments: {action.tool_arguments}")
 
-        # Focus application window
-        self.client.call_tool('Switch-Tool', {'name': self.app_name})
+        # # Focus application window
+        # self.client.call_tool('Switch-Tool', {'name': self.app_name})
 
         # Execute action with adaptive resolution (passes context for better interpretation)
         context_actions = state["plan"].plan[:step_num]
-        result = self.executor.execute_action(action, context=context_actions)
+        result = self.executor.execute_action(action, context=context_actions, step_num=step_num)
 
         state["execution_log"] = [result]
         state["current_step"] += 1
