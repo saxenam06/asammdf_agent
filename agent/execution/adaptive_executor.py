@@ -452,7 +452,7 @@ Goal to Achieve:
 
 Current UI State:
 ```
-{current_state[:2000]}
+{current_state}
 ```
 
 Rate the proximity on a scale of 0-10:

@@ -408,8 +408,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "task",
         nargs="?",
-        default=r"Concatenate all MF4 files in C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Tesla Model 3\LOG\3F78A21D\00000001 folder save the concatenated MF4 file with name Tesla_Model_3_3F78A21D.mf4 in the same folder path",
-        help="Task description"
+        default=(
+            "Concatenate all MF4 files in "
+            r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Tesla Model 3\LOG\3F78A21D\00000001\ "
+            "and save the concatenated file as Tesla_Model_3_3F78A21D.mf4 in the same folder."
+        ),
+        help="Task description to perform (e.g., concatenate MF4 files)."
     )
     args = parser.parse_args()
 

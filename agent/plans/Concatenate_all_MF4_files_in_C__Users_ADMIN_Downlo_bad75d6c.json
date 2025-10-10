@@ -101,7 +101,7 @@
           "loc": [
             "STATE_10:filedialog:filename_field"
           ],
-          "text": "C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Tesla Model 3\\LOG\\3F78A21D\\*.mf4",
+          "text": "C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Tesla Model 3\\LOG\\3F78A21D\\00000001\\*.mf4",
           "clear": true,
           "press_enter": true
         },
