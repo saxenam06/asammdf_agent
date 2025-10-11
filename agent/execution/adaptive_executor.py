@@ -4,7 +4,6 @@ Uses a lightweight LLM (GPT-4o-mini) to understand intent and make execution dec
 """
 
 import json
-import re
 from typing import Dict, Any, List, Optional, Tuple
 from openai import OpenAI
 import os
@@ -24,47 +23,25 @@ class StateCache:
     """Cache for State-Tool outputs to resolve symbolic references"""
 
     def __init__(self):
-        self.states: Dict[int, str] = {}  # state_num -> state_output
-        self.current_state_num: int = 0
+        self.latest_state: Optional[str] = None
 
-    def add_state(self, state_output: str, step_num: Optional[int] = None) -> int:
-        """Add a state output and return its state number
+    def add_state(self, state_output: str) -> None:
+        """Add a state output as the latest state
 
         Args:
             state_output: The state output to cache
-            step_num: Optional step number from plan (used for proper numbering)
-
-        Returns:
-            The state number used (matches step_num + 1)
         """
-        if step_num is not None:
-            # Use step number from plan (1-indexed for STATE references)
-            state_num = step_num + 1
-            self.states[state_num] = state_output
-            self.current_state_num = state_num
-            return state_num
-        else:
-            # Increment from current state
-            self.current_state_num += 1
-            self.states[self.current_state_num] = state_output
-            return self.current_state_num
-
-    def get_state(self, state_num: int) -> Optional[str]:
-        """Get a cached state output by step number"""
-        return self.states.get(state_num)
+        self.latest_state = state_output
 
     def get_latest_state(self) -> Optional[str]:
         """Get the most recent state output"""
-        if not self.states:
-            return None
-        latest_key = max(self.states.keys())
-        return self.states[latest_key]
+        return self.latest_state
 
 
 class AdaptiveExecutor:
     """
     Low-level executor that:
-    - Resolves symbolic coordinate references (e.g., 'STATE_3:menu:Mode')
+    - Resolves symbolic coordinate references (e.g., 'last_state:menu:Mode')
     - Interprets unclear instructions and makes execution decisions
     - Calls additional actions if needed to reach desired state
     - Uses GPT-4o-mini for lightweight reasoning
@@ -101,72 +78,52 @@ class AdaptiveExecutor:
                 api_key=self.api_key
             )
 
-    def _is_symbolic_reference(self, value: Any) -> bool:
-        """Check if a value contains symbolic reference(s) like ['STATE_3:menu:Mode'] or multiple alternatives
-
-        Supports:
-        - Single reference: ['STATE_3:menu:Mode']
-        - Multiple alternatives: ['STATE_3:menu:File', 'STATE_3:menu:Files', 'STATE_3:button:File Menu']
+    def _resolve_coordinates(self, element_refs: List[str]) -> Tuple[Optional[List[int]], Optional[str]]:
         """
-        if isinstance(value, list) and len(value) >= 1:
-            # Check if at least one item is a symbolic reference
-            for item in value:
-                if isinstance(item, str) and item.startswith('STATE_'):
-                    return True
-        return False
-
-    def _parse_symbolic_reference(self, ref: str) -> Tuple[int, str, str]:
-        """
-        Parse symbolic reference like 'STATE_3:menu:Mode'
-
-        Returns:
-            (state_num, control_type, element_name)
-        """
-        match = re.match(r'STATE_(\d+):([^:]+):(.+)', ref)
-        if match:
-            state_num = int(match.group(1))
-            control_type = match.group(2)
-            element_name = match.group(3)
-            return state_num, control_type, element_name
-        raise ValueError(f"Invalid symbolic reference: {ref}")
-
-    def _resolve_coordinates(self, symbolic_ref: str) -> Tuple[Optional[List[int]], Optional[str]]:
-        """
-        Resolve symbolic reference to actual coordinates using cached state
+        Resolve element reference(s) to actual coordinates using latest cached state
+        LLM intelligently interprets any reference format and finds matching coordinates
 
         Args:
-            symbolic_ref: Reference like 'STATE_3:menu:Mode'
+            element_refs: List of element descriptions/references in any format
+                         Examples: ['last_state:menu:Mode', 'Mode menu', 'menu named Mode']
 
         Returns:
             Tuple of ([x, y] coordinates or None, error_message or None)
         """
-        state_num, control_type, element_name = self._parse_symbolic_reference(symbolic_ref)
+        state_output = self.state_cache.get_latest_state()
 
-        state_output = self.state_cache.get_state(state_num)
         if not state_output:
-            error_msg = f"State {state_num} not found in cache"
-            print(f"  ! Warning: {error_msg}")
+            error_msg = f"No cached state available to resolve coordinates"
+            print(f"  ✗ {error_msg}")
             return None, error_msg
 
-        # Use LLM to extract coordinates from state output
+        # Use LLM to intelligently parse and extract coordinates
+        refs_list = "\n".join([f"  - {ref}" for ref in element_refs])
+
         prompt = f"""You are parsing UI state output to find element coordinates.
 
 State output:
 ```
-{state_output}  # Limit to avoid token overflow
+{state_output[:3000]}  # Limit to avoid token overflow
 ```
 
-Find the element with:
-- Control type: {control_type}
-- Name/text: {element_name}
+Find coordinates for ANY ONE of these element references that is VISIBLE in the state output (in priority order):
+{refs_list}
 
-Extract the coordinates [x, y] for this element.
+IMPORTANT: Only return coordinates for elements that are ACTUALLY PRESENT in the state output above. Ignore any references to elements that are not visible or available in the current state.
+
+These references can be in any format - interpret them intelligently:
+- "last_state:control_type:element_name" format (structured)
+- Plain descriptions like "Mode menu" or "File button" (natural language)
+- Any other description that helps identify a UI element
+
+Try each reference in order and return coordinates for the FIRST element you can identify that is VISIBLE in the state.
 
 Respond with ONLY a JSON object:
-{{"found": true, "coordinates": [x, y]}}
+{{"found": true, "coordinates": [x, y], "matched_ref": "the reference that was found"}}
 
-OR if not found:
-{{"found": false, "reason": "why element was not found"}}
+OR if NONE of the references match visible elements:
+{{"found": false, "reason": "why none of the elements were found in the current state"}}
 """
 
         try:
@@ -182,25 +139,27 @@ OR if not found:
 
             if result.get("found"):
                 coords = result.get("coordinates")
-                print(f"  ✓ Resolved '{symbolic_ref}' to {coords}")
+                matched_ref = result.get("matched_ref", "unknown")
+                print(f"  ✓ Resolved '{matched_ref}' to {coords}")
                 return coords, None
             else:
-                error_msg = f"Could not resolve '{symbolic_ref}': {result.get('reason')}"
+                error_msg = f"Could not resolve any of {len(element_refs)} alternative(s): {result.get('reason')}"
                 print(f"  ! {error_msg}")
                 return None, error_msg
 
         except Exception as e:
-            error_msg = f"Error resolving coordinates for '{symbolic_ref}': {e}"
+            error_msg = f"Error resolving coordinates: {e}"
             print(f"  ! {error_msg}")
             return None, error_msg
 
     def _resolve_action_arguments(self, action: ActionSchema) -> Dict[str, Any]:
         """
-        Resolve symbolic references in action arguments to actual values
+        Resolve element references in action arguments to actual coordinates
 
-        Supports multiple alternatives - tries each reference in order until one succeeds:
-        - Single: ['STATE_3:menu:Mode']
-        - Multiple: ['STATE_3:menu:File', 'STATE_3:menu:Files', 'STATE_3:button:File Menu']
+        Flexible - accepts any reference format (structured or natural language):
+        - Structured: ['last_state:menu:Mode']
+        - Natural: ['Mode menu', 'File button']
+        - Mixed: ['last_state:menu:File', 'Files menu', 'button named File']
 
         Args:
             action: Action with potentially symbolic arguments
@@ -209,77 +168,27 @@ OR if not found:
             Resolved arguments dictionary
 
         Raises:
-            ValueError: If all resolution attempts fail with detailed error messages
+            ValueError: If resolution fails
         """
         resolved_args = {}
 
         for key, value in action.tool_arguments.items():
-            if self._is_symbolic_reference(value):
-                # Try to resolve each symbolic reference in order
-                coords = None
-                errors = []
+            # Check if value is a list of strings (potential element references)
+            if isinstance(value, list) and len(value) >= 1 and all(isinstance(item, str) for item in value):
+                print(f"  → Resolving '{key}' with {len(value)} alternative(s)")
 
-                # Filter to only symbolic references (in case list has mixed types)
-                symbolic_refs = [ref for ref in value if isinstance(ref, str) and ref.startswith('STATE_')]
+                # Let LLM handle any reference format
+                coords, error_msg = self._resolve_coordinates(value)
 
-                print(f"  → Attempting to resolve '{key}' with {len(symbolic_refs)} alternative(s)")
-
-                for idx, symbolic_ref in enumerate(symbolic_refs, 1):
-                    print(f"    [{idx}/{len(symbolic_refs)}] Trying: {symbolic_ref}")
-                    coords, error_msg = self._resolve_coordinates(symbolic_ref)
-
-                    if coords:
-                        # Success! Use these coordinates
-                        resolved_args[key] = coords
-                        print(f"    ✓ Successfully resolved using alternative {idx}")
-                        break
-                    else:
-                        # Failed, try next alternative
-                        errors.append(f"{symbolic_ref}: {error_msg}")
-                        print(f"    ✗ Alternative {idx} failed: {error_msg}")
-
-                # If none succeeded, raise error with all attempts
-                if coords is None:
-                    all_errors = "\n    - ".join(errors)
-                    raise ValueError(
-                        f"Failed to resolve '{key}' after trying {len(symbolic_refs)} alternative(s):\n"
-                        f"    - {all_errors}"
-                    )
+                if coords:
+                    resolved_args[key] = coords
+                else:
+                    raise ValueError(error_msg)
             else:
-                # Use value as-is (not a symbolic reference)
+                # Use value as-is (not a reference list)
                 resolved_args[key] = value
 
         return resolved_args
-
-    def _fallback_resolve(self, symbolic_ref: str) -> List[int]:
-        """
-        Fallback: use latest state to resolve coordinates
-
-        Returns:
-            Best guess coordinates or raises exception
-        """
-        latest = self.state_cache.get_latest_state()
-        if not latest:
-            raise ValueError(f"Cannot resolve '{symbolic_ref}': no state available")
-
-        state_num, state_output = latest
-        print(f"  → Using STATE_{state_num} for fallback resolution")
-
-        # Try to resolve from latest state
-        _, control_type, element_name = self._parse_symbolic_reference(symbolic_ref)
-
-        # Use simpler pattern matching as fallback
-        lines = state_output.split('\n')
-        for line in lines:
-            if element_name.lower() in line.lower():
-                # Try to extract coordinates from line
-                coord_match = re.search(r'\((\d+),\s*(\d+)\)', line)
-                if coord_match:
-                    x, y = int(coord_match.group(1)), int(coord_match.group(2))
-                    print(f"  → Fallback found coordinates: [{x}, {y}]")
-                    return [x, y]
-
-        raise ValueError(f"Cannot resolve '{symbolic_ref}' even with fallback")
 
     def execute_action(
         self,
@@ -310,8 +219,8 @@ OR if not found:
 
             # Cache the state output
             if result.success and result.evidence:
-                state_num = self.state_cache.add_state(result.evidence, step_num)
-                print(f"  ✓ Cached as STATE_{state_num}")
+                self.state_cache.add_state(result.evidence)
+                print(f"  ✓ Cached as latest state")
 
             return result
 
@@ -451,11 +360,11 @@ if __name__ == "__main__":
     """Test adaptive executor"""
     from agent.execution.mcp_client import get_mcp_client
 
-    # Create test action with symbolic reference
+    # Create test action with symbolic reference (using new format)
     test_action = ActionSchema(
         tool_name='Click-Tool',
         tool_arguments={
-            'loc': ['STATE_3:menu:Mode'],
+            'loc': ['last_state:menu:Mode'],
             'button': 'left',
             'clicks': 1
         },
@@ -475,10 +384,8 @@ if __name__ == "__main__":
     client = get_mcp_client()
     executor = AdaptiveExecutor(mcp_client=client, plan_filepath=r"agent\plans\Concatenate_all_MF4_files_in_C__Users_ADMIN_Downlo_bad75d6c.json")
 
-    # Manually add mock state
+    # Add mock state (only need to add once - it becomes the latest state)
     executor.state_cache.add_state(mock_state)
-    executor.state_cache.add_state(mock_state)  # STATE_2
-    executor.state_cache.add_state(mock_state)  # STATE_3
 
     # Test resolution
     result = executor.execute_action(test_action)

@@ -414,15 +414,15 @@ CRITICAL REQUIREMENTS:
 - Be creative: achieve the same goal through different UI paths if the original assumed path doesn't exist
 - Verify element existence before planning actions on them
 
-STATE REFERENCE NUMBERING (VERY IMPORTANT):
-- You are planning ONLY for the PENDING part of the workflow (steps after completed ones)
-- However, {summary['completed_count']} steps have ALREADY been completed
-- If you use State-Tool in your recovery plan and later reference it as "STATE_X", the numbering MUST continue from where it left off
-- For example: If 8 steps completed, your first State-Tool will be step 9, so reference it as "STATE_9", NOT "STATE_1"
-- The STATE numbers reflect the ABSOLUTE step position in the full merged plan, NOT relative position in recovery plan
-- When recovery plan is merged with completed steps, your recovery plan steps will be appended AFTER the completed ones
-- Therefore: Always number STATE references assuming completed steps come before your plan
-- Example: {summary['completed_count']} completed → your first State-Tool = STATE_{summary['completed_count'] + 1}, second = STATE_{summary['completed_count'] + 2}, etc.
+STATE REFERENCE FORMAT (VERY IMPORTANT):
+- When you use State-Tool to discover UI elements, reference them using the format: "last_state:element_type:element_name"
+- "last_state" always refers to the most recent State-Tool call before the current action
+- Do NOT use numbered state references like "STATE_1", "STATE_2", etc.
+- The executor will resolve "last_state" to the most recent State-Tool output automatically
+- Example: After calling State-Tool, reference elements as "last_state:menu:Mode", "last_state:button:Add files", etc.
+- This approach is flexible and works regardless of how many steps have been completed before
+- Always call State-Tool before referencing UI elements to ensure you're working with current state
+- If you need fresh UI state information, call State-Tool again and continue using "last_state" references
 
 Output ONLY valid JSON:
 {{
@@ -432,6 +432,11 @@ Output ONLY valid JSON:
       "tool_arguments": {{"use_vision": false}},
       "reasoning": "Verify current UI state and identify actual available elements"
     }},
+    {{
+      "tool_name": "Click-Tool",
+      "tool_arguments": {{ "loc": ["last_state:menu:Mode"], "button": "left", "clicks": 1 }},
+      "reasoning": "Open the 'Mode' menu using coordinates from most recent State-Tool call"
+    }}
     ...
   ],
   "reasoning": "EXPLAIN IN DETAIL: (1) What elements the original plan ASSUMED vs what ACTUALLY exists in current state, (2) What the INTENT of the failed action was, (3) What ACTUAL elements you found to achieve the same intent, (4) How KB guidance informed the new approach, (5) Which pending steps were reused/adapted based on actual element availability, (6) Why this reality-based approach will succeed",

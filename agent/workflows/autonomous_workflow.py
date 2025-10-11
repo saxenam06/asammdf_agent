@@ -201,10 +201,26 @@ class AutonomousWorkflow:
         print(f"\n[2/5] Generating plan with GPT...")
 
         try:
+            # Optionally capture current UI state to help planner understand state format
+            latest_state = None
+            try:
+                print("  → Capturing current UI state for planning context...")
+                state_result = self.client.call_tool('State-Tool', {'use_vision': False})
+                if not state_result.isError:
+                    if hasattr(state_result, 'content') and state_result.content:
+                        latest_state = state_result.content[0].text
+                    else:
+                        latest_state = str(state_result)
+                    print(f"  ✓ UI state captured ({len(latest_state)} chars)")
+            except Exception as e:
+                print(f"  ! Could not capture UI state (non-critical): {e}")
+                # Continue without state - planner will work without it
+
             plan = self.planner.generate_plan(
                 task=state["task"],
                 available_knowledge=state["retrieved_knowledge"],
-                force_regenerate=state.get("force_regenerate_plan", False)
+                force_regenerate=state.get("force_regenerate_plan", False),
+                latest_state=latest_state
             )
 
             print(f"  Generated plan with {len(plan.plan)} steps:")
@@ -497,7 +513,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "task",
         nargs="?",
-        default=r"Concatenate all MF4 files in C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Tesla Model 3\LOG\3F78A21D\00000001 folder save the concatenated MF4 file with name Tesla_Model_3_3F78A21D.mf4 in the same folder path",
+        default=(
+            "Concatenate all MF4 files in the folder "
+            r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Tesla Model 3\LOG\3F78A21D\00000001 "
+            "and save the concatenated MF4 file with the name Tesla_Model_3_3F78A21D.mf4 in the same folder path. "
+            "Once you are in the folder, click on any file, press CTRL+A to select all files in the folder, "
+            "and then click Open to load all files."
+        ),
         help="Task description"
     )
     args = parser.parse_args()

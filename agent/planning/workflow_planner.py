@@ -189,7 +189,8 @@ class WorkflowPlanner:
         task: str,
         available_knowledge: List[KnowledgeSchema],
         context: Optional[str] = None,
-        force_regenerate: bool = False
+        force_regenerate: bool = False,
+        latest_state: Optional[str] = None
     ) -> PlanSchema:
         """
         Generate an execution plan for a task
@@ -199,6 +200,7 @@ class WorkflowPlanner:
             available_knowledge: Knowledge patterns retrieved from documentation
             context: Optional additional context
             force_regenerate: If True, regenerate even if cached plan exists
+            latest_state: Optional current UI state from State-Tool to help with planning
 
         Returns:
             Validated execution plan
@@ -236,47 +238,62 @@ You have access to the following MCP tools for GUI automation:
 {tools_description}
 
 Rules:
-1. Use the provided knowledge patterns from documentation as reference for what actions to take
-2. Generate a plan as a sequence of MCP tool calls (tool_name, tool_arguments, and optional reasoning)
-3. Use State-Tool to get UI element coordinates before clicking/typing with argument 'use_vision': False
-4. Use Switch-Tool to activate the application window before other actions
-5. Use ONLY the tool names and arguments exactly as specified above
-6. Output valid JSON matching the required schema
+1. Use the provided knowledge patterns from documentation as reference for what actions to take.
+2. Generate a plan as a sequence of MCP tool calls (tool_name, tool_arguments, and optional reasoning).
+3. Use State-Tool to get UI element coordinates before clicking/typing with argument 'use_vision': False.
+4. Use Switch-Tool to activate the application window before other actions.
+5. Use ONLY the tool names and arguments exactly as specified above.
+6. Output valid JSON matching the required schema.
+7. Do NOT hardcode screen coordinates — always discover them dynamically using State-Tool.
+8. Reference UI elements from State-Tool output using format: "last_state:element_type:element_name"
 
-IMPORTANT: You cannot hardcode coordinates. Your plan should:
-1. Use State-Tool to discover UI elements dynamically
-2. Parse the state output to find element coordinates
-3. Use those coordinates in Click-Tool/Type-Tool calls
+Required output format (strict schema — return only this JSON structure):
 
-Output format:
 {{
+  "task": "Concatenate all MF4 files in C:\\\\Users\\\\ADMIN\\\\Downloads\\\\ev-data-pack-v10\\\\ev-data-pack-v10\\\\electric_cars\\\\log_files\\\\Tesla Model 3\\\\LOG\\\\3F78A21D\\\\00000001 folder and save Tesla_Model_3_3F78A21D.mf4 in the same folder",
   "plan": [
     {{
-      "tool_name": "State-Tool",
-      "tool_arguments": {{"use_vision": false}},
-      "reasoning": "Get current desktop state to find UI elements"
+      "tool_name": "Switch-Tool",
+      "tool_arguments": {{ "name": "asammdf" }},
+      "reasoning": "Activate the asammdf window so subsequent queries/clicks target it"
     }},
     {{
-      "tool_name": "Switch-Tool",
-      "tool_arguments": {{"name": "asammdf"}},
-      "reasoning": "Activate the asammdf application window"
+      "tool_name": "State-Tool",
+      "tool_arguments": {{ "use_vision": false }},
+      "reasoning": "Get current desktop state to find running applications and verify availability of asammdf"
     }},
     {{
       "tool_name": "Click-Tool",
-      "tool_arguments": {{"loc": [450, 300], "button": "left", "clicks": 1}},
-      "reasoning": "Click the File menu button"
+      "tool_arguments": {{ "loc": ["last_state:menu:Mode"], "button": "left", "clicks": 1 }},
+      "reasoning": "Open the 'Mode' menu using coordinates from most recent State-Tool call"
     }}
   ],
-  "reasoning": "Overall explanation of why this plan achieves the task",
-  "estimated_duration": 30
-}}
-
-Note: For coordinates, you'll need to reference them from previous State-Tool calls or use placeholder descriptions that will be resolved at execution time."""
+  "reasoning": "Switch to Batch processing, add all MF4s from the specified folder, choose Concatenate, set output path/name, and start the job. Repeated State-Tool calls discover UI coordinates dynamically to avoid hardcoding.",
+  "estimated_duration": 60
+}}"""
 
         # Build user prompt
         context_str = f"\n\nAdditional context: {context}" if context else ""
 
-        user_prompt = f"""User task: "{task}"{context_str}
+        # Get initial UI state by calling State-Tool
+        state_context = ""
+        
+        # Include latest UI state if available to help planner understand state format
+        if latest_state:
+            state_context = f"""
+
+CURRENT UI STATE (for reference - understand the state format and available elements):
+```
+{latest_state}  # Truncate to avoid token overflow
+```
+
+Use this state to:
+- Understand what UI elements are currently available
+- See the format of State-Tool output (this is what you'll reference in your plan)
+- Make informed decisions about which elements to interact with
+"""
+
+        user_prompt = f"""User task: "{task}"{context_str}{state_context}
 
 Available knowledge patterns from documentation:
 {knowledge_json}
@@ -362,76 +379,6 @@ Return ONLY valid JSON matching the schema. No explanatory text outside JSON."""
                 )
 
         return True, None
-
-    def refine_plan(
-        self,
-        task: str,
-        current_plan: PlanSchema,
-        error_feedback: str,
-        available_knowledge: List[KnowledgeSchema]
-    ) -> PlanSchema:
-        """
-        Refine a plan based on error feedback
-
-        Args:
-            task: Original task
-            current_plan: Current plan that failed
-            error_feedback: Error message or feedback
-            available_knowledge: Available knowledge patterns
-
-        Returns:
-            Refined plan
-        """
-        knowledge_json = json.dumps(
-            [knowledge.model_dump() for knowledge in available_knowledge],
-            indent=2
-        )
-
-        prompt = f"""The previous plan failed. Generate an improved plan.
-
-Original task: "{task}"
-
-Previous plan:
-{json.dumps(current_plan.model_dump(), indent=2)}
-
-Error feedback: {error_feedback}
-
-Available knowledge patterns:
-{knowledge_json}
-
-Generate a corrected plan that addresses the error. Return ONLY valid JSON."""
-
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                max_completion_tokens=120000,
-                timeout=600.0,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
-            )
-
-            content = response.choices[0].message.content
-
-            # Parse JSON (same logic as generate_plan)
-            if content.strip().startswith('{'):
-                plan_data = json.loads(content)
-            else:
-                if '```json' in content:
-                    json_start = content.find('```json') + 7
-                    json_end = content.find('```', json_start)
-                    json_str = content[json_start:json_end].strip()
-                    plan_data = json.loads(json_str)
-                else:
-                    plan_data = json.loads(content)
-
-            refined_plan = PlanSchema(**plan_data)
-            return refined_plan
-
-        except Exception as e:
-            print(f"Error refining plan: {e}")
-            raise
-
 
 if __name__ == "__main__":
     """
