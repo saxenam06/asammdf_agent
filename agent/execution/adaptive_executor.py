@@ -172,9 +172,21 @@ OR if NONE of the references match visible elements:
         """
         resolved_args = {}
 
+        # Tools that need coordinate resolution for their 'loc' parameter
+        # Other tools (like Shortcut-Tool) use lists for other purposes
+        COORDINATE_TOOLS = {'Click-Tool', 'Type-Tool', 'Drag-Tool'}
+
+        needs_coordinate_resolution = (
+            action.tool_name in COORDINATE_TOOLS and 'loc' in action.tool_arguments
+        )
+
         for key, value in action.tool_arguments.items():
             # Check if value is a list of strings (potential element references)
-            if isinstance(value, list) and len(value) >= 1 and all(isinstance(item, str) for item in value):
+            # AND if this tool/parameter combination needs coordinate resolution
+            if (isinstance(value, list) and len(value) >= 1 and
+                all(isinstance(item, str) for item in value) and
+                needs_coordinate_resolution and key == 'loc'):
+
                 print(f"  → Resolving '{key}' with {len(value)} alternative(s)")
 
                 # Let LLM handle any reference format
@@ -185,7 +197,7 @@ OR if NONE of the references match visible elements:
                 else:
                     raise ValueError(error_msg)
             else:
-                # Use value as-is (not a reference list)
+                # Use value as-is (not a reference list or doesn't need resolution)
                 resolved_args[key] = value
 
         return resolved_args
