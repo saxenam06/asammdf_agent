@@ -22,29 +22,72 @@ load_dotenv()
 PLANS_DIR = os.path.join(os.path.dirname(__file__), "..", "plans")
 
 
-def _get_plan_filename(task: str) -> str:
-    """Generate a safe filename from task name"""
+def _get_plan_filename(task: str, plan_number: int = 0) -> str:
+    """Generate a safe filename from task name with plan number
+
+    Args:
+        task: Task description
+        plan_number: Plan iteration number (0 for initial, 1+ for replans)
+
+    Returns:
+        Filename like: task_hash_Plan_0.json, task_hash_Plan_1.json, etc.
+    """
     # Create a hash of the task for unique identification
     task_hash = hashlib.md5(task.encode()).hexdigest()[:8]
     # Create a safe filename from task (first 50 chars)
     safe_task = "".join(c if c.isalnum() or c in (' ', '_', '-') else '_' for c in task[:50])
     safe_task = safe_task.strip().replace(' ', '_')
-    return f"{safe_task}_{task_hash}.json"
+    return f"{safe_task}_{task_hash}_Plan_{plan_number}.json"
 
 
-def save_plan(task: str, plan: PlanSchema) -> str:
+def get_latest_plan_number(task: str) -> int:
+    """
+    Get the highest plan number for a task
+
+    Args:
+        task: Task description
+
+    Returns:
+        Highest plan number found, or -1 if no plans exist
+    """
+    # Get task hash for matching files
+    task_hash = hashlib.md5(task.encode()).hexdigest()[:8]
+    safe_task = "".join(c if c.isalnum() or c in (' ', '_', '-') else '_' for c in task[:50])
+    safe_task = safe_task.strip().replace(' ', '_')
+
+    pattern_prefix = f"{safe_task}_{task_hash}_Plan_"
+
+    if not os.path.exists(PLANS_DIR):
+        return -1
+
+    max_plan_num = -1
+    for filename in os.listdir(PLANS_DIR):
+        if filename.startswith(pattern_prefix) and filename.endswith('.json'):
+            # Extract plan number from filename
+            try:
+                plan_num_str = filename.replace(pattern_prefix, '').replace('.json', '')
+                plan_num = int(plan_num_str)
+                max_plan_num = max(max_plan_num, plan_num)
+            except ValueError:
+                continue
+
+    return max_plan_num
+
+
+def save_plan(task: str, plan: PlanSchema, plan_number: int = 0) -> str:
     """
     Save a plan to the plans directory
 
     Args:
         task: Task description
         plan: Plan to save
+        plan_number: Plan iteration number (0 for initial, 1+ for replans)
 
     Returns:
         Path to saved plan file
     """
     os.makedirs(PLANS_DIR, exist_ok=True)
-    filename = _get_plan_filename(task)
+    filename = _get_plan_filename(task, plan_number)
     filepath = os.path.join(PLANS_DIR, filename)
 
     with open(filepath, 'w', encoding='utf-8') as f:
@@ -56,17 +99,24 @@ def save_plan(task: str, plan: PlanSchema) -> str:
     return filepath
 
 
-def load_plan(task: str) -> Optional[PlanSchema]:
+def load_plan(task: str, plan_number: Optional[int] = None) -> Optional[PlanSchema]:
     """
     Load a cached plan for a task
 
     Args:
         task: Task description
+        plan_number: Specific plan number to load, or None to load latest
 
     Returns:
         Cached plan if exists, None otherwise
     """
-    filename = _get_plan_filename(task)
+    # If no plan number specified, get the latest
+    if plan_number is None:
+        plan_number = get_latest_plan_number(task)
+        if plan_number == -1:
+            return None
+
+    filename = _get_plan_filename(task, plan_number)
     filepath = os.path.join(PLANS_DIR, filename)
 
     if not os.path.exists(filepath):
@@ -81,6 +131,24 @@ def load_plan(task: str) -> Optional[PlanSchema]:
         return None
 
 
+def get_latest_plan_filepath(task: str) -> Optional[str]:
+    """
+    Get the filepath of the latest plan for a task
+
+    Args:
+        task: Task description
+
+    Returns:
+        Path to latest plan file, or None if no plans exist
+    """
+    plan_number = get_latest_plan_number(task)
+    if plan_number == -1:
+        return None
+
+    filename = _get_plan_filename(task, plan_number)
+    return os.path.join(PLANS_DIR, filename)
+
+
 def plan_exists(task: str) -> bool:
     """
     Check if a plan exists for a task
@@ -91,9 +159,7 @@ def plan_exists(task: str) -> bool:
     Returns:
         True if plan exists, False otherwise
     """
-    filename = _get_plan_filename(task)
-    filepath = os.path.join(PLANS_DIR, filename)
-    return os.path.exists(filepath)
+    return get_latest_plan_number(task) >= 0
 
 
 class WorkflowPlanner:
@@ -260,9 +326,9 @@ Return ONLY valid JSON matching the schema. No explanatory text outside JSON."""
             # Validate with Pydantic
             plan = PlanSchema(**plan_data)
 
-            # Save the generated plan to cache
-            saved_path = save_plan(task, plan)
-            print(f"  ✓ Plan saved to: {saved_path}")
+            # Save the generated plan to cache as Plan_0
+            saved_path = save_plan(task, plan, plan_number=0)
+            print(f"  ✓ Plan saved to: {os.path.basename(saved_path)}")
 
             return plan
 

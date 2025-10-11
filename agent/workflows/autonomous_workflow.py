@@ -30,6 +30,7 @@ class WorkflowState(TypedDict):
     error: Optional[str]  # Error message if workflow failed
     completed: bool  # Whether the workflow has completed successfully
     retry_count: int  # Current retry count for the current step
+    replan_count: int  # Number of replanning attempts made
     force_regenerate_plan: bool  # Whether to force plan regeneration even if cached plan exists
 
 
@@ -43,7 +44,8 @@ class AutonomousWorkflow:
         app_name: str = "asammdf 8.6.10",
         knowledge_catalog_path: str = "agent/knowledge_base/json/knowledge_catalog.json",
         vector_db_path: str = "agent/knowledge_base/vector_store_gpt5_mini",
-        max_retries: int = 2
+        max_retries: int = 2,
+        max_replan_attempts: int = 3
     ):
         """
         Initialize autonomous workflow
@@ -52,11 +54,14 @@ class AutonomousWorkflow:
             app_name: Application window name
             knowledge_catalog_path: Path to knowledge catalog
             max_retries: Maximum retries for failed steps
+            max_replan_attempts: Maximum number of replanning attempts
         """
         self.app_name = app_name
         self.max_retries = max_retries
+        self.max_replan_attempts = max_replan_attempts
         self.knowledge_catalog_path = knowledge_catalog_path
         self.vector_db_path = vector_db_path
+        self.task = None  # Will be set in run()
 
         # Lazy initialization - don't load heavy components until needed
         self._retriever = None
@@ -101,9 +106,22 @@ class AutonomousWorkflow:
 
     @property
     def executor(self):
-        """Lazy load adaptive executor"""
-        if self._executor is None:
-            self._executor = AdaptiveExecutor(self.client, knowledge_retriever=self.retriever)
+        """Lazy load adaptive executor with latest plan for the task"""
+        if self._executor is None and self.task is not None:
+            from agent.planning.workflow_planner import get_latest_plan_filepath
+
+            plan_path = get_latest_plan_filepath(self.task)
+
+            if plan_path is None:
+                print("  ℹ️  No existing plan found - executor will be initialized after plan generation")
+                return None
+            else:
+                print(f"  📂 Loading latest plan: {os.path.basename(plan_path)}")
+                self._executor = AdaptiveExecutor(
+                    self.client,
+                    knowledge_retriever=self.retriever,
+                    plan_filepath=plan_path
+                )
         return self._executor
 
     def _build_graph(self) -> StateGraph:
@@ -159,8 +177,8 @@ class AutonomousWorkflow:
             }
         )
 
+        # Compile with higher recursion limit to support plans with many steps
         return workflow.compile()
-
     # ============================================================================
     # Node implementations
     # ============================================================================
@@ -197,6 +215,12 @@ class AutonomousWorkflow:
 
             state["plan"] = plan
             state["current_step"] = 0
+
+            # Force re-initialization of executor with the newly generated plan (Plan_0)
+            if self._executor is None:
+                print("  🔧 Initializing executor with new plan...")
+                # Trigger executor property to load the new Plan_0
+                _ = self.executor
 
         except Exception as e:
             print(f"  ✗ Plan generation failed: {e}")
@@ -244,20 +268,78 @@ class AutonomousWorkflow:
         context_actions = state["plan"].plan[:step_num]
         result = self.executor.execute_action(action, context=context_actions, step_num=step_num)
 
+        # Track execution in recovery manager
+        if self.executor.recovery_manager:
+            if result.success:
+                self.executor.recovery_manager.mark_step_completed(step_num, result)
+                print(f"  ✓ Step {step_num + 1} tracked in recovery manager")
+            elif result.action != "REPLAN_TRIGGERED":
+                # Only mark as failed if NOT a replan trigger
+                # (replanning already recorded the failure in _trigger_replanning)
+                self.executor.recovery_manager.mark_step_failed(step_num, result)
+                print(f"  ✗ Step {step_num + 1} failure tracked in recovery manager")
+
         state["execution_log"] = [result]
         state["current_step"] += 1
 
         return state
 
     def _verify_step_node(self, state: WorkflowState) -> WorkflowState:
-        """Verify step execution"""
+        """Verify step execution and handle replanning"""
         print(f"\n[5/5] Verifying step execution...")
 
         last_result = state["execution_log"][-1] if state["execution_log"] else None
 
         if last_result and not last_result.success:
-            print(f"  ✗ Step failed: {last_result.error}")
-            state["error"] = last_result.error
+            # Check if this is a replanning trigger
+            if last_result.action == "REPLAN_TRIGGERED":
+                print(f"\n🔄 REPLANNING DETECTED")
+
+                # Reload merged plan from recovery manager
+                if self.executor.recovery_manager:
+                    merged_plan = self.executor.recovery_manager.plan
+                    state["plan"] = merged_plan
+
+                    # After merge_plans, execution_state is reset with completed steps already in the merged plan
+                    # So we start from where the completed steps end (which is tracked in the merged plan structure)
+                    # The new execution_state starts fresh, so current_step should start from completed count in merged plan
+
+                    # Get the count of completed steps that were merged into the new plan
+                    # These are the actions that were successfully completed before the failure
+                    previous_completed_count = merged_plan.reasoning.count("Completed")
+                    # Extract number from reasoning like "Completed 5 steps successfully"
+                    import re
+                    match = re.search(r'Completed (\d+) steps', merged_plan.reasoning)
+                    if match:
+                        completed_count = int(match.group(1))
+                    else:
+                        completed_count = 0
+
+                    # Start execution from after the completed steps
+                    state["current_step"] = completed_count
+
+                    print(f"  ✓ Merged plan loaded: {len(merged_plan.plan)} total steps")
+                    print(f"  → Resuming from step {completed_count + 1} (after {completed_count} completed steps)")
+
+                    # Increment replan count
+                    state["replan_count"] = state.get("replan_count", 0) + 1
+
+                    # Check if max replanning attempts reached
+                    if state["replan_count"] > self.max_replan_attempts:
+                        print(f"  ✗ Max replanning attempts ({self.max_replan_attempts}) reached")
+                        state["error"] = f"Max replanning attempts ({self.max_replan_attempts}) reached"
+                    else:
+                        print(f"  ⟳ Replanning attempt {state['replan_count']}/{self.max_replan_attempts}")
+                        # Clear error to continue execution
+                        state["error"] = None
+                        state["retry_count"] = 0  # Reset retry count for new plan
+                else:
+                    print(f"  ✗ Recovery manager not available")
+                    state["error"] = "Replanning triggered but recovery manager not available"
+            else:
+                # Regular failure
+                print(f"  ✗ Step failed: {last_result.error}")
+                state["error"] = last_result.error
         else:
             print(f"  ✓ Step completed successfully")
             state["error"] = None
@@ -324,6 +406,9 @@ class AutonomousWorkflow:
         print(f"Autonomous Workflow: {task}")
         print("="*80)
 
+        # Store task for executor lazy initialization
+        self.task = task
+
         # Initialize state
         initial_state = WorkflowState(
             task=task,
@@ -335,12 +420,16 @@ class AutonomousWorkflow:
             error=None,
             completed=False,
             retry_count=0,
+            replan_count=0,
             force_regenerate_plan=force_regenerate_plan
         )
 
-        # Run workflow
+        # Run workflow with higher recursion limit to support plans with many steps
         try:
-            final_state = self.graph.invoke(initial_state)
+            final_state = self.graph.invoke(
+                initial_state,
+                {"recursion_limit": 100}
+            )
 
             # Build results
             results = {

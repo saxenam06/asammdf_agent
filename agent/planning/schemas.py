@@ -99,6 +99,38 @@ class ExecutionResult(BaseModel):
     timestamp: Optional[str] = Field(None, description="Timestamp of execution")
 
 
+class StepStatus(BaseModel):
+    """Status of a single step in plan execution"""
+    step_number: int = Field(..., description="Step number in the plan (1-indexed)")
+    action: ActionSchema = Field(..., description="The action that was/will be executed")
+    status: str = Field(..., description="Status: 'pending', 'completed', 'failed'")
+    result: Optional[ExecutionResult] = Field(None, description="Execution result if completed or failed")
+    timestamp: Optional[str] = Field(None, description="When this step was executed")
+
+
+class PlanExecutionState(BaseModel):
+    """Complete state of plan execution for recovery and replanning"""
+    original_task: str = Field(..., description="Original user task description")
+    plan_id: str = Field(..., description="Unique plan identifier with timestamp")
+    steps: List[StepStatus] = Field(..., description="Status of each step in the plan")
+    current_step: int = Field(0, description="Current step being executed (0-indexed)")
+    overall_status: str = Field("in_progress", description="Overall plan status: 'in_progress', 'completed', 'failed'")
+    created_at: str = Field(..., description="When this plan execution started")
+    updated_at: str = Field(..., description="When this state was last updated")
+
+    def get_completed_steps(self) -> List[StepStatus]:
+        """Get all completed steps"""
+        return [s for s in self.steps if s.status == "completed"]
+
+    def get_failed_steps(self) -> List[StepStatus]:
+        """Get all failed steps"""
+        return [s for s in self.steps if s.status == "failed"]
+
+    def get_pending_steps(self) -> List[StepStatus]:
+        """Get all pending steps"""
+        return [s for s in self.steps if s.status == "pending"]
+
+
 class VerifiedSkillSchema(BaseModel):
     """Schema for human-verified, proven workflow skills"""
     task_description: str = Field(..., description="What task this verified skill accomplishes")

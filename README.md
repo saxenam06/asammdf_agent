@@ -1595,3 +1595,315 @@ You can either:
 3. **Skill Matching**: Prefer verified skills when available for a task
 4. **Skill Evolution**: Track version history as skills are refined
 5. **Skill Sharing**: Export/import verified skills between systems
+
+
+# Replanning System Documentation
+
+## Overview
+
+The replanning system provides automatic recovery and adaptive replanning when plan execution fails. It replaces the previous hierarchical/local planning approach with a single workflow planner that tracks execution state and intelligently replans when needed.
+
+## Key Features
+
+The system implements all 7 required steps:
+
+1. **Tracks plan execution state** - which steps completed/failed
+2. **Saves plan snapshots** with timestamps when failures occur
+3. **Summarizes progress** - what worked vs what failed
+4. **Retrieves relevant knowledge** from KB for the failed part
+5. **Replans with reasoning** - explains why new approach should work
+6. **Merges** completed steps + new plan
+7. **Continues execution** - automatically resumes with merged plan
+
+## Architecture
+
+### Core Components
+
+#### 1. PlanRecoveryManager (`agent/planning/plan_recovery.py`)
+
+Manages the entire replanning lifecycle:
+
+- **`__init__(plan_filepath, knowledge_retriever, api_key)`**
+  - Initializes recovery manager with a plan file
+  - Creates execution_state in the plan JSON if not exists
+
+- **`save_snapshot(reason)`**
+  - Saves timestamped snapshot: `{filename}_{reason}_{timestamp}.json`
+  - Example: `Concatenate_files_bad75d6c_failure_20250110_143022.json`
+
+- **`mark_step_completed(step_number, result)`**
+  - Tracks successful step execution in plan JSON
+  - Updates `execution_state.steps` array
+
+- **`mark_step_failed(step_number, result)`**
+  - Records failure with error message
+  - Sets `overall_status` to "failed"
+
+- **`get_execution_summary()`**
+  - Returns detailed summary: completed/failed/pending counts
+  - Provides actual action objects for each category
+
+- **`summarize_progress()`**
+  - Generates human-readable summaries:
+    - Completed summary: what worked
+    - Failed summary: what broke and why
+    - Remaining goal: what's left to do
+
+- **`retrieve_knowledge_for_failure(failed_action, error)`**
+  - Queries knowledge base with failure context
+  - Returns relevant knowledge items (top 3)
+
+- **`generate_recovery_plan(mcp_tools_description, valid_tool_names)`**
+  - Uses GPT-5-mini to create new plan for unsolved part
+  - Includes KB context in prompt
+  - **CRITICAL**: Generates reasoning explaining:
+    1. Why original plan failed
+    2. What new approach does differently
+    3. Why new plan should succeed
+
+- **`merge_plans(recovery_plan)`**
+  - Combines completed steps + new recovery plan
+  - Updates plan file with merged result
+  - Returns complete merged PlanSchema
+
+#### 2. AdaptiveExecutor Updates (`agent/execution/adaptive_executor.py`)
+
+Enhanced to support replanning:
+
+- **`__init__(..., plan_filepath)`**
+  - Accepts optional plan file path
+  - Creates PlanRecoveryManager if filepath provided
+
+- **`execute_action(..., step_num)`**
+  - Now accepts step_num for tracking
+  - On symbolic reference resolution failure:
+    - Triggers replanning if recovery_manager available
+    - Otherwise returns failure
+
+- **`_trigger_replanning(failed_action, step_num, error)`**
+  - Orchestrates the 7-step replanning workflow:
+    1. Save snapshot
+    2. Summarize progress
+    3. Print summary
+    4. Retrieve KB knowledge (in generate_recovery_plan)
+    5. Generate recovery plan with reasoning
+    6. Merge plans
+    7. Return REPLAN_TRIGGERED signal
+
+- **`execute_plan(..., max_replan_attempts=3)`**
+  - Main execution loop with replanning support
+  - Tracks each step with recovery_manager
+  - On REPLAN_TRIGGERED result:
+    - Increments replan counter
+    - Reloads merged plan
+    - Restarts execution from current_step
+  - Supports up to 3 replanning attempts
+
+## Plan File Structure
+
+Plans are stored in `agent/plans/` with execution state tracking:
+
+```json
+{
+  "task": "Original user task description",
+  "plan": {
+    "plan": [
+      {
+        "tool_name": "State-Tool",
+        "tool_arguments": {"use_vision": false},
+        "reasoning": "Get current state"
+      },
+      ...
+    ],
+    "reasoning": "Why this plan achieves the task",
+    "estimated_duration": 60
+  },
+  "execution_state": {
+    "current_step": 3,
+    "overall_status": "failed",
+    "created_at": "2025-01-10T14:00:00",
+    "updated_at": "2025-01-10T14:05:00",
+    "steps": [
+      {
+        "step": 0,
+        "status": "completed",
+        "timestamp": "2025-01-10T14:01:00",
+        "evidence": "State retrieved successfully"
+      },
+      {
+        "step": 1,
+        "status": "completed",
+        "timestamp": "2025-01-10T14:02:00",
+        "evidence": "Window switched"
+      },
+      {
+        "step": 2,
+        "status": "failed",
+        "timestamp": "2025-01-10T14:03:00",
+        "error": "Cannot resolve 'STATE_3:menu:Mode'"
+      }
+    ],
+    "recovery_applied": "2025-01-10T14:05:00"
+  }
+}
+```
+
+## Usage Example
+
+```python
+from agent.execution.adaptive_executor import AdaptiveExecutor
+from agent.execution.mcp_client import get_mcp_client
+from agent.rag.knowledge_retriever import KnowledgeRetriever
+from agent.planning.workflow_planner import load_plan
+
+# Load plan
+plan = load_plan("your_task_description")
+
+# Initialize components
+mcp_client = get_mcp_client()
+knowledge_retriever = KnowledgeRetriever()
+
+# Create executor with plan tracking
+executor = AdaptiveExecutor(
+    mcp_client=mcp_client,
+    knowledge_retriever=knowledge_retriever,
+    plan_filepath="agent/plans/your_plan_file.json"
+)
+
+# Execute with automatic replanning
+results = executor.execute_plan(
+    plan_actions=plan.plan,
+    app_name="asammdf 8.6.10",
+    max_replan_attempts=3
+)
+```
+
+## Replanning Flow
+
+When a step fails:
+
+```
+Step N fails (e.g., symbolic reference resolution error)
+    ↓
+AdaptiveExecutor._trigger_replanning()
+    ↓
+┌─────────────────────────────────────────────┐
+│ 1. Save snapshot with timestamp             │
+│    → plans/filename_failure_timestamp.json  │
+└─────────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────────┐
+│ 2-3. Summarize progress                     │
+│    → Completed: Steps 1-5 (what worked)     │
+│    → Failed: Step 6 (what broke + error)    │
+│    → Remaining: Steps 7-20 (what's left)    │
+└─────────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────────┐
+│ 4. Retrieve KB knowledge                    │
+│    → Query: "{failed_action.reasoning} ...  │
+│    → Returns: Top 3 relevant patterns       │
+└─────────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────────┐
+│ 5. Generate recovery plan                   │
+│    → LLM prompt includes:                   │
+│      - Original task                        │
+│      - Completed summary                    │
+│      - Failed summary                       │
+│      - KB knowledge                         │
+│    → LLM generates new plan ONLY for        │
+│      remaining objective                    │
+│    → MUST include reasoning:                │
+│      "Why old failed, what's different,     │
+│       why new approach will succeed"        │
+└─────────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────────┐
+│ 6. Merge plans                              │
+│    → Completed steps (1-5) +                │
+│      Recovery plan (new 6-N)                │
+│    → Save merged plan to file               │
+└─────────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────────┐
+│ 7. Continue execution                       │
+│    → Return REPLAN_TRIGGERED signal         │
+│    → execute_plan() detects signal          │
+│    → Reloads merged plan                    │
+│    → Restarts from current_step             │
+│    → Repeat up to max_replan_attempts       │
+└─────────────────────────────────────────────┘
+```
+
+## Key Design Decisions
+
+1. **Single Planner**: Uses WorkflowPlanner (GPT-5-mini) for all planning
+   - No hierarchical planner
+   - No local planning iterations
+   - Simpler, more predictable behavior
+
+2. **Plan File as Source of Truth**: All execution state tracked in plan JSON
+   - Easy to inspect
+   - Portable across sessions
+   - Human-readable
+
+3. **Timestamped Snapshots**: Preserves history on each failure
+   - Debugging aid
+   - Audit trail
+   - Recovery from crashes
+
+4. **Reasoning Required**: LLM must explain why new plan will work
+   - Forces deliberate analysis
+   - Helps debug planning issues
+   - Improves plan quality
+
+5. **Bounded Retries**: Max 3 replanning attempts
+   - Prevents infinite loops
+   - Forces escalation if persistent failure
+
+## Testing
+
+Run the test script:
+
+```bash
+python test_replanning.py
+```
+
+This will:
+- Load an existing plan
+- Execute with replanning enabled
+- Demonstrate the full workflow on failure
+- Show execution summary and recovery state
+
+## Files Modified/Created
+
+### Created:
+- `agent/planning/plan_recovery.py` - Complete replanning system
+- `agent/planning/schemas.py` - Added StepStatus, PlanExecutionState (later simplified)
+- `test_replanning.py` - Test script
+- `REPLANNING_SYSTEM.md` - This documentation
+
+### Modified:
+- `agent/execution/adaptive_executor.py`:
+  - Added `plan_filepath` and `recovery_manager`
+  - Replaced `_execute_with_local_planning()` with `_trigger_replanning()`
+  - Removed unused methods: `_interpret_and_adapt`, `_check_goal_condition`, `_query_knowledge_base`, `_needs_clarification`
+  - Enhanced `execute_plan()` with replanning loop
+
+## Benefits
+
+1. **Resilience**: Automatic recovery from failures
+2. **Transparency**: Clear tracking of what worked/failed
+3. **Adaptability**: Learns from failures via KB retrieval
+4. **Simplicity**: Single planner, clear workflow
+5. **Debuggability**: Timestamped snapshots, detailed summaries
+6. **Continuity**: Preserves completed work, only replans unsolved parts
+
+## Future Enhancements
+
+- Persistent execution state across process restarts
+- Learning from successful recoveries
+- Adaptive max_replan_attempts based on task complexity
+- Multi-strategy replanning (try different approaches)
+- Human-in-the-loop approval for recovery plans
