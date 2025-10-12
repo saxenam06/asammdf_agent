@@ -514,13 +514,13 @@ if __name__ == "__main__":
         "task",
         nargs="?",
         default=(
-            "Concatenate all MF4 files in the folder "
-            r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Tesla Model 3\LOG\3F78A21D\00000001 "
-            "and save the concatenated MF4 file with the name Tesla_Model_3_3F78A21D.mf4 in the same folder path. "
-            "Once you are in the folder, click on any file, press CTRL+A to select all files in the folder, "
-            "and then click Open to load all files."
+            "Concatenate all .MF4 files in the folder "
+            r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Tesla Model 3\LOG\3F78A21D\00000001. "
+            "Save the concatenated file as Tesla_Model_3_3F78A21D.mf4 in the same folder. "
+            "GUI instructions: open the folder in the file dialog, click any file to focus the list, "
+            "press CTRL+A to select all files, then press ENTER to load them."
         ),
-        help="Task description"
+        help="High-level task: by default, concatenate all MF4 files in the specified folder and save the result there."
     )
     args = parser.parse_args()
 

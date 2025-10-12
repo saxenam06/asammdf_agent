@@ -348,7 +348,11 @@ NOTE: Evaluate if these pending steps are still valid. If they make sense for ac
 you can reuse or adapt them in your recovery plan. Do NOT discard the entire pending plan blindly -
 merge what works with new steps to address the failure."""
 
-        prompt = f"""You are replanning a failed GUI automation workflow.
+        prompt = rf"""You are an expert recovery planner for a failed GUI automation workflow.
+
+═══════════════════════════════════════════════════════════════════════════════
+SECTION 1: TASK CONTEXT
+═══════════════════════════════════════════════════════════════════════════════
 
 ORIGINAL TASK:
 {self.original_task}
@@ -358,90 +362,188 @@ EXECUTION PROGRESS:
 
 FAILURE POINT:
 {failed_summary}
-{state_section}
-{kb_section}
 
 REMAINING OBJECTIVE:
 {remaining_goal}
 {pending_plan_section}
 
-AVAILABLE MCP TOOLS:
+═══════════════════════════════════════════════════════════════════════════════
+SECTION 2: CURRENT REALITY (What's Actually Available)
+═══════════════════════════════════════════════════════════════════════════════
+{state_section}
+
+═══════════════════════════════════════════════════════════════════════════════
+SECTION 3: KNOWLEDGE BASE GUIDANCE
+═══════════════════════════════════════════════════════════════════════════════
+{kb_section}
+
+═══════════════════════════════════════════════════════════════════════════════
+SECTION 4: AVAILABLE MCP TOOLS
+═══════════════════════════════════════════════════════════════════════════════
 {mcp_tools_description}
 
-IMPORTANT CONTEXT:
-The original plan may have ASSUMED or GUESSED that certain UI elements would be present,
-but the failure indicates these elements are NOT actually available in the current UI state.
-Your job is to:
-1. Understand the INTENT of what the original plan was trying to achieve
-2. Look at the ACTUAL elements visible in the current UI state
-3. Find an alternative way to achieve the same INTENT using the elements that ACTUALLY exist
+Valid tool names: {', '.join(valid_tool_names)}
 
-YOUR TASK:
-1. Analyze the CURRENT UI STATE to understand what's actually on screen right now
-2. Determine WHY the original plan failed:
-   - Was it assuming an element that doesn't exist?
-   - Was it expecting a different UI state?
-   - Was it using an incorrect element name/path?
-3. Understand the INTENT behind the failed action and pending steps:
-   - What was the plan trying to accomplish?
-   - What was the end goal it was working towards?
-4. Map the INTENT to ACTUAL available elements in the current UI state:
-   - What UI elements are ACTUALLY visible that could achieve the same intent?
-   - Are there alternative controls, menus, buttons that serve the same purpose?
-   - Is there a different navigation path using actual visible elements?
-5. Use the knowledge base context to understand the CORRECT approach for achieving the goal
-6. Review the original pending plan - determine which parts are still valid given:
-   - The actual current UI state
-   - The availability of real UI elements vs assumed ones
-7. Generate a NEW plan that:
-   - Works from the ACTUAL current UI state (not assumed/guessed state)
-   - Uses ONLY elements that are confirmed to exist in the current state
-   - Achieves the same INTENT as the original plan, even if using different elements/paths
-   - Addresses the root cause of the failure using KB guidance
-   - Reuses valid steps from pending plan where they match actual UI reality
-   - Only replans what needs to be changed to achieve the goal
-8. Explain your REASONING clearly
+═══════════════════════════════════════════════════════════════════════════════
+SECTION 5: ROOT CAUSE ANALYSIS
+═══════════════════════════════════════════════════════════════════════════════
 
-CRITICAL REQUIREMENTS:
-- Use ONLY these tool names: {', '.join(valid_tool_names)}
-- Base your plan STRICTLY on the ACTUAL current UI state shown above
-- Do NOT assume any elements exist - only use elements you can see in the current state
-- If the original plan referenced elements that don't exist, find ALTERNATIVE elements that achieve the same intent
-- Focus on achieving the INTENT/GOAL, not blindly replicating the original approach
-- Address the root cause: assumed elements vs actual elements
-- Use State-Tool to discover UI elements dynamically when needed
-- Do NOT repeat the completed steps
-- Be creative: achieve the same goal through different UI paths if the original assumed path doesn't exist
-- Verify element existence before planning actions on them
+UNDERSTAND THE FAILURE:
+The original plan likely ASSUMED certain UI elements would be present, but the failure
+indicates these assumptions were WRONG. You must:
 
-STATE REFERENCE FORMAT (VERY IMPORTANT):
-- When you use State-Tool to discover UI elements, reference them using the format: "last_state:element_type:element_name"
-- "last_state" always refers to the most recent State-Tool call before the current action
-- Do NOT use numbered state references like "STATE_1", "STATE_2", etc.
-- The executor will resolve "last_state" to the most recent State-Tool output automatically
-- Example: After calling State-Tool, reference elements as "last_state:menu:Mode", "last_state:button:Add files", etc.
-- This approach is flexible and works regardless of how many steps have been completed before
-- Always call State-Tool before referencing UI elements to ensure you're working with current state
-- If you need fresh UI state information, call State-Tool again and continue using "last_state" references
+1. ANALYZE ASSUMPTIONS vs REALITY
+   → What elements did the original plan assume existed?
+   → What elements are ACTUALLY visible in the current UI state?
+   → What's the gap between assumption and reality?
 
-Output ONLY valid JSON:
+2. IDENTIFY THE INTENT
+   → What was the original plan trying to ACCOMPLISH (not just execute)?
+   → What is the END GOAL the user wants to achieve?
+   → Why did the user want to perform the failed action?
+
+3. MAP INTENT TO ACTUAL ELEMENTS
+   → Which ACTUAL visible elements can achieve the same intent?
+   → Are there alternative controls/menus/buttons serving the same purpose?
+   → Is there a different navigation path using real elements?
+
+4. LEVERAGE KNOWLEDGE BASE
+   → What does the KB say about the CORRECT way to achieve this goal?
+   → Are there proven workflows or element names documented?
+   → What patterns should you follow?
+
+5. EVALUATE PENDING PLAN
+   → Which pending steps are still valid given ACTUAL element availability?
+   → Which steps need modification to use real elements?
+   → Which steps should be discarded because they reference non-existent elements?
+
+═══════════════════════════════════════════════════════════════════════════════
+SECTION 6: RECOVERY STRATEGY
+═══════════════════════════════════════════════════════════════════════════════
+
+APPROACH:
+Follow this systematic process to generate your recovery plan:
+
+Step 1: VERIFY CURRENT STATE
+→ If UI state is not available or unclear, start with State-Tool
+→ Ensure you understand what's ACTUALLY on screen right now
+
+Step 2: FIND ALTERNATIVE PATH
+→ Given the intent and actual available elements, determine alternative approach
+→ Use KB guidance to identify correct element names and workflows
+→ Map each intended action to actual UI elements
+
+Step 3: ADAPT PENDING PLAN
+→ Review each pending step from original plan
+→ Keep steps that reference actual existing elements
+→ Modify steps that need different elements
+→ Discard steps that are no longer relevant
+
+Step 4: GENERATE RECOVERY PLAN
+→ Create new step sequence using ONLY actual visible elements
+→ Reference elements as: ["last_state:element_type:element_name"]
+→ Call State-Tool before interacting with new UI sections
+→ Include clear reasoning for each step explaining the adaptation
+
+Step 5: VALIDATE PLAN
+→ Ensure all element references point to ACTUAL visible elements
+→ Verify the plan achieves the original INTENT
+→ Confirm all steps use valid MCP tools
+
+═══════════════════════════════════════════════════════════════════════════════
+SECTION 7: ELEMENT REFERENCE RULES (CRITICAL)
+═══════════════════════════════════════════════════════════════════════════════
+
+ELEMENT REFERENCE FORMAT
+   • Menus: ["last_state:menu:Mode"]
+   • Buttons: ["last_state:button:Save"]
+   • File name: ["last_state:edit:File name"]
+   • Select Files: ["last_state:file name:data.MF4"]
+   • Wildcards: ["last_state:file name:*.MF4"] for any matching file
+
+PATH FORMATTING (CRITICAL FOR WINDOWS):
+   • ALWAYS use single backslash (\) in Windows paths
+   • Example: C:\Users\ADMIN\Downloads\file.mf4
+   • NEVER use double backslashes (\\) - this will cause GUI typing errors
+   • When specifying paths in Type-Tool arguments, use exactly ONE backslash between path components
+
+EXAMPLES:
+• Menus: ["last_state:menu:Mode"]
+• Buttons: ["last_state:button:Save"]
+• Wildcards: ["last_state:file name:*.MF4"]
+• Edit File name: ["last_state:edit:File name"]
+• Select Files: ["last_state:file name:data.MF4"]
+
+WORKFLOW:
+1. Call State-Tool to discover elements
+2. Reference discovered elements as "last_state:..."
+3. If you need updated state later, call State-Tool again
+4. Continue using "last_state:..." for newest elements
+
+═══════════════════════════════════════════════════════════════════════════════
+SECTION 8: CRITICAL REQUIREMENTS
+═══════════════════════════════════════════════════════════════════════════════
+
+✓ DO:
+• Base ALL decisions on ACTUAL current UI state
+• Use ONLY elements you can SEE in the state output
+• Find ALTERNATIVE paths when original assumptions fail
+• Follow KB guidance for correct workflows
+• Reuse valid pending steps where appropriate
+• Include clear reasoning explaining your adaptations
+• Focus on achieving the INTENT, not replicating failed approach
+
+✗ DON'T:
+• Assume any elements exist without verification
+• Hardcode coordinates - use State-Tool discovery
+• Repeat completed steps
+• Blindly copy the original failed approach
+• Use numbered state references (STATE_1, STATE_2, etc.)
+• Ignore the current UI state
+• Discard entire pending plan without evaluation
+
+═══════════════════════════════════════════════════════════════════════════════
+SECTION 9: REQUIRED OUTPUT FORMAT
+═══════════════════════════════════════════════════════════════════════════════
+
+Return ONLY valid JSON (no explanatory text outside JSON):
+
 {{
   "plan": [
     {{
       "tool_name": "State-Tool",
       "tool_arguments": {{"use_vision": false}},
-      "reasoning": "Verify current UI state and identify actual available elements"
+      "reasoning": "Verify current UI state and discover actual available elements"
     }},
     {{
       "tool_name": "Click-Tool",
-      "tool_arguments": {{ "loc": ["last_state:menu:Mode"], "button": "left", "clicks": 1 }},
-      "reasoning": "Open the 'Mode' menu using coordinates from most recent State-Tool call"
-    }}
-    ...
+      "tool_arguments": {{"loc": ["last_state:menu:File"], "button": "left", "clicks": 1}},
+      "reasoning": "Open File menu (alternative to non-existent Mode menu) to achieve same intent"
+    }},
+    {{
+        "tool_name": "Type-Tool",
+        "tool_arguments": {{
+          "text": "C:\Users\ADMIN\Downloads\output.mf4",
+          "clear": true,
+          "press_enter": false
+        }},
+        "reasoning": "Enter the full output path and filename"
+      }},
+    ... additional steps ...
   ],
-  "reasoning": "EXPLAIN IN DETAIL: (1) What elements the original plan ASSUMED vs what ACTUALLY exists in current state, (2) What the INTENT of the failed action was, (3) What ACTUAL elements you found to achieve the same intent, (4) How KB guidance informed the new approach, (5) Which pending steps were reused/adapted based on actual element availability, (6) Why this reality-based approach will succeed",
-  "estimated_duration": 30
+  "reasoning": "DETAILED EXPLANATION REQUIRED:
+1. ASSUMPTION vs REALITY: [What original plan assumed vs what actually exists]
+2. INTENT: [What the failed action was trying to accomplish]
+3. ALTERNATIVE SOLUTION: [What actual elements will achieve the same intent]
+4. KB GUIDANCE: [How knowledge base informed the new approach]
+5. PENDING PLAN ADAPTATION: [Which steps reused/modified/discarded and why]
+6. SUCCESS RATIONALE: [Why this reality-based approach will work]",
+  "estimated_duration": 45
 }}
+
+═══════════════════════════════════════════════════════════════════════════════
+Now generate your recovery plan following this systematic approach.
+═══════════════════════════════════════════════════════════════════════════════
 """
 
         try:

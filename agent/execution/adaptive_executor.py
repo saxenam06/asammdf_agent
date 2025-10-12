@@ -78,7 +78,12 @@ class AdaptiveExecutor:
                 api_key=self.api_key
             )
 
-    def _resolve_coordinates(self, element_refs: List[str]) -> Tuple[Optional[List[int]], Optional[str]]:
+    def _resolve_coordinates(
+        self,
+        element_refs: List[str],
+        action: ActionSchema,
+        tool_schema: Optional[Dict] = None
+    ) -> Tuple[Optional[List[int]], Optional[str]]:
         """
         Resolve element reference(s) to actual coordinates using latest cached state
         LLM intelligently interprets any reference format and finds matching coordinates
@@ -86,6 +91,8 @@ class AdaptiveExecutor:
         Args:
             element_refs: List of element descriptions/references in any format
                          Examples: ['last_state:menu:Mode', 'Mode menu', 'menu named Mode']
+            action: The action being executed (provides tool name, arguments, and reasoning)
+            tool_schema: Optional schema for the MCP tool (describes expected arguments)
 
         Returns:
             Tuple of ([x, y] coordinates or None, error_message or None)
@@ -100,31 +107,108 @@ class AdaptiveExecutor:
         # Use LLM to intelligently parse and extract coordinates
         refs_list = "\n".join([f"  - {ref}" for ref in element_refs])
 
-        prompt = f"""You are parsing UI state output to find element coordinates.
+        # Build context information about the action and tool
+        context_info = f"""
+ACTION CONTEXT:
+- Tool: {action.tool_name}
+- Reasoning: {action.reasoning}
+- All Arguments: {json.dumps(action.tool_arguments, indent=2)}
+"""
 
-State output:
+        # Add tool schema information if available
+        if tool_schema:
+            schema_params = tool_schema.get('properties', {})
+            params_desc = []
+            for param, info in schema_params.items():
+                param_type = info.get('type', 'any')
+                param_desc = info.get('description', 'No description')
+                params_desc.append(f"  - {param} ({param_type}): {param_desc}")
+
+            if params_desc:
+                context_info += f"""
+TOOL SCHEMA ({action.tool_name}):
+{chr(10).join(params_desc)}
+"""
+
+        prompt = f"""You are a UI element coordinate resolver for an automation system. Your task is to find the exact [x, y] coordinates of a UI element from the current state.
+
+═══════════════════════════════════════════════════════════════════════════════
+SECTION 1: WHAT YOU'RE TRYING TO DO
+═══════════════════════════════════════════════════════════════════════════════
+{context_info}
+
+Key Understanding:
+• Tool Name: {action.tool_name}
+• Intent/Goal: {action.reasoning}
+• This reasoning tells you WHY this element needs to be found and what it will be used for
+
+═══════════════════════════════════════════════════════════════════════════════
+SECTION 2: CURRENT UI STATE (What's Actually Visible)
+═══════════════════════════════════════════════════════════════════════════════
 ```
-{state_output}  # Limit to avoid token overflow
+{state_output}
 ```
 
-Find coordinates for ANY ONE of these element references that is VISIBLE in the state output (in priority order):
+═══════════════════════════════════════════════════════════════════════════════
+SECTION 3: YOUR TASK
+═══════════════════════════════════════════════════════════════════════════════
+Find coordinates for ONE of these element references (try in order of priority):
 {refs_list}
 
-IMPORTANT: Only return coordinates for elements that are ACTUALLY PRESENT in the state output above. Ignore any references to elements that are not visible or available in the current state.
+UNDERSTANDING ELEMENT REFERENCES:
+• Structured format: "last_state:control_type:element_name" (e.g., "last_state:button:Save")
+• Natural language: "Save button", "File menu", "OK dialog"
+• Any description that identifies a UI element
 
-These references can be in any format - interpret them intelligently:
-- "last_state:control_type:element_name" format (structured)
-- Plain descriptions like "Mode menu" or "File button" (natural language)
-- Any other description that helps identify a UI element
+═══════════════════════════════════════════════════════════════════════════════
+SECTION 4: DECISION LOGIC (Follow This Process)
+═══════════════════════════════════════════════════════════════════════════════
 
-Try each reference in order and return coordinates for the FIRST element you can identify that is VISIBLE in the state.
-If multiple instances are found for the same element with same control_typea and element_name then provide the coordinates of the one which is on the bottom most.  
+Step 1: EXACT MATCH SEARCH
+→ Search the UI state for exact matches to the element references
+→ If found, extract coordinates and proceed to response
 
-Respond with ONLY a JSON object:
-{{"found": true, "coordinates": [x, y], "matched_ref": "the reference that was found"}}
+Step 2: INTENT-BASED ADAPTATION (If no exact match)
+→ Use the tool reasoning to understand the INTENT
+→ Look for elements that serve the SAME PURPOSE
+→ Example: If looking for "Mode menu" to access settings, and only "Preferences" exists,
+   Preferences might serve the same intent
 
-OR if NONE of the references match visible elements:
-{{"found": false, "reason": "why none of the elements were found in the current state"}}
+Step 3: MULTIPLE INSTANCE HANDLING
+→ If multiple elements match (same control_type and name):
+   - Use the tool reasoning to pick the most contextually appropriate one
+   - Consider position (top/bottom, left/right) based on typical UI conventions
+   - Prefer the element that best aligns with the intended action
+
+Step 4: VALIDATION
+→ ONLY return coordinates for elements ACTUALLY PRESENT in the UI state
+→ NEVER return coordinates for invisible or non-existent elements
+→ If nothing matches, provide helpful suggestions in the failure response
+
+═══════════════════════════════════════════════════════════════════════════════
+SECTION 5: RESPONSE FORMAT
+═══════════════════════════════════════════════════════════════════════════════
+
+Return ONLY a JSON object (no other text):
+
+✓ SUCCESS CASE (Element found):
+{{
+  "found": true,
+  "coordinates": [x, y],
+  "matched_ref": "which reference matched",
+  "adaptation": "explanation if you used intent-based adaptation instead of exact match (leave empty if exact match)"
+}}
+
+✗ FAILURE CASE (No element found):
+{{
+  "found": false,
+  "reason": "clear explanation of why none of the references matched",
+  "suggestion": "alternative elements visible in current state that might achieve the same goal based on reasoning"
+}}
+
+═══════════════════════════════════════════════════════════════════════════════
+Now proceed with coordinate resolution.
+═══════════════════════════════════════════════════════════════════════════════
 """
 
         try:
@@ -142,10 +226,19 @@ OR if NONE of the references match visible elements:
             if result.get("found"):
                 coords = result.get("coordinates")
                 matched_ref = result.get("matched_ref", "unknown")
-                print(f"  ✓ Resolved '{matched_ref}' to {coords}")
+                adaptation = result.get("adaptation", "")
+
+                if adaptation:
+                    print(f"  ✓ Resolved '{matched_ref}' to {coords} (Adapted: {adaptation})")
+                else:
+                    print(f"  ✓ Resolved '{matched_ref}' to {coords}")
                 return coords, None
             else:
-                error_msg = f"Could not resolve any of {len(element_refs)} alternative(s): {result.get('reason')}"
+                reason = result.get('reason', 'Unknown reason')
+                suggestion = result.get('suggestion', '')
+                error_msg = f"Could not resolve any of {len(element_refs)} alternative(s): {reason}"
+                if suggestion:
+                    error_msg += f" | Suggestion: {suggestion}"
                 print(f"  ! {error_msg}")
                 return None, error_msg
 
@@ -176,23 +269,34 @@ OR if NONE of the references match visible elements:
 
         # Tools that need coordinate resolution for their 'loc' parameter
         # Other tools (like Shortcut-Tool) use lists for other purposes
-        COORDINATE_TOOLS = {'Click-Tool', 'Type-Tool', 'Drag-Tool'}
+        needs_coordinate_resolution = ('loc' in action.tool_arguments)
 
-        needs_coordinate_resolution = (
-            action.tool_name in COORDINATE_TOOLS and 'loc' in action.tool_arguments
-        )
+        # Get tool schema for better context
+        tool_schema = None
+        if needs_coordinate_resolution:
+            try:
+                mcp_tools = self.mcp_client.list_tools()
+                for tool in mcp_tools:
+                    if tool.get('name') == action.tool_name:
+                        tool_schema = tool.get('schema', {})
+                        break
+            except Exception as e:
+                print(f"  ! Could not fetch tool schema: {e}")
 
         for key, value in action.tool_arguments.items():
             # Check if value is a list of strings (potential element references)
             # AND if this tool/parameter combination needs coordinate resolution
             if (isinstance(value, list) and len(value) >= 1 and
-                all(isinstance(item, str) for item in value) and
-                needs_coordinate_resolution and key == 'loc'):
+                all(isinstance(item, str) for item in value) and key == 'loc'):
 
                 print(f"  → Resolving '{key}' with {len(value)} alternative(s)")
 
-                # Let LLM handle any reference format
-                coords, error_msg = self._resolve_coordinates(value)
+                # Pass full action context and tool schema to resolver
+                coords, error_msg = self._resolve_coordinates(
+                    element_refs=value,
+                    action=action,
+                    tool_schema=tool_schema
+                )
 
                 if coords:
                     resolved_args[key] = coords

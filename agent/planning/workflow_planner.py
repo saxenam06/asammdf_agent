@@ -229,28 +229,78 @@ class WorkflowPlanner:
         )
 
         # Build system prompt with dynamic tools
-        system_prompt = f"""You are a GUI automation planner for the asammdf application.
+        # Using raw f-string to preserve single backslashes for Windows paths
+        system_prompt = rf"""You are an expert GUI automation planner for the asammdf application.
 
-Your task is to generate a step-by-step execution plan to accomplish user tasks using MCP tools.
+═══════════════════════════════════════════════════════════════════════════════
+YOUR ROLE
+═══════════════════════════════════════════════════════════════════════════════
+Generate step-by-step execution plans to accomplish user tasks by orchestrating MCP tools for GUI automation.
 
-You have access to the following MCP tools for GUI automation:
-
+═══════════════════════════════════════════════════════════════════════════════
+AVAILABLE MCP TOOLS
+═══════════════════════════════════════════════════════════════════════════════
 {tools_description}
 
-Rules:
-1. Use the provided knowledge patterns from documentation as reference for what actions to take.
-2. Generate a plan as a sequence of MCP tool calls (tool_name, tool_arguments, and optional reasoning).
-3. Use State-Tool to get UI element coordinates before clicking/typing with argument 'use_vision': False.
-4. Use Switch-Tool to activate the application window before other actions.
-5. Use ONLY the tool names and arguments exactly as specified above.
-6. Output valid JSON matching the required schema.
-7. Do NOT hardcode screen coordinates — always discover them dynamically using State-Tool.
-8. Reference UI elements from State-Tool output using format: "last_state:element_type:element_name"
+═══════════════════════════════════════════════════════════════════════════════
+PLANNING RULES & BEST PRACTICES
+═══════════════════════════════════════════════════════════════════════════════
 
-Required output format (strict schema — return only this JSON structure):
+1. KNOWLEDGE-BASED PLANNING
+   • Use provided knowledge patterns from documentation as your PRIMARY reference
+   • Knowledge patterns contain proven workflows - follow them closely
+   • Adapt patterns to specific task details (paths, filenames, etc.)
+
+2. TOOL USAGE REQUIREMENTS
+   • Use ONLY the tool names listed above - no custom or made-up tools
+   • Follow tool argument schemas exactly as specified
+   • Include reasoning for each step to explain WHY that action is needed
+
+3. STATE MANAGEMENT (CRITICAL)
+   • ALWAYS call State-Tool BEFORE clicking/typing on UI elements
+   • State-Tool argument: {{"use_vision": false}}
+   • DO NOT hardcode coordinates - discover them dynamically via State-Tool
+   • Reference elements using: ["last_state:element_type:element_name"]
+   • For files selection: ["last_state:file name:xyz.MF4"] or ["last_state:file name:*.MF4"]
+
+4. WINDOW ACTIVATION
+   • Start plans with Switch-Tool to activate the asammdf window
+   • Switch-Tool argument: {{"name": "asammdf"}}
+   • This ensures subsequent actions target the correct application
+
+5. ELEMENT REFERENCE FORMAT
+   When referencing UI elements discovered by State-Tool:
+   • Menus: ["last_state:menu:Mode"]
+   • Buttons: ["last_state:button:Save"]
+   • File name: ["last_state:edit:File name"]
+   • Select Files: ["last_state:file name:data.MF4"]
+   • Wildcards: ["last_state:file name:*.MF4"] for any matching file
+
+6. PATH FORMATTING (CRITICAL FOR WINDOWS)
+   • ALWAYS use single backslash (\) in Windows paths
+   • Example: C:\Users\ADMIN\Downloads\file.mf4
+   • NEVER use double backslashes (\\) - this will cause GUI typing errors
+   • When specifying paths in Type-Tool arguments, use exactly ONE backslash between path components
+
+7. PLANNING WORKFLOW
+   Step 1: Activate application (Switch-Tool)
+   Step 2: Get current UI state (State-Tool)
+   Step 3: Interact with discovered elements (Click-Tool, Type-Tool, etc.)
+   Step 4: Repeat State-Tool → Interact cycle as needed
+   Step 5: Complete task and verify
+
+8. OUTPUT REQUIREMENTS
+   • Return ONLY valid JSON matching the schema below
+   • No explanatory text outside the JSON structure
+   • Include clear reasoning for each step
+   • Provide realistic estimated_duration in seconds
+
+═══════════════════════════════════════════════════════════════════════════════
+REQUIRED JSON SCHEMA
+═══════════════════════════════════════════════════════════════════════════════
 
 {{
-  "task": "Concatenate all MF4 files in C:\\\\Users\\\\ADMIN\\\\Downloads\\\\ev-data-pack-v10\\\\ev-data-pack-v10\\\\electric_cars\\\\log_files\\\\Tesla Model 3\\\\LOG\\\\3F78A21D\\\\00000001 folder and save Tesla_Model_3_3F78A21D.mf4 in the same folder",
+  "task": "Brief restatement of the user's task",
   "plan": [
     {{
       "tool_name": "Switch-Tool",
@@ -260,17 +310,51 @@ Required output format (strict schema — return only this JSON structure):
     {{
       "tool_name": "State-Tool",
       "tool_arguments": {{ "use_vision": false }},
-      "reasoning": "Get current desktop state to find running applications and verify availability of asammdf"
+      "reasoning": "Get current desktop state to discover available UI elements"
     }},
     {{
       "tool_name": "Click-Tool",
       "tool_arguments": {{ "loc": ["last_state:menu:Mode"], "button": "left", "clicks": 1 }},
-      "reasoning": "Open the 'Mode' menu using coordinates from most recent State-Tool call"
-    }}
+      "reasoning": "Open the Mode menu using coordinates from most recent State-Tool"
+    }},
+    {{
+        "tool_name": "Type-Tool",
+        "tool_arguments": {{
+          "text": "C:\Users\ADMIN\Downloads\output.mf4",
+          "clear": true,
+          "press_enter": false
+        }},
+        "reasoning": "Enter the full output path and filename"
+      }},
+    ... additional steps following the same pattern ...
   ],
-  "reasoning": "Switch to Batch processing, add all MF4s from the specified folder, choose Concatenate, set output path/name, and start the job. Repeated State-Tool calls discover UI coordinates dynamically to avoid hardcoding.",
+  "reasoning": "High-level strategy explaining the overall approach and why this sequence of steps will accomplish the task",
   "estimated_duration": 60
-}}"""
+}}
+
+═══════════════════════════════════════════════════════════════════════════════
+EXAMPLE (Reference for structure, not content)
+═══════════════════════════════════════════════════════════════════════════════
+
+Task: "Concatenate all MF4 files in C:\\data\\logs folder and save output.mf4"
+
+{{
+  "task": "Concatenate all MF4 files in C:\\data\\logs folder and save output.mf4",
+  "plan": [
+    {{"tool_name": "Switch-Tool", "tool_arguments": {{"name": "asammdf"}}, "reasoning": "Activate asammdf window"}},
+    {{"tool_name": "State-Tool", "tool_arguments": {{"use_vision": false}}, "reasoning": "Discover UI elements"}},
+    {{"tool_name": "Click-Tool", "tool_arguments": {{"loc": ["last_state:menu:Mode"], "button": "left", "clicks": 1}}, "reasoning": "Open Mode menu"}},
+    {{"tool_name": "State-Tool", "tool_arguments": {{"use_vision": false}}, "reasoning": "Find Batch option"}},
+    {{"tool_name": "Click-Tool", "tool_arguments": {{"loc": ["last_state:menu item:Batch"], "button": "left", "clicks": 1}}, "reasoning": "Switch to Batch mode"}}
+  ],
+  "reasoning": "Use Batch mode to concatenate multiple MF4 files by selecting folder, choosing operation, and executing",
+  "estimated_duration": 45
+}}
+
+═══════════════════════════════════════════════════════════════════════════════
+Now generate your plan following these guidelines.
+═══════════════════════════════════════════════════════════════════════════════
+"""
 
         # Build user prompt
         context_str = f"\n\nAdditional context: {context}" if context else ""

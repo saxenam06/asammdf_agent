@@ -23,7 +23,13 @@
       "Bash(\".agent-venv\\Scripts\\python.exe\" \"agent\\execution\\mcp_client.py\")",
       "Bash(timeout:*)",
       "Bash(\".agent-venv\\Scripts\\python.exe\":*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(\".agent-venv\\Scripts\\python.exe\" -c \"from agent.planning.workflow_planner import WorkflowPlanner; print(''Import successful'')\")",
+      "Bash(\".agent-venv\\Scripts\\python.exe\" -c \"from agent.planning.plan_recovery import PlanRecoveryManager; print(''plan_recovery import successful'')\")",
+      "Bash(\".agent-venv\\Scripts\\python.exe\" .agentworkflowsautonomous_workflow.py)",
+      "Bash(\".agent-venv\\Scripts\\python.exe\" -c \"import agent.workflows.autonomous_workflow; print(''Autonomous workflow import successful!'')\")",
+      "Bash(\".agent-venv\\Scripts\\python.exe\" -c \"import re; test1 = r''C:\\Users\\ADMIN\\Downloads\\file.txt''; test2 = r''C:\\Users\\ADMIN\\Downloads\\file.txt''; print(''Input with double backslashes:'', repr(test1)); normalized1 = re.sub(r''\\\\+'', r''\\'', test1); print(''After normalization:'', repr(normalized1)); print(''Input with single backslashes:'', repr(test2)); normalized2 = re.sub(r''\\\\+'', r''\\'', test2); print(''After normalization:'', repr(normalized2))\")",
+      "Bash(del test_path_normalization.py)"
     ],
     "deny": [],
     "ask": []
