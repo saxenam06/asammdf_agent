@@ -104,7 +104,7 @@ class AdaptiveExecutor:
 
 State output:
 ```
-{state_output[:3000]}  # Limit to avoid token overflow
+{state_output}  # Limit to avoid token overflow
 ```
 
 Find coordinates for ANY ONE of these element references that is VISIBLE in the state output (in priority order):
@@ -118,6 +118,7 @@ These references can be in any format - interpret them intelligently:
 - Any other description that helps identify a UI element
 
 Try each reference in order and return coordinates for the FIRST element you can identify that is VISIBLE in the state.
+If multiple instances are found for the same element with same control_typea and element_name then provide the coordinates of the one which is on the bottom most.  
 
 Respond with ONLY a JSON object:
 {{"found": true, "coordinates": [x, y], "matched_ref": "the reference that was found"}}
@@ -127,6 +128,7 @@ OR if NONE of the references match visible elements:
 """
 
         try:
+            print(f"Resolving Coordinates with GPT")
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],

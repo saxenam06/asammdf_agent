@@ -103,9 +103,6 @@
       {
         "tool_name": "Type-Tool",
         "tool_arguments": {
-          "loc": [
-            "last_state:edit:Address"
-          ],
           "text": "C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Tesla Model 3\\LOG\\3F78A21D\\00000001",
           "clear": true,
           "press_enter": true
@@ -130,7 +127,7 @@
         "tool_name": "Click-Tool",
         "tool_arguments": {
           "loc": [
-            "last_state:list:File list"
+            "'last_state:file name:*.MF4'"
           ],
           "button": "left",
           "clicks": 1
@@ -225,9 +222,6 @@
       {
         "tool_name": "Type-Tool",
         "tool_arguments": {
-          "loc": [
-            "last_state:edit:Output filename"
-          ],
           "text": "C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Tesla Model 3\\LOG\\3F78A21D\\00000001\\Tesla_Model_3_3F78A21D.mf4",
           "clear": true,
           "press_enter": false
@@ -245,7 +239,7 @@
         "tool_name": "Click-Tool",
         "tool_arguments": {
           "loc": [
-            "last_state:button:Start"
+            "last_state:button:Save"
           ],
           "button": "left",
           "clicks": 1
@@ -264,164 +258,188 @@
     "estimated_duration": 30
   },
   "execution_state": {
-    "current_step": 12,
-    "overall_status": "in_progress",
+    "current_step": 27,
+    "overall_status": "failed",
     "created_at": "2025-10-12T04:34:27.851407",
-    "updated_at": "2025-10-12T05:01:08.909720",
+    "updated_at": "2025-10-12T06:36:12.704010",
     "steps": [
       {
         "step": 6,
         "status": "completed",
-        "timestamp": "2025-10-12T05:01:03.935161",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Batch processing Depth: 1 Status: Normal Size: (530,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1390,1020)\nName: Google - Personal - Microsoft\u200b Edge Depth: 3 Status: Normal Size: (980,1030)\nName: New tab - Personal - Microsoft\u200b Edge Depth: 4 Status: Normal Size: (980,1030)\nName: Sc"
+        "timestamp": "2025-10-12T06:35:05.488713",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Batch processing Depth: 1 Status: Maximized Size: (1920,991)\n\n    Opened Apps:\n    Name: GitHub Desktop Depth: 2 Status: Maximized Size: (1938,1038)\nName: File list element identification - Personal - Microsoft\u200b Edge Depth: 3 Status: Normal Size: (980,1030)\nName: Scripts - File Explorer Depth: 4 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\"
       },
       {
         "step": 7,
         "status": "completed",
-        "timestamp": "2025-10-12T05:01:04.944243",
+        "timestamp": "2025-10-12T06:35:06.497360",
         "evidence": "Pressed ctrl+o."
       },
       {
         "step": 8,
         "status": "completed",
-        "timestamp": "2025-10-12T05:01:05.959659",
+        "timestamp": "2025-10-12T06:35:07.511987",
         "evidence": "Waited for 1 seconds."
       },
       {
         "step": 9,
         "status": "completed",
-        "timestamp": "2025-10-12T05:01:07.758420",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Batch processing Depth: 2 Status: Normal Size: (530,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (1390,1020)\nName: Google - Personal - Microsoft\u200b Edge Depth: 4 Status: Normal Size: (980,1030)\nName: New tab - Personal - Microsoft\u200b Edge Depth: 5 Status: Normal Size: (980,1030)\nName: Sc"
+        "timestamp": "2025-10-12T06:35:09.305885",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Batch processing Depth: 2 Status: Maximized Size: (1920,991)\n\n    Opened Apps:\n    Name: GitHub Desktop Depth: 3 Status: Maximized Size: (1938,1038)\nName: File list element identification - Personal - Microsoft\u200b Edge Depth: 4 Status: Normal Size: (980,1030)\nName: Scripts - File Explorer Depth: 5 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\"
       },
       {
         "step": 10,
         "status": "completed",
-        "timestamp": "2025-10-12T05:01:08.767224",
+        "timestamp": "2025-10-12T06:35:10.315954",
         "evidence": "Pressed alt+d."
       },
       {
         "step": 11,
         "status": "completed",
-        "timestamp": "2025-10-12T05:01:08.909699",
+        "timestamp": "2025-10-12T06:35:10.454715",
         "evidence": "Error calling tool 'Wait-Tool': 1 validation error for call[wait_tool]\nduration\n  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=0.2, input_type=float]\n    For further information visit https://errors.pydantic.dev/2.11/v/int_from_float"
       },
       {
         "step": 0,
         "status": "completed",
-        "timestamp": "2025-10-12T05:00:48.574860",
+        "timestamp": "2025-10-12T06:34:51.269432",
         "evidence": "Switched to Asammdf 8.6.10 [Pid=15552] - Single Files window."
       },
       {
         "step": 1,
         "status": "completed",
-        "timestamp": "2025-10-12T05:00:50.184129",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Single files Depth: 1 Status: Normal Size: (530,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1390,1020)\nName: Google - Personal - Microsoft\u200b Edge Depth: 3 Status: Normal Size: (980,1030)\nName: New tab - Personal - Microsoft\u200b Edge Depth: 4 Status: Normal Size: (980,1030)\nName: Script"
+        "timestamp": "2025-10-12T06:34:52.869362",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Single files Depth: 1 Status: Maximized Size: (1920,991)\n\n    Opened Apps:\n    Name: GitHub Desktop Depth: 2 Status: Maximized Size: (1938,1038)\nName: File list element identification - Personal - Microsoft\u200b Edge Depth: 3 Status: Normal Size: (980,1030)\nName: Scripts - File Explorer Depth: 4 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.ven"
       },
       {
         "step": 2,
         "status": "completed",
-        "timestamp": "2025-10-12T05:00:54.811841",
-        "evidence": "Single left Clicked on  Element with ControlType TabControl at (1466,50)."
+        "timestamp": "2025-10-12T06:34:57.239308",
+        "evidence": "Single left Clicked on  Element with ControlType TabControl at (88,45)."
       },
       {
         "step": 3,
         "status": "completed",
-        "timestamp": "2025-10-12T05:00:56.434129",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Single files Depth: 2 Status: Normal Size: (530,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (1390,1020)\nName: Google - Personal - Microsoft\u200b Edge Depth: 4 Status: Normal Size: (980,1030)\nName: New tab - Personal - Microsoft\u200b Edge Depth: 5 Status: Normal Size: (980,1030)\nName: Script"
+        "timestamp": "2025-10-12T06:34:58.846756",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Single files Depth: 2 Status: Maximized Size: (1920,991)\n\n    Opened Apps:\n    Name: GitHub Desktop Depth: 3 Status: Maximized Size: (1938,1038)\nName: File list element identification - Personal - Microsoft\u200b Edge Depth: 4 Status: Normal Size: (980,1030)\nName: Scripts - File Explorer Depth: 5 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.ven"
       },
       {
         "step": 4,
         "status": "completed",
-        "timestamp": "2025-10-12T05:01:00.713320",
-        "evidence": "Single left Clicked on  Element with ControlType TabControl at (1597,100)."
+        "timestamp": "2025-10-12T06:35:02.310112",
+        "evidence": "Single left Clicked on  Element with ControlType TabControl at (100,96)."
       },
       {
         "step": 5,
         "status": "completed",
-        "timestamp": "2025-10-12T05:01:02.324892",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Batch processing Depth: 1 Status: Normal Size: (530,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1390,1020)\nName: Google - Personal - Microsoft\u200b Edge Depth: 3 Status: Normal Size: (980,1030)\nName: New tab - Personal - Microsoft\u200b Edge Depth: 4 Status: Normal Size: (980,1030)\nName: Sc"
+        "timestamp": "2025-10-12T06:35:03.919496",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Batch processing Depth: 1 Status: Maximized Size: (1920,991)\n\n    Opened Apps:\n    Name: GitHub Desktop Depth: 2 Status: Maximized Size: (1938,1038)\nName: File list element identification - Personal - Microsoft\u200b Edge Depth: 3 Status: Normal Size: (980,1030)\nName: Scripts - File Explorer Depth: 4 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\"
       },
       {
         "step": 12,
         "status": "completed",
-        "timestamp": "2025-10-12T04:48:00.054310",
-        "evidence": "Error calling tool 'Type-Tool': 1 validation error for call[type_tool]\nloc.0\n  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='last_state:edit:Address', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.11/v/int_parsing"
+        "timestamp": "2025-10-12T06:35:26.494526",
+        "evidence": "Error calling tool 'Type-Tool': name 'x' is not defined"
       },
       {
         "step": 13,
         "status": "completed",
-        "timestamp": "2025-10-12T04:48:00.136857",
+        "timestamp": "2025-10-12T06:35:26.594070",
         "evidence": "Error calling tool 'Wait-Tool': 1 validation error for call[wait_tool]\nduration\n  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=0.6, input_type=float]\n    For further information visit https://errors.pydantic.dev/2.11/v/int_from_float"
       },
       {
         "step": 14,
         "status": "completed",
-        "timestamp": "2025-10-12T04:48:01.816108",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Batch processing Depth: 1 Status: Normal Size: (787,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1130,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: "
+        "timestamp": "2025-10-12T06:35:28.343625",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Batch processing Depth: 2 Status: Maximized Size: (1920,991)\n\n    Opened Apps:\n    Name: GitHub Desktop Depth: 3 Status: Maximized Size: (1938,1038)\nName: File list element identification - Personal - Microsoft\u200b Edge Depth: 4 Status: Normal Size: (980,1030)\nName: Scripts - File Explorer Depth: 5 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\"
       },
       {
         "step": 15,
         "status": "completed",
-        "timestamp": "2025-10-12T04:48:05.339772",
-        "evidence": "Single left Clicked on Address Element with ControlType EditControl at (549,1049)."
+        "timestamp": "2025-10-12T06:35:32.563059",
+        "evidence": "Single left Clicked on Address: C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Tesla Model 3\\LOG\\3F78A21D\\00000001 Element with ControlType ToolBarControl at (598,267)."
       },
       {
         "step": 16,
         "status": "completed",
-        "timestamp": "2025-10-12T04:48:06.357420",
+        "timestamp": "2025-10-12T06:35:33.580033",
         "evidence": "Pressed ctrl+a."
       },
       {
         "step": 17,
         "status": "completed",
-        "timestamp": "2025-10-12T04:48:06.457486",
+        "timestamp": "2025-10-12T06:35:33.718752",
         "evidence": "Error calling tool 'Wait-Tool': 1 validation error for call[wait_tool]\nduration\n  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=0.2, input_type=float]\n    For further information visit https://errors.pydantic.dev/2.11/v/int_from_float"
       },
       {
         "step": 18,
         "status": "completed",
-        "timestamp": "2025-10-12T04:48:08.296860",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Batch processing Depth: 2 Status: Normal Size: (787,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (1130,1020)\nName: Scripts - File Explorer Depth: 4 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 5 Status: Minimized Size: (0,0)\nName: "
+        "timestamp": "2025-10-12T06:35:35.483001",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Batch processing Depth: 1 Status: Maximized Size: (1920,991)\n\n    Opened Apps:\n    Name: GitHub Desktop Depth: 2 Status: Maximized Size: (1938,1038)\nName: File list element identification - Personal - Microsoft\u200b Edge Depth: 3 Status: Normal Size: (980,1030)\nName: Scripts - File Explorer Depth: 4 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\"
       },
       {
         "step": 19,
         "status": "completed",
-        "timestamp": "2025-10-12T04:48:11.605165",
-        "evidence": "Single left Clicked on Search box Element with ControlType EditControl at (762,168)."
+        "timestamp": "2025-10-12T06:35:38.731944",
+        "evidence": "Single left Clicked on 00000002.MF4 Element with ControlType ListItemControl at (927,563)."
       },
       {
         "step": 20,
         "status": "completed",
-        "timestamp": "2025-10-12T04:48:11.717231",
+        "timestamp": "2025-10-12T06:35:38.893643",
         "evidence": "Error calling tool 'Wait-Tool': 1 validation error for call[wait_tool]\nduration\n  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=0.8, input_type=float]\n    For further information visit https://errors.pydantic.dev/2.11/v/int_from_float"
       },
       {
         "step": 21,
         "status": "completed",
-        "timestamp": "2025-10-12T04:48:13.545839",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Batch processing Depth: 2 Status: Normal Size: (787,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (1130,1020)\nName: Scripts - File Explorer Depth: 4 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 5 Status: Minimized Size: (0,0)\nName: "
+        "timestamp": "2025-10-12T06:35:40.717630",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Batch processing Depth: 3 Status: Maximized Size: (1920,991)\n\n    Opened Apps:\n    Name: GitHub Desktop Depth: 4 Status: Maximized Size: (1938,1038)\nName: File list element identification - Personal - Microsoft\u200b Edge Depth: 5 Status: Normal Size: (980,1030)\nName: Scripts - File Explorer Depth: 6 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\"
       },
       {
         "step": 22,
         "status": "completed",
-        "timestamp": "2025-10-12T04:48:16.768263",
-        "evidence": "Single left Clicked on Search box Element with ControlType EditControl at (596,346)."
+        "timestamp": "2025-10-12T06:35:44.603752",
+        "evidence": "Single left Clicked on Files of type: Element with ControlType ComboBoxControl at (1118,1004)."
       },
       {
         "step": 23,
         "status": "completed",
-        "timestamp": "2025-10-12T04:48:17.626471",
+        "timestamp": "2025-10-12T06:35:44.874176",
         "evidence": "Error calling tool 'Wait-Tool': 1 validation error for call[wait_tool]\nduration\n  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=0.3, input_type=float]\n    For further information visit https://errors.pydantic.dev/2.11/v/int_from_float"
       },
       {
         "step": 24,
         "status": "completed",
-        "timestamp": "2025-10-12T04:48:19.789894",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: m3go - Search - Personal - Microsoft\u200b Edge Depth: 1 Status: Normal Size: (980,1030)\n\n    Opened Apps:\n    Name: asammdf 8.6.10 [PID=15552] - Batch processing Depth: 2 Status: Normal Size: (787,981)\nName: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (1130,1020)\nName: Scripts - File Explorer Depth: 4 Status: Minimized Size: (0,0)\nName: D:\\Work\\Fu"
+        "timestamp": "2025-10-12T06:35:46.980529",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Batch processing Depth: 1 Status: Maximized Size: (1920,991)\n\n    Opened Apps:\n    Name: GitHub Desktop Depth: 2 Status: Maximized Size: (1938,1038)\nName: File list element identification - Personal - Microsoft\u200b Edge Depth: 3 Status: Normal Size: (980,1030)\nName: Scripts - File Explorer Depth: 4 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\"
+      },
+      {
+        "step": 25,
+        "status": "completed",
+        "timestamp": "2025-10-12T06:35:50.918453",
+        "evidence": "Single left Clicked on Files of type: Element with ControlType ComboBoxControl at (503,248)."
+      },
+      {
+        "step": 26,
+        "status": "completed",
+        "timestamp": "2025-10-12T06:36:12.703981",
+        "evidence": "Error calling tool 'Type-Tool': name 'x' is not defined"
+      },
+      {
+        "step": 27,
+        "status": "completed",
+        "timestamp": "2025-10-12T06:27:44.135202",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=15552] - Batch processing Depth: 2 Status: Normal Size: (957,972)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (960,1020)\nName: File list element identification - Personal - Microsoft\u200b Edge Depth: 4 Status: Normal Size: (980,1030)\nName: GitHub Desktop Depth: 5 Status: Maximized Size: (1938,1038)\nN"
+      },
+      {
+        "step": 28,
+        "status": "failed",
+        "timestamp": "2025-10-12T06:27:52.190076",
+        "error": "Could not resolve any of 1 alternative(s): No visible element matching 'last_state:button:Save' was found in the current state."
       }
     ],
     "recovery_applied": "2025-10-12T04:34:27.851418",
     "previous_plan": "Concatenate_all_MF4_files_in_the_folder_C__Users_A_b128e1fd_Plan_0.json"
   },
-  "updated_at": "2025-10-12T05:01:08.909718"
+  "updated_at": "2025-10-12T06:36:12.704006"
 }
