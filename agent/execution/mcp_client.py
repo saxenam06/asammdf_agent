@@ -87,7 +87,12 @@ class MCPClient:
 
     async def connect(self, server_name: str = None):
         """
-        Connect to MCP server using stdio transport
+        Connect to MCP server using stdio transport with nested async context managers
+
+        Pattern:
+            async with stdio_client(params) as (read, write):
+                async with ClientSession(read, write) as session:
+                    await session.initialize()
 
         Args:
             server_name: Name of server from config (uses default if None)
@@ -111,21 +116,33 @@ class MCPClient:
             env=config.get('env')
         )
 
-        # Use AsyncExitStack to properly manage nested async context managers
+        # Use AsyncExitStack to manage nested async contexts
+        # This allows us to use the clean async with pattern while maintaining references
         self._exit_stack = AsyncExitStack()
 
-        # Enter stdio_client context
-        self.read, self.write = await self._exit_stack.enter_async_context(
-            stdio_client(server_params)
-        )
+        try:
+            # Enter the exit stack context
+            await self._exit_stack.__aenter__()
 
-        # Enter ClientSession context
-        self.session = await self._exit_stack.enter_async_context(
-            ClientSession(self.read, self.write)
-        )
+            # Connect via stdio - equivalent to: async with stdio_client(params) as (read, write):
+            stdio_ctx = stdio_client(server_params)
+            self.read, self.write = await self._exit_stack.enter_async_context(stdio_ctx)
 
-        # Initialize the connection
-        await self.session.initialize()
+            # Create session - equivalent to: async with ClientSession(read, write) as session:
+            session_ctx = ClientSession(self.read, self.write)
+            self.session = await self._exit_stack.enter_async_context(session_ctx)
+
+            # Initialize the connection
+            await self.session.initialize()
+
+        except Exception as e:
+            # If connection fails, clean up the exit stack properly
+            await self._exit_stack.__aexit__(type(e), e, e.__traceback__)
+            self._exit_stack = None
+            self.session = None
+            self.read = None
+            self.write = None
+            raise
 
     def ensure_connected(self):
         """Ensure client is connected (sync wrapper)"""
@@ -309,33 +326,90 @@ class MCPClient:
         return results
 
     async def disconnect(self):
-        """Disconnect from MCP server"""
+        """
+        Disconnect from MCP server using async context manager protocol
+        Properly closes all nested contexts (session and stdio client)
+        """
         if self._exit_stack:
-            await self._exit_stack.aclose()
+            try:
+                # Use __aexit__ to properly close all contexts
+                await self._exit_stack.__aexit__(None, None, None)
+            except Exception as e:
+                # Log but don't raise - we're cleaning up anyway
+                print(f"Warning during disconnect: {e}")
+            finally:
+                # Nullify all references
+                self.session = None
+                self.read = None
+                self.write = None
+                self._exit_stack = None
+
+    def cleanup(self):
+        """Cleanup MCP connections (sync wrapper) - fast and aggressive"""
+        # For fast cleanup, we just nullify all references
+        # The MCP server subprocess will be terminated when the process exits
+        # We don't try to gracefully close anything to avoid hangs
+
+        try:
+            # Nullify all references immediately
             self.session = None
             self.read = None
             self.write = None
             self._exit_stack = None
 
-    def cleanup(self):
-        """Cleanup MCP connections (sync wrapper)"""
-        if self._exit_stack:
-            try:
-                self._run_async(self.disconnect())
-            except (RuntimeError, Exception) as e:
-                # Ignore cleanup errors - they're typically due to event loop issues
-                # but resources will be cleaned up when process exits
-                pass
-            finally:
-                self.session = None
-                self._exit_stack = None
+            # Cancel all pending tasks without waiting
+            if self._event_loop and not self._event_loop.is_closed():
+                try:
+                    pending = asyncio.all_tasks(self._event_loop)
+                    for task in pending:
+                        task.cancel()
+                except:
+                    pass
+
+                # Stop loop if running, but don't wait
+                try:
+                    if self._event_loop.is_running():
+                        self._event_loop.stop()
+                except:
+                    pass
+
+            self._event_loop = None
+
+        except:
+            # Silently ignore all cleanup errors
+            pass
 
     async def __aenter__(self):
+        """
+        Async context manager entry - connects to MCP server
+
+        Usage:
+            async with MCPClient() as client:
+                # Use client.session to interact with MCP server
+                tools = await client.session.list_tools()
+                result = await client.session.call_tool('Tool-Name', {})
+
+        The connection is established using nested async context managers:
+            async with stdio_client(params) as (read, write):
+                async with ClientSession(read, write) as session:
+                    await session.initialize()
+        """
         await self.connect()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """
+        Async context manager exit - disconnects from MCP server
+
+        Properly closes all nested contexts:
+        - ClientSession (closes gracefully)
+        - stdio_client (terminates subprocess)
+
+        Returns:
+            False - Don't suppress exceptions
+        """
         await self.disconnect()
+        return False  # Don't suppress exceptions
 
 
 # Global MCP client instance (lazy initialization)

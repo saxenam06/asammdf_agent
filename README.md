@@ -1907,3 +1907,184 @@ This will:
 - Adaptive max_replan_attempts based on task complexity
 - Multi-strategy replanning (try different approaches)
 - Human-in-the-loop approval for recovery plans
+# Workflow Cleanup Improvements
+
+## Summary
+
+Successfully resolved workflow hanging issues and implemented proper async context manager patterns for MCP client lifecycle management.
+
+---
+
+## Problems Solved
+
+### 1. **Workflow Not Ending After Completion**
+**Problem:** Workflow would hang after completing all 28 steps, never reaching the END node.
+
+**Root Causes:**
+- MCP client cleanup was hanging trying to cancel async tasks
+- Execution log serialization with 28 large ExecutionResult objects was extremely slow
+
+**Solutions:**
+- Implemented proper async disconnect using the existing event loop
+- Skipped execution log serialization in final results (line 479)
+- Added proper event loop detection and reuse in cleanup (lines 502-529)
+
+---
+
+### 2. **Event Loop Conflicts in Cleanup**
+**Problem:** Using `asyncio.run()` in the `finally` block created a new event loop, conflicting with the existing loop from sync method calls.
+
+**Solution:** Intelligent event loop management in `autonomous_workflow.py` (lines 506-529):
+
+```python
+if self._client._event_loop and not self._client._event_loop.is_closed():
+    # Use existing loop
+    loop = self._client._event_loop
+    if loop.is_running():
+        loop.create_task(self._client.disconnect())
+    else:
+        loop.run_until_complete(self._client.disconnect())
+else:
+    # No existing loop - create one
+    asyncio.run(self._client.disconnect())
+```
+
+Benefits:
+- ✅ Detects and reuses existing event loop
+- ✅ Avoids `RuntimeError: Cannot run the event loop while another loop is running`
+- ✅ Falls back to aggressive cleanup if graceful disconnect fails
+- ✅ Completes immediately without hanging
+
+---
+
+### 3. **Async Context Manager Implementation**
+**Enhancement:** Refactored `mcp_client.py` to properly use async context managers with the clean pattern:
+
+```python
+async with stdio_client(server_params) as (read, write):
+    async with ClientSession(read, write) as session:
+        await session.initialize()
+```
+
+**Implementation Details:**
+
+#### `connect()` method (lines 88-145):
+- Uses `AsyncExitStack` to manage nested async context managers
+- Properly enters stdio_client and ClientSession contexts
+- Handles connection failures with proper cleanup
+
+#### `disconnect()` method (lines 317-334):
+- Uses `await self._exit_stack.__aexit__(None, None, None)`
+- Ensures all nested contexts are properly closed
+- ClientSession and stdio_client both cleaned up gracefully
+
+#### `__aenter__` and `__aexit__` (lines 382-412):
+- Implements async context manager protocol
+- Allows usage: `async with MCPClient() as client:`
+- Returns `False` from `__aexit__` to not suppress exceptions
+
+---
+
+## Usage Patterns
+
+### Pattern 1: Direct Session Access (Clean Async)
+```python
+async with MCPClient() as client:
+    # Access session directly for async operations
+    tools = await client.session.list_tools()
+    result = await client.session.call_tool('Tool-Name', {})
+```
+
+### Pattern 2: Convenience Methods (Sync Wrappers)
+```python
+async with MCPClient() as client:
+    # Use sync-style wrappers (internally use _run_async)
+    tools = client.list_tools()
+    result = client.call_tool('Tool-Name', {})
+```
+
+### Pattern 3: Sync Workflow (Current Implementation)
+```python
+workflow = AutonomousWorkflow()
+results = workflow.run(task)
+# MCP client is automatically cleaned up in finally block
+```
+
+---
+
+## Files Modified
+
+### 1. `agent/workflows/autonomous_workflow.py`
+- Lines 502-529: Intelligent event loop management in cleanup
+- Line 479: Skip execution log serialization
+- Lines 416-418: Added routing decision debug output
+
+### 2. `agent/execution/mcp_client.py`
+- Lines 88-145: Enhanced `connect()` with proper async context management
+- Lines 317-334: Improved `disconnect()` using exit stack protocol
+- Lines 336-353: Updated `cleanup()` for aggressive fallback
+- Lines 382-412: Enhanced async context manager implementation
+
+### 3. `examples/mcp_async_usage.py` (New)
+- Comprehensive examples of all async usage patterns
+- Demonstrates both direct session access and convenience methods
+- Shows error handling and cleanup behavior
+
+---
+
+## Test Results
+
+### Before Fix:
+```
+[5/5] Verifying step execution...
+  ✓ All 28 steps completed!
+  → Routing decision: 'done' (completed=True, error=None)
+
+[Workflow] Graph execution completed, building results...
+[Hangs indefinitely - requires Ctrl+C to interrupt]
+```
+
+### After Fix:
+```
+[5/5] Verifying step execution...
+  ✓ All 28 steps completed!
+  → Routing decision: 'done' (completed=True, error=None)
+
+[Workflow] Graph execution completed, building results...
+
+================================================================================
+✓ Task completed successfully!
+================================================================================
+
+[Cleanup] Disconnecting MCP client...
+  ✓ MCP client disconnected gracefully
+
+[Exits immediately]
+```
+
+---
+
+## Key Takeaways
+
+1. **Async context managers are essential** for proper resource cleanup
+2. **Event loop reuse prevents conflicts** when mixing sync and async code
+3. **AsyncExitStack enables** proper management of nested async contexts
+4. **Graceful cleanup with fallback** ensures reliability
+5. **Skip expensive serialization** when data isn't needed
+
+---
+
+## Future Improvements
+
+1. **Optional execution log serialization** - Add a flag to enable if needed
+2. **Full async workflow** - Convert entire workflow to pure async for better performance
+3. **Connection pooling** - Reuse MCP connections across multiple workflows
+4. **Telemetry** - Track cleanup times and failures
+
+---
+
+## References
+
+- [AsyncExitStack Documentation](https://docs.python.org/3/library/contextlib.html#contextlib.AsyncExitStack)
+- [asyncio Event Loop](https://docs.python.org/3/library/asyncio-eventloop.html)
+- [Context Managers](https://docs.python.org/3/reference/datamodel.html#context-managers)

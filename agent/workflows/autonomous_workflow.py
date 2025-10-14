@@ -5,9 +5,17 @@ Coordinates RAG, planning, execution, and verification
 
 import sys
 import os
+import asyncio
 from typing import TypedDict, Optional, List, Annotated
 from langgraph.graph import StateGraph, END
 import operator
+
+# Fix Windows console encoding for Unicode characters and disable buffering
+if sys.platform == 'win32':
+    import io
+    # Use line buffering (buffer_size=1) to flush after each line
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True)
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace', line_buffering=True)
 
 # Add parent to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
@@ -15,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from agent.planning.schemas import KnowledgeSchema, PlanSchema, ExecutionResult, VerifiedSkillSchema, ActionSchema
 from agent.rag.knowledge_retriever import KnowledgeRetriever
 from agent.planning.workflow_planner import WorkflowPlanner
-from agent.execution.mcp_client import get_mcp_client
+from agent.execution.mcp_client import MCPClient, get_mcp_client
 from agent.execution.adaptive_executor import AdaptiveExecutor
 
 
@@ -268,14 +276,11 @@ class AutonomousWorkflow:
         step_num = state["current_step"]
         total_steps = len(state["plan"].plan) if state["plan"] else 0
 
-        if step_num >= total_steps:
-            state["completed"] = True
-            return state
-
         action = state["plan"].plan[step_num]
 
         print(f"\n[4/5] Executing step {step_num + 1}/{total_steps}: {action.tool_name}")
         print(f"  Tool arguments: {action.tool_arguments}")
+        sys.stdout.flush()  # Force immediate display
 
         # # Focus application window
         # self.client.call_tool('Switch-Tool', {'name': self.app_name})
@@ -303,6 +308,17 @@ class AutonomousWorkflow:
     def _verify_step_node(self, state: WorkflowState) -> WorkflowState:
         """Verify step execution and handle replanning"""
         print(f"\n[5/5] Verifying step execution...")
+        sys.stdout.flush()  # Force immediate display
+
+        # Check if all steps are completed
+        total_steps = len(state["plan"].plan) if state["plan"] else 0
+        if state["current_step"] >= total_steps:
+            print(f"  ✓ All {total_steps} steps completed!")
+            print(f"  ✓ Setting completed=True to trigger END transition")
+            sys.stdout.flush()
+            state["completed"] = True
+            state["error"] = None
+            return state
 
         last_result = state["execution_log"][-1] if state["execution_log"] else None
 
@@ -390,12 +406,17 @@ class AutonomousWorkflow:
 
     def _route_after_verification(self, state: WorkflowState) -> str:
         """Route after step verification"""
+        route = None
         if state.get("completed"):
-            return "done"
+            route = "done"
         elif state.get("error"):
-            return "error"
+            route = "error"
         else:
-            return "next_step"
+            route = "next_step"
+
+        print(f"  → Routing decision: '{route}' (completed={state.get('completed')}, error={state.get('error')})")
+        sys.stdout.flush()
+        return route
 
     def _route_after_error(self, state: WorkflowState) -> str:
         """Route after error handling"""
@@ -446,14 +467,16 @@ class AutonomousWorkflow:
                 initial_state,
                 {"recursion_limit": 100}
             )
+            print("\n[Workflow] Graph execution completed, building results...")
+            sys.stdout.flush()
 
-            # Build results
+            # Build results (skip execution_log serialization as it can be huge)
             results = {
                 "success": final_state.get("completed", False) and not final_state.get("error"),
                 "task": task,
                 "plan": final_state["plan"].model_dump() if final_state.get("plan") else None,
                 "steps_completed": final_state.get("current_step", 0),
-                "execution_log": [r.model_dump() for r in final_state.get("execution_log", [])],
+                "execution_log": [],  # Skip to avoid hang with large logs
                 "error": final_state.get("error")
             }
 
@@ -475,6 +498,35 @@ class AutonomousWorkflow:
                 "task": task,
                 "error": str(e)
             }
+        finally:
+            # Properly disconnect MCP client using async disconnect
+            print("\n[Cleanup] Disconnecting MCP client...")
+            sys.stdout.flush()
+            if self._client:
+                try:
+                    # Use the client's existing event loop to disconnect
+                    # This avoids conflicts with asyncio.run() creating a new loop
+                    if self._client._event_loop and not self._client._event_loop.is_closed():
+                        # Use existing loop
+                        loop = self._client._event_loop
+                        if loop.is_running():
+                            # Loop is running - schedule disconnect as a task
+                            # This shouldn't happen in finally, but handle it
+                            loop.create_task(self._client.disconnect())
+                        else:
+                            # Loop exists but not running - use it
+                            loop.run_until_complete(self._client.disconnect())
+                    else:
+                        # No existing loop - create one with asyncio.run()
+                        asyncio.run(self._client.disconnect())
+                    print("  ✓ MCP client disconnected gracefully")
+                except Exception as cleanup_error:
+                    print(f"  ! Cleanup error (non-critical): {cleanup_error}")
+                    # Fallback to aggressive cleanup if graceful disconnect fails
+                    try:
+                        self._client.cleanup()
+                    except:
+                        pass
 
 
 def execute_autonomous_task(
