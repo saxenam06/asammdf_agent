@@ -215,12 +215,12 @@ class WorkflowPlanner:
         # Fetch MCP tools if not already cached
         if self.available_tools is None:
             print("Fetching available MCP tools...")
-            self.available_tools = self.mcp_client.list_tools()
+            self.available_tools = self.mcp_client.list_tools_sync()
             print(f"Found {len(self.available_tools)} MCP tools")
 
         # Format tools description using MCPClient
-        tools_description = self.mcp_client.get_tools_description(self.available_tools)
-        valid_tool_names = self.mcp_client.get_valid_tool_names(self.available_tools)
+        tools_description = self.mcp_client.get_tools_description_sync(self.available_tools)
+        valid_tool_names = self.mcp_client.get_valid_tool_names_sync(self.available_tools)
 
         # Format knowledge for prompt
         knowledge_json = json.dumps(
@@ -449,10 +449,10 @@ Return ONLY valid JSON matching the schema. No explanatory text outside JSON."""
         """
         # Fetch MCP tools if not already cached
         if self.available_tools is None:
-            self.available_tools = self.mcp_client.list_tools()
+            self.available_tools = self.mcp_client.list_tools_sync()
 
         # Get valid tool names
-        valid_tool_names = self.mcp_client.get_valid_tool_names(self.available_tools)
+        valid_tool_names = self.mcp_client.get_valid_tool_names_sync(self.available_tools)
 
         # Validate each action's tool name
         for i, action in enumerate(plan.plan, 1):

@@ -249,177 +249,177 @@
     "current_step": 28,
     "overall_status": "failed",
     "created_at": "2025-10-13T01:26:43.965633",
-    "updated_at": "2025-10-14T19:27:39.974314",
+    "updated_at": "2025-10-14T20:10:09.677402",
     "steps": [
       {
         "step": 0,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:01.242595",
+        "timestamp": "2025-10-14T20:08:08.057750",
         "evidence": "Switched to Asammdf 8.6.10 [Pid=12700] - Single Files window."
       },
       {
         "step": 1,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:02.851554",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Single files Depth: 1 Status: Normal Size: (837,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1081,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: *async def discover_tools() - Notepad Depth: 4 Status: Normal Size: (889,738)\nName: GenAI_Agents/all_age"
+        "timestamp": "2025-10-14T20:08:10.249532",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Single files Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microsoft\u200b "
       },
       {
         "step": 2,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:06.743914",
-        "evidence": "Single left Clicked on  Element with ControlType TabControl at (1175,51)."
+        "timestamp": "2025-10-14T20:08:15.074126",
+        "evidence": "Single left Clicked on  Element with ControlType TabControl at (1044,43)."
       },
       {
         "step": 3,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:08.371860",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Single files Depth: 2 Status: Normal Size: (837,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (1081,1020)\nName: Scripts - File Explorer Depth: 4 Status: Minimized Size: (0,0)\nName: *async def discover_tools() - Notepad Depth: 5 Status: Normal Size: (889,738)\nName: GenAI_Agents/all_age"
+        "timestamp": "2025-10-14T20:08:17.106678",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Single files Depth: 2 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 4 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microsoft\u200b "
       },
       {
         "step": 4,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:12.059798",
-        "evidence": "Single left Clicked on  Element with ControlType TabControl at (1288,109)."
+        "timestamp": "2025-10-14T20:08:21.047928",
+        "evidence": "Single left Clicked on  Element with ControlType TabControl at (1055,97)."
       },
       {
         "step": 5,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:13.670324",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (837,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1081,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: *async def discover_tools() - Notepad Depth: 4 Status: Normal Size: (889,738)\nName: GenAI_Agents/all"
+        "timestamp": "2025-10-14T20:08:23.105638",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
       },
       {
         "step": 6,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:17.363777",
-        "evidence": "Single left Clicked on  Element with ControlType ListControl at (1101,50)."
+        "timestamp": "2025-10-14T20:08:27.595942",
+        "evidence": "Single left Clicked on  Element with ControlType ListControl at (974,53)."
       },
       {
         "step": 7,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:18.992572",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 2 Status: Normal Size: (837,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (1081,1020)\nName: Scripts - File Explorer Depth: 4 Status: Minimized Size: (0,0)\nName: *async def discover_tools() - Notepad Depth: 5 Status: Normal Size: (889,738)\nName: GenAI_Agents/all"
+        "timestamp": "2025-10-14T20:08:29.671464",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 2 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 4 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
       },
       {
         "step": 8,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:23.066792",
-        "evidence": "Single left Clicked on  Element with ControlType ListControl at (1266,83)."
+        "timestamp": "2025-10-14T20:08:34.127815",
+        "evidence": "Single left Clicked on  Element with ControlType ListControl at (1076,74)."
       },
       {
         "step": 9,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:24.799325",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (837,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1081,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: *async def discover_tools() - Notepad Depth: 4 Status: Normal Size: (889,738)\nName: GenAI_Agents/all"
+        "timestamp": "2025-10-14T20:08:36.478490",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
       },
       {
         "step": 10,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:28.697949",
-        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1305,573)."
+        "timestamp": "2025-10-14T20:08:40.258176",
+        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1333,569)."
       },
       {
         "step": 11,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:30.419563",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (837,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1081,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: *async def discover_tools() - Notepad Depth: 4 Status: Normal Size: (889,738)\nName: GenAI_Agents/all"
+        "timestamp": "2025-10-14T20:08:42.570669",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
       },
       {
         "step": 12,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:46.382582",
+        "timestamp": "2025-10-14T20:08:58.586116",
         "evidence": "Typed: \"C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-...\""
       },
       {
         "step": 13,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:48.095130",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (837,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1081,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: *async def discover_tools() - Notepad Depth: 4 Status: Normal Size: (889,738)\nName: GenAI_Agents/all"
+        "timestamp": "2025-10-14T20:09:01.039157",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
       },
       {
         "step": 14,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:51.885249",
-        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1751,296)."
+        "timestamp": "2025-10-14T20:09:06.264794",
+        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1706,290)."
       },
       {
         "step": 15,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:53.607124",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (837,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1081,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: *async def discover_tools() - Notepad Depth: 4 Status: Normal Size: (889,738)\nName: GenAI_Agents/all"
+        "timestamp": "2025-10-14T20:09:08.714871",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
       },
       {
         "step": 16,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:54.619274",
+        "timestamp": "2025-10-14T20:09:09.739297",
         "evidence": "Pressed ctrl+a."
       },
       {
         "step": 17,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:56.347405",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (837,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1081,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: *async def discover_tools() - Notepad Depth: 4 Status: Normal Size: (889,738)\nName: GenAI_Agents/all"
+        "timestamp": "2025-10-14T20:09:12.008523",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
       },
       {
         "step": 18,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:57.361638",
+        "timestamp": "2025-10-14T20:09:13.046125",
         "evidence": "Pressed the key enter."
       },
       {
         "step": 19,
         "status": "completed",
-        "timestamp": "2025-10-14T19:26:59.003752",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (837,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1081,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: *async def discover_tools() - Notepad Depth: 4 Status: Normal Size: (889,738)\nName: GenAI_Agents/all"
+        "timestamp": "2025-10-14T20:09:15.104680",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
       },
       {
         "step": 20,
         "status": "completed",
-        "timestamp": "2025-10-14T19:27:02.649775",
-        "evidence": "Single left Clicked on C:/Users/ADMIN/Downloads/ev-data-pack-v10/ev-data-pack-v10/electric_cars/log_files/Tesla Model 3/LOG/3F78A21D/00000001/00000001.MF4 Element with ControlType ListItemControl at (1510,997)."
+        "timestamp": "2025-10-14T20:09:18.849006",
+        "evidence": "Single left Clicked on C:/Users/ADMIN/Downloads/ev-data-pack-v10/ev-data-pack-v10/electric_cars/log_files/Tesla Model 3/LOG/3F78A21D/00000001/00000001.MF4 Element with ControlType ListItemControl at (1470,1004)."
       },
       {
         "step": 21,
         "status": "completed",
-        "timestamp": "2025-10-14T19:27:04.423151",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (837,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1081,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: *async def discover_tools() - Notepad Depth: 4 Status: Normal Size: (889,738)\nName: GenAI_Agents/all"
+        "timestamp": "2025-10-14T20:09:21.344405",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
       },
       {
         "step": 22,
         "status": "completed",
-        "timestamp": "2025-10-14T19:27:08.325758",
-        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1517,465)."
+        "timestamp": "2025-10-14T20:09:25.643275",
+        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1432,470)."
       },
       {
         "step": 23,
         "status": "completed",
-        "timestamp": "2025-10-14T19:27:10.230249",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (837,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1081,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: *async def discover_tools() - Notepad Depth: 4 Status: Normal Size: (889,738)\nName: GenAI_Agents/all"
+        "timestamp": "2025-10-14T20:09:28.389802",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
       },
       {
         "step": 24,
         "status": "completed",
-        "timestamp": "2025-10-14T19:27:28.230011",
+        "timestamp": "2025-10-14T20:09:47.033440",
         "evidence": "Typed: \"C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-...\""
       },
       {
         "step": 25,
         "status": "completed",
-        "timestamp": "2025-10-14T19:27:30.541109",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (837,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1081,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: *async def discover_tools() - Notepad Depth: 4 Status: Normal Size: (889,738)\nName: GenAI_Agents/all"
+        "timestamp": "2025-10-14T20:09:51.312353",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
       },
       {
         "step": 26,
         "status": "completed",
-        "timestamp": "2025-10-14T19:27:35.953682",
+        "timestamp": "2025-10-14T20:10:00.629006",
         "evidence": "Error calling tool 'Click-Tool': (-2147220991, 'An event was unable to invoke any of the subscribers', (None, None, None, 0, None))"
       },
       {
         "step": 27,
         "status": "completed",
-        "timestamp": "2025-10-14T19:27:39.974282",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (837,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (1081,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: *async def discover_tools() - Notepad Depth: 4 Status: Normal Size: (889,738)\nName: GenAI_Agents/all"
+        "timestamp": "2025-10-14T20:10:09.677339",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
       }
     ]
   },
-  "updated_at": "2025-10-14T19:27:39.974311"
+  "updated_at": "2025-10-14T20:10:09.677395"
 }

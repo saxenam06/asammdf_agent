@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from agent.planning.schemas import KnowledgeSchema, PlanSchema, ExecutionResult, VerifiedSkillSchema, ActionSchema
 from agent.rag.knowledge_retriever import KnowledgeRetriever
 from agent.planning.workflow_planner import WorkflowPlanner
-from agent.execution.mcp_client import MCPClient, get_mcp_client
+from agent.execution.mcp_client import MCPClient
 from agent.execution.adaptive_executor import AdaptiveExecutor
 
 
@@ -94,7 +94,8 @@ class AutonomousWorkflow:
         """Lazy load planner"""
         if self._planner is None:
             print("Initializing workflow planner...")
-            self._planner = WorkflowPlanner()
+            # Pass the MCP client to planner so it doesn't create its own
+            self._planner = WorkflowPlanner(mcp_client=self.client)
         return self._planner
 
     @property
@@ -107,9 +108,9 @@ class AutonomousWorkflow:
 
     @property
     def client(self):
-        """Lazy load MCP client"""
+        """Get MCP client (must be set via async context manager in run())"""
         if self._client is None:
-            self._client = get_mcp_client()
+            raise RuntimeError("MCP client not initialized. Must be set in async context.")
         return self._client
 
     @property
@@ -213,7 +214,8 @@ class AutonomousWorkflow:
             latest_state = None
             try:
                 print("  → Capturing current UI state for planning context...")
-                state_result = self.client.call_tool('State-Tool', {'use_vision': False})
+                # Use sync wrapper since node methods are sync (nest_asyncio allows this)
+                state_result = self.client.call_tool_sync('State-Tool', {'use_vision': False})
                 if not state_result.isError:
                     if hasattr(state_result, 'content') and state_result.content:
                         latest_state = state_result.content[0].text
@@ -428,9 +430,9 @@ class AutonomousWorkflow:
     # Public API
     # ============================================================================
 
-    def run(self, task: str, force_regenerate_plan: bool = False) -> dict:
+    async def run(self, task: str, force_regenerate_plan: bool = False) -> dict:
         """
-        Execute a task autonomously
+        Execute a task autonomously (async version)
 
         Args:
             task: Natural language task description
@@ -461,72 +463,63 @@ class AutonomousWorkflow:
             force_regenerate_plan=force_regenerate_plan
         )
 
-        # Run workflow with higher recursion limit to support plans with many steps
-        try:
-            final_state = self.graph.invoke(
-                initial_state,
-                {"recursion_limit": 100}
-            )
-            print("\n[Workflow] Graph execution completed, building results...")
-            sys.stdout.flush()
+        # Run workflow with async context manager for MCP client
+        async with MCPClient() as client:
+            self._client = client
 
-            # Build results (skip execution_log serialization as it can be huge)
-            results = {
-                "success": final_state.get("completed", False) and not final_state.get("error"),
-                "task": task,
-                "plan": final_state["plan"].model_dump() if final_state.get("plan") else None,
-                "steps_completed": final_state.get("current_step", 0),
-                "execution_log": [],  # Skip to avoid hang with large logs
-                "error": final_state.get("error")
-            }
+            # Run workflow with higher recursion limit to support plans with many steps
+            try:
+                final_state = self.graph.invoke(
+                    initial_state,
+                    {"recursion_limit": 100}
+                )
+                print("\n[Workflow] Graph execution completed, building results...")
+                sys.stdout.flush()
 
-            if results["success"]:
-                print("\n" + "="*80)
-                print("✓ Task completed successfully!")
-                print("="*80)
-            else:
-                print("\n" + "="*80)
-                print(f"✗ Task failed: {results['error']}")
-                print("="*80)
+                # Build results (skip execution_log serialization as it can be huge)
+                results = {
+                    "success": final_state.get("completed", False) and not final_state.get("error"),
+                    "task": task,
+                    "plan": final_state["plan"].model_dump() if final_state.get("plan") else None,
+                    "steps_completed": final_state.get("current_step", 0),
+                    "execution_log": [],  # Skip to avoid hang with large logs
+                    "error": final_state.get("error")
+                }
 
-            return results
+                if results["success"]:
+                    print("\n" + "="*80)
+                    print("✓ Task completed successfully!")
+                    print("="*80)
+                else:
+                    print("\n" + "="*80)
+                    print(f"✗ Task failed: {results['error']}")
+                    print("="*80)
 
-        except Exception as e:
-            print(f"\n✗ Workflow error: {e}")
-            return {
-                "success": False,
-                "task": task,
-                "error": str(e)
-            }
-        finally:
-            # Properly disconnect MCP client using async disconnect
-            print("\n[Cleanup] Disconnecting MCP client...")
-            sys.stdout.flush()
-            if self._client:
-                try:
-                    # Use the client's existing event loop to disconnect
-                    # This avoids conflicts with asyncio.run() creating a new loop
-                    if self._client._event_loop and not self._client._event_loop.is_closed():
-                        # Use existing loop
-                        loop = self._client._event_loop
-                        if loop.is_running():
-                            # Loop is running - schedule disconnect as a task
-                            # This shouldn't happen in finally, but handle it
-                            loop.create_task(self._client.disconnect())
-                        else:
-                            # Loop exists but not running - use it
-                            loop.run_until_complete(self._client.disconnect())
-                    else:
-                        # No existing loop - create one with asyncio.run()
-                        asyncio.run(self._client.disconnect())
-                    print("  ✓ MCP client disconnected gracefully")
-                except Exception as cleanup_error:
-                    print(f"  ! Cleanup error (non-critical): {cleanup_error}")
-                    # Fallback to aggressive cleanup if graceful disconnect fails
-                    try:
-                        self._client.cleanup()
-                    except:
-                        pass
+                return results
+
+            except Exception as e:
+                print(f"\n✗ Workflow error: {e}")
+                return {
+                    "success": False,
+                    "task": task,
+                    "error": str(e)
+                }
+            finally:
+                print("\n[Cleanup] MCP client will auto-disconnect via async context manager")
+                sys.stdout.flush()
+
+    def run_sync(self, task: str, force_regenerate_plan: bool = False) -> dict:
+        """
+        Sync wrapper for run() - for backward compatibility
+
+        Args:
+            task: Natural language task description
+            force_regenerate_plan: If True, regenerate plan even if cached plan exists
+
+        Returns:
+            Execution results
+        """
+        return asyncio.run(self.run(task, force_regenerate_plan))
 
 
 def execute_autonomous_task(
@@ -552,7 +545,7 @@ def execute_autonomous_task(
         vector_db_path=vector_db_path
     )
 
-    return workflow.run(task)
+    return workflow.run_sync(task)
 
 
 if __name__ == "__main__":

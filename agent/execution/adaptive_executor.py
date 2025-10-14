@@ -275,7 +275,7 @@ Now proceed with coordinate resolution.
         tool_schema = None
         if needs_coordinate_resolution:
             try:
-                mcp_tools = self.mcp_client.list_tools()
+                mcp_tools = self.mcp_client.list_tools_sync()
                 for tool in mcp_tools:
                     if tool.get('name') == action.tool_name:
                         tool_schema = tool.get('schema', {})
@@ -333,7 +333,7 @@ Now proceed with coordinate resolution.
 
         # Step 1: Check if this is a State-Tool call
         if action.tool_name == 'State-Tool':
-            result = self.mcp_client.execute_action(action)
+            result = self.mcp_client.execute_action_sync(action)
 
             # Cache the state output
             if result.success and result.evidence:
@@ -368,7 +368,7 @@ Now proceed with coordinate resolution.
             )
 
         # Step 3: Execute the resolved action
-        result = self.mcp_client.execute_action(resolved_action)
+        result = self.mcp_client.execute_action_sync(resolved_action)
 
         return result
 
@@ -434,9 +434,9 @@ Now proceed with coordinate resolution.
 
             # Step 3 & 4: Generate recovery plan (includes KB retrieval, reasoning, and latest state)
             # Get MCP tools info
-            mcp_tools = self.mcp_client.list_tools()
-            tools_description = self.mcp_client.get_tools_description(mcp_tools)
-            valid_tool_names = self.mcp_client.get_valid_tool_names(mcp_tools)
+            mcp_tools = self.mcp_client.list_tools_sync()
+            tools_description = self.mcp_client.get_tools_description_sync(mcp_tools)
+            valid_tool_names = self.mcp_client.get_valid_tool_names_sync(mcp_tools)
 
             # Pass the already-computed summaries and latest state to avoid redundant calculation
             recovery_plan = self.recovery_manager.generate_recovery_plan(
