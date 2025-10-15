@@ -372,8 +372,9 @@ if __name__ == "__main__":
     )
 
     default_gui_instructions = (
-        "Open the folder in the file dialog, click any file to focus the list, "
-        "press CTRL+A to select all files, then press ENTER to load them."
+        "To load all MF4 files:"
+        "Option 1: Go to File → Open Folder, then enter the path of the desired folder and select it to automatically load all MF4 files within that folder."
+        "Option 2: Go to File → Open, then enter the path of the desired folder, select any .MF4 file, press Ctrl + A to highlight all files in the folder, and then press Enter to load them all."
     )
 
     # Build final task
