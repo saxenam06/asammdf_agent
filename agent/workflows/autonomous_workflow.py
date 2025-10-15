@@ -354,18 +354,45 @@ if __name__ == "__main__":
     parser.add_argument(
         "task",
         nargs="?",
-        default=(
-            "Concatenate all .MF4 files in the folder "
-            r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Tesla Model 3\LOG\3F78A21D\00000001. "
-            "Save the concatenated file as Tesla_Model_3_3F78A21D.mf4 in the same folder. "
-            "GUI instructions: open the folder in the file dialog, click any file to focus the list, "
-            "press CTRL+A to select all files, then press ENTER to load them."
-        ),
-        help="High-level task: by default, concatenate all MF4 files in the specified folder and save the result there."
+        default=None,
+        help="Task description"
+    )
+    parser.add_argument(
+        "--gui-instructions",
+        default=None,
+        help="Optional GUI-specific instructions"
     )
     args = parser.parse_args()
 
-    results = execute_autonomous_task(task=args.task, knowledge_catalog_path="agent/knowledge_base/json/knowledge_catalog_gpt5_mini.json",vector_db_path="agent/knowledge_base/vector_store_gpt5_mini")
+    # Default task and GUI instructions (separated for clarity)
+    default_task = (
+        "Concatenate all .MF4 files in the folder "
+        r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Tesla Model 3\LOG\3F78A21D\00000001. "
+        "Save the concatenated file as Tesla_Model_3_3F78A21D.mf4 in the same folder."
+    )
+
+    default_gui_instructions = (
+        "Open the folder in the file dialog, click any file to focus the list, "
+        "press CTRL+A to select all files, then press ENTER to load them."
+    )
+
+    # Build final task
+    if args.task is None:
+        # Use defaults
+        task = default_task
+        gui_instructions = default_gui_instructions
+    else:
+        # Use provided arguments
+        task = args.task
+        gui_instructions = args.gui_instructions
+
+    # Combine task with GUI instructions if available
+    if gui_instructions:
+        full_task = f"{task} GUI instructions: {gui_instructions}"
+    else:
+        full_task = task
+
+    results = execute_autonomous_task(task=full_task, knowledge_catalog_path="agent/knowledge_base/json/knowledge_catalog_gpt5_mini.json",vector_db_path="agent/knowledge_base/vector_store_gpt5_mini")
 
     print(f"\n\nFinal Results:")
     print(f"  Success: {results['success']}")
