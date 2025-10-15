@@ -249,177 +249,177 @@
     "current_step": 28,
     "overall_status": "failed",
     "created_at": "2025-10-13T01:26:43.965633",
-    "updated_at": "2025-10-14T20:10:09.677402",
+    "updated_at": "2025-10-15T11:54:49.079213",
     "steps": [
       {
         "step": 0,
         "status": "completed",
-        "timestamp": "2025-10-14T20:08:08.057750",
-        "evidence": "Switched to Asammdf 8.6.10 [Pid=12700] - Single Files window."
+        "timestamp": "2025-10-15T11:53:03.042262",
+        "evidence": "Switched to Asammdf 8.6.10 [Pid=3660] - Single Files window."
       },
       {
         "step": 1,
         "status": "completed",
-        "timestamp": "2025-10-14T20:08:10.249532",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Single files Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microsoft\u200b "
+        "timestamp": "2025-10-15T11:53:04.389467",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Single files Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: GitHub"
       },
       {
         "step": 2,
         "status": "completed",
-        "timestamp": "2025-10-14T20:08:15.074126",
-        "evidence": "Single left Clicked on  Element with ControlType TabControl at (1044,43)."
+        "timestamp": "2025-10-15T11:53:08.908172",
+        "evidence": "Single left Clicked on  Element with ControlType TabControl at (1048,41)."
       },
       {
         "step": 3,
         "status": "completed",
-        "timestamp": "2025-10-14T20:08:17.106678",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Single files Depth: 2 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 4 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microsoft\u200b "
+        "timestamp": "2025-10-15T11:53:10.267278",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Single files Depth: 2 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 4 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 5 Status: Minimized Size: (0,0)\nName: GitHub"
       },
       {
         "step": 4,
         "status": "completed",
-        "timestamp": "2025-10-14T20:08:21.047928",
-        "evidence": "Single left Clicked on  Element with ControlType TabControl at (1055,97)."
+        "timestamp": "2025-10-15T11:53:16.395139",
+        "evidence": "Single left Clicked on  Element with ControlType TabControl at (1100,103)."
       },
       {
         "step": 5,
         "status": "completed",
-        "timestamp": "2025-10-14T20:08:23.105638",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
+        "timestamp": "2025-10-15T11:53:17.841630",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
       },
       {
         "step": 6,
         "status": "completed",
-        "timestamp": "2025-10-14T20:08:27.595942",
-        "evidence": "Single left Clicked on  Element with ControlType ListControl at (974,53)."
+        "timestamp": "2025-10-15T11:53:22.628247",
+        "evidence": "Single left Clicked on Concatenate Element with ControlType TabItemControl at (975,46)."
       },
       {
         "step": 7,
         "status": "completed",
-        "timestamp": "2025-10-14T20:08:29.671464",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 2 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 4 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
+        "timestamp": "2025-10-15T11:53:24.083236",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 2 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 4 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 5 Status: Minimized Size: (0,0)\nName: Gi"
       },
       {
         "step": 8,
         "status": "completed",
-        "timestamp": "2025-10-14T20:08:34.127815",
-        "evidence": "Single left Clicked on  Element with ControlType ListControl at (1076,74)."
+        "timestamp": "2025-10-15T11:53:27.926309",
+        "evidence": "Single left Clicked on Concatenate Element with ControlType TabItemControl at (1144,74)."
       },
       {
         "step": 9,
         "status": "completed",
-        "timestamp": "2025-10-14T20:08:36.478490",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
+        "timestamp": "2025-10-15T11:53:29.564535",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
       },
       {
         "step": 10,
         "status": "completed",
-        "timestamp": "2025-10-14T20:08:40.258176",
-        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1333,569)."
+        "timestamp": "2025-10-15T11:53:33.838941",
+        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1401,571)."
       },
       {
         "step": 11,
         "status": "completed",
-        "timestamp": "2025-10-14T20:08:42.570669",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
+        "timestamp": "2025-10-15T11:53:35.466523",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
       },
       {
         "step": 12,
         "status": "completed",
-        "timestamp": "2025-10-14T20:08:58.586116",
+        "timestamp": "2025-10-15T11:53:51.413310",
         "evidence": "Typed: \"C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-...\""
       },
       {
         "step": 13,
         "status": "completed",
-        "timestamp": "2025-10-14T20:09:01.039157",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
+        "timestamp": "2025-10-15T11:53:53.053724",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
       },
       {
         "step": 14,
         "status": "completed",
-        "timestamp": "2025-10-14T20:09:06.264794",
-        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1706,290)."
+        "timestamp": "2025-10-15T11:53:58.772858",
+        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1616,290)."
       },
       {
         "step": 15,
         "status": "completed",
-        "timestamp": "2025-10-14T20:09:08.714871",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
+        "timestamp": "2025-10-15T11:54:00.410287",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
       },
       {
         "step": 16,
         "status": "completed",
-        "timestamp": "2025-10-14T20:09:09.739297",
+        "timestamp": "2025-10-15T11:54:01.419018",
         "evidence": "Pressed ctrl+a."
       },
       {
         "step": 17,
         "status": "completed",
-        "timestamp": "2025-10-14T20:09:12.008523",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
+        "timestamp": "2025-10-15T11:54:03.054938",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
       },
       {
         "step": 18,
         "status": "completed",
-        "timestamp": "2025-10-14T20:09:13.046125",
+        "timestamp": "2025-10-15T11:54:04.068123",
         "evidence": "Pressed the key enter."
       },
       {
         "step": 19,
         "status": "completed",
-        "timestamp": "2025-10-14T20:09:15.104680",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
+        "timestamp": "2025-10-15T11:54:05.528312",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
       },
       {
         "step": 20,
         "status": "completed",
-        "timestamp": "2025-10-14T20:09:18.849006",
-        "evidence": "Single left Clicked on C:/Users/ADMIN/Downloads/ev-data-pack-v10/ev-data-pack-v10/electric_cars/log_files/Tesla Model 3/LOG/3F78A21D/00000001/00000001.MF4 Element with ControlType ListItemControl at (1470,1004)."
+        "timestamp": "2025-10-15T11:54:09.140054",
+        "evidence": "Single left Clicked on Concatenate Element with ControlType TabItemControl at (1511,985)."
       },
       {
         "step": 21,
         "status": "completed",
-        "timestamp": "2025-10-14T20:09:21.344405",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
+        "timestamp": "2025-10-15T11:54:10.851486",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
       },
       {
         "step": 22,
         "status": "completed",
-        "timestamp": "2025-10-14T20:09:25.643275",
-        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1432,470)."
+        "timestamp": "2025-10-15T11:54:15.332221",
+        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1418,472)."
       },
       {
         "step": 23,
         "status": "completed",
-        "timestamp": "2025-10-14T20:09:28.389802",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
+        "timestamp": "2025-10-15T11:54:17.198719",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
       },
       {
         "step": 24,
         "status": "completed",
-        "timestamp": "2025-10-14T20:09:47.033440",
+        "timestamp": "2025-10-15T11:54:35.276715",
         "evidence": "Typed: \"C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-...\""
       },
       {
         "step": 25,
         "status": "completed",
-        "timestamp": "2025-10-14T20:09:51.312353",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
+        "timestamp": "2025-10-15T11:54:37.732512",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
       },
       {
         "step": 26,
         "status": "completed",
-        "timestamp": "2025-10-14T20:10:00.629006",
+        "timestamp": "2025-10-15T11:54:44.184448",
         "evidence": "Error calling tool 'Click-Tool': (-2147220991, 'An event was unable to invoke any of the subscribers', (None, None, None, 0, None))"
       },
       {
         "step": 27,
         "status": "completed",
-        "timestamp": "2025-10-14T20:10:09.677339",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=12700] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Normal Size: (1200,1020)\nName: GenAI_Agents/all_agents_tutorials/mcp-tutorial.ipynb at main \u00b7 NirDiamant/GenAI_Agents - Personal - Microso"
+        "timestamp": "2025-10-15T11:54:49.079190",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
       }
     ]
   },
-  "updated_at": "2025-10-14T20:10:09.677395"
+  "updated_at": "2025-10-15T11:54:49.079210"
 }

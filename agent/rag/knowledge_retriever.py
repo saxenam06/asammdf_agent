@@ -1,26 +1,17 @@
-"""
-RAG-based knowledge retrieval using ChromaDB and sentence transformers
-Retrieves documentation-extracted knowledge patterns (not verified skills)
-"""
-
-import json
-import os
+"""RAG-based knowledge retrieval using ChromaDB"""
+import json, os
 from typing import List, Optional
 import chromadb
 from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
-
 import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from agent.planning.schemas import KnowledgeSchema
 
 
 class KnowledgeRetriever:
-    """
-    Retrieves relevant knowledge patterns from documentation catalog using semantic search
-    Note: This retrieves documentation-extracted patterns, not verified skills
-    """
+    """Retrieves knowledge patterns using semantic search (ChromaDB + sentence-transformers)"""
 
     def __init__(
         self,
@@ -28,144 +19,66 @@ class KnowledgeRetriever:
         vector_db_path: str = "agent/knowledge_base/vector_store_gpt5_mini",
         embedding_model: str = "all-MiniLM-L6-v2"
     ):
-        """
-        Initialize knowledge retriever
-
-        Args:
-            knowledge_catalog_path: Path to knowledge catalog JSON
-            vector_db_path: Path to ChromaDB storage
-            embedding_model: Sentence transformer model name
-        """
         self.knowledge_catalog_path = knowledge_catalog_path
         self.vector_db_path = vector_db_path
-
-        # Initialize embedding model
-        print(f"Loading embedding model: {embedding_model}...")
         self.embedding_model = SentenceTransformer(embedding_model)
-
-        # Initialize ChromaDB
-        self.client = chromadb.PersistentClient(
-            path=vector_db_path,
-            settings=Settings(anonymized_telemetry=False)
-        )
-
-        # Get or create collection
+        self.client = chromadb.PersistentClient(path=vector_db_path, settings=Settings(anonymized_telemetry=False))
         self.collection = self.client.get_or_create_collection(
             name="asammdf_knowledge",
-            metadata={"description": "GUI knowledge patterns extracted from asammdf documentation"}
+            metadata={"description": "GUI knowledge patterns from docs"}
         )
 
-    def load_knowledge(self, force_reload: bool = False) -> List[KnowledgeSchema]:
-        """
-        Load knowledge patterns from catalog file
-
-        Args:
-            force_reload: Force reload even if already indexed
-
-        Returns:
-            List of knowledge patterns
-        """
+    def load_knowledge(self) -> List[KnowledgeSchema]:
         if not os.path.exists(self.knowledge_catalog_path):
-            raise FileNotFoundError(
-                f"Knowledge catalog not found at {self.knowledge_catalog_path}. "
-                f"Run 'python agent/rag/doc_parser.py' first."
-            )
+            raise FileNotFoundError(f"Catalog not found: {self.knowledge_catalog_path}")
 
         with open(self.knowledge_catalog_path, 'r', encoding='utf-8') as f:
-            knowledge_data = json.load(f)
-
-        knowledge_patterns = [KnowledgeSchema(**item) for item in knowledge_data]
-        return knowledge_patterns
+            return [KnowledgeSchema(**item) for item in json.load(f)]
 
     def index_knowledge(self, knowledge_patterns: Optional[List[KnowledgeSchema]] = None):
-        """
-        Index knowledge patterns in vector database
-
-        Args:
-            knowledge_patterns: Knowledge patterns to index (loads from file if None)
-        """
         if knowledge_patterns is None:
             knowledge_patterns = self.load_knowledge()
 
-        if len(knowledge_patterns) == 0:
-            print("Warning: No knowledge patterns to index")
+        if not knowledge_patterns:
+            print("No patterns to index")
             return
 
-        # Check if already indexed
         existing_count = self.collection.count()
         if existing_count > 0:
-            print(f"Collection already contains {existing_count} knowledge patterns. Clearing...")
-            # Delete all documents by getting all IDs first
             all_docs = self.collection.get()
             if all_docs['ids']:
                 self.collection.delete(ids=all_docs['ids'])
 
-        print(f"Indexing {len(knowledge_patterns)} knowledge patterns...")
-
-        # Prepare data for ChromaDB
-        ids = []
-        documents = []
-        metadatas = []
-
-        for knowledge in knowledge_patterns:
-            # Create searchable text combining description and action sequence
-            doc_text = f"{knowledge.description}. Steps: {', '.join(knowledge.action_sequence)}"
-
-            ids.append(knowledge.knowledge_id)
+        ids, documents, metadatas = [], [], []
+        for k in knowledge_patterns:
+            doc_text = f"{k.description}. Steps: {', '.join(k.action_sequence)}"
+            ids.append(k.knowledge_id)
             documents.append(doc_text)
             metadatas.append({
-                "knowledge_id": knowledge.knowledge_id,
-                "description": knowledge.description,
-                "ui_location": knowledge.ui_location,
-                "doc_citation": knowledge.doc_citation,
-                # Store full knowledge as JSON for retrieval
-                "full_knowledge": json.dumps(knowledge.model_dump())
+                "knowledge_id": k.knowledge_id,
+                "description": k.description,
+                "ui_location": k.ui_location,
+                "doc_citation": k.doc_citation,
+                "full_knowledge": json.dumps(k.model_dump())
             })
 
-        # Add to collection (ChromaDB will auto-generate embeddings if we provide documents)
-        self.collection.add(
-            ids=ids,
-            documents=documents,
-            metadatas=metadatas
-        )
+        self.collection.add(ids=ids, documents=documents, metadatas=metadatas)
+        print(f"✓ Indexed {len(knowledge_patterns)} patterns")
 
-        print(f"✓ Indexed {len(knowledge_patterns)} knowledge patterns in vector database")
-
-    def retrieve(
-        self,
-        query: str,
-        top_k: int = 5,
-        filter_by: Optional[dict] = None
-    ) -> List[KnowledgeSchema]:
-        """
-        Retrieve relevant knowledge patterns for a query
-
-        Args:
-            query: Natural language task description
-            top_k: Number of knowledge patterns to retrieve
-            filter_by: Optional metadata filters
-
-        Returns:
-            List of relevant knowledge patterns
-        """
-        # Check if collection is empty
+    def retrieve(self, query: str, top_k: int = 5, filter_by: Optional[dict] = None) -> List[KnowledgeSchema]:
         if self.collection.count() == 0:
-            print("Vector database is empty. Indexing knowledge patterns...")
             self.index_knowledge()
 
-        # Query collection
         results = self.collection.query(
             query_texts=[query],
             n_results=min(top_k, self.collection.count()),
             where=filter_by
         )
 
-        # Parse results back to KnowledgeSchema
         knowledge_patterns = []
-        if results['metadatas'] and len(results['metadatas'][0]) > 0:
+        if results['metadatas'] and results['metadatas'][0]:
             for metadata in results['metadatas'][0]:
-                knowledge_data = json.loads(metadata['full_knowledge'])
-                knowledge_patterns.append(KnowledgeSchema(**knowledge_data))
+                knowledge_patterns.append(KnowledgeSchema(**json.loads(metadata['full_knowledge'])))
 
         return knowledge_patterns
 

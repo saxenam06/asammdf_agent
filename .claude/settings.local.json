@@ -36,7 +36,8 @@
       "Bash(\".agent-venv\\Scripts\\python.exe\" -c \"from agent.workflows.autonomous_workflow import AutonomousWorkflow; print(''Import successful'')\")",
       "Bash(\".agent-venv\\Scripts\\python.exe\" agentexecutionmcp_client.py)",
       "Bash(\".agent-venv\\Scripts\\python.exe\" -c \"from agent.workflows.autonomous_workflow import execute_autonomous_task; result = execute_autonomous_task(''Wait for 1 second''); print(f''Success: {result[\"\"success\"\"]}'')\" timeout:120000)",
-      "Bash(\".agent-venv\\Scripts\\python.exe\" -c \"from agent.workflows.autonomous_workflow import execute_autonomous_task; result = execute_autonomous_task(''Wait for 1 second''); print(f''\\nSuccess: {result[\"\"success\"\"]}''); print(f''Steps completed: {result.get(\"\"steps_completed\"\", 0)}'')\" timeout:120000)"
+      "Bash(\".agent-venv\\Scripts\\python.exe\" -c \"from agent.workflows.autonomous_workflow import execute_autonomous_task; result = execute_autonomous_task(''Wait for 1 second''); print(f''\\nSuccess: {result[\"\"success\"\"]}''); print(f''Steps completed: {result.get(\"\"steps_completed\"\", 0)}'')\" timeout:120000)",
+      "Bash(del:*)"
     ],
     "deny": [],
     "ask": []
