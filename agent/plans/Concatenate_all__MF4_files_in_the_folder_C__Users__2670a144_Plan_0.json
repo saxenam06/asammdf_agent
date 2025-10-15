@@ -249,177 +249,177 @@
     "current_step": 28,
     "overall_status": "failed",
     "created_at": "2025-10-13T01:26:43.965633",
-    "updated_at": "2025-10-15T11:54:49.079213",
+    "updated_at": "2025-10-15T12:42:24.275444",
     "steps": [
       {
         "step": 0,
         "status": "completed",
-        "timestamp": "2025-10-15T11:53:03.042262",
+        "timestamp": "2025-10-15T12:40:19.119729",
         "evidence": "Switched to Asammdf 8.6.10 [Pid=3660] - Single Files window."
       },
       {
         "step": 1,
         "status": "completed",
-        "timestamp": "2025-10-15T11:53:04.389467",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Single files Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: GitHub"
+        "timestamp": "2025-10-15T12:40:21.674501",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Single files Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Maximized Size: (1938,1038)\nName: Default Depth: 4 Status: Normal Size: (1499,770)\nName: Pricing | OpenAI and 4 more pages - Personal - Microso"
       },
       {
         "step": 2,
         "status": "completed",
-        "timestamp": "2025-10-15T11:53:08.908172",
-        "evidence": "Single left Clicked on  Element with ControlType TabControl at (1048,41)."
+        "timestamp": "2025-10-15T12:40:29.110322",
+        "evidence": "Single left Clicked on  Element with ControlType TabControl at (1015,49)."
       },
       {
         "step": 3,
         "status": "completed",
-        "timestamp": "2025-10-15T11:53:10.267278",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Single files Depth: 2 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 4 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 5 Status: Minimized Size: (0,0)\nName: GitHub"
+        "timestamp": "2025-10-15T12:40:31.602917",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Single files Depth: 2 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 4 Status: Maximized Size: (1938,1038)\nName: Default Depth: 5 Status: Normal Size: (1499,770)\nName: Pricing | OpenAI and 4 more pages - Personal - Microso"
       },
       {
         "step": 4,
         "status": "completed",
-        "timestamp": "2025-10-15T11:53:16.395139",
-        "evidence": "Single left Clicked on  Element with ControlType TabControl at (1100,103)."
+        "timestamp": "2025-10-15T12:40:35.300337",
+        "evidence": "Single left Clicked on  Element with ControlType TabControl at (1028,116)."
       },
       {
         "step": 5,
         "status": "completed",
-        "timestamp": "2025-10-15T11:53:17.841630",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
+        "timestamp": "2025-10-15T12:40:37.811317",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Maximized Size: (1938,1038)\nName: Default Depth: 4 Status: Normal Size: (1499,770)\nName: Pricing | OpenAI and 4 more pages - Personal - Mic"
       },
       {
         "step": 6,
         "status": "completed",
-        "timestamp": "2025-10-15T11:53:22.628247",
-        "evidence": "Single left Clicked on Concatenate Element with ControlType TabItemControl at (975,46)."
+        "timestamp": "2025-10-15T12:40:41.799002",
+        "evidence": "Single left Clicked on  Element with ControlType ListControl at (976,42)."
       },
       {
         "step": 7,
         "status": "completed",
-        "timestamp": "2025-10-15T11:53:24.083236",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 2 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 4 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 5 Status: Minimized Size: (0,0)\nName: Gi"
+        "timestamp": "2025-10-15T12:40:44.283405",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 2 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 3 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 4 Status: Maximized Size: (1938,1038)\nName: Default Depth: 5 Status: Normal Size: (1499,770)\nName: Pricing | OpenAI and 4 more pages - Personal - Mic"
       },
       {
         "step": 8,
         "status": "completed",
-        "timestamp": "2025-10-15T11:53:27.926309",
-        "evidence": "Single left Clicked on Concatenate Element with ControlType TabItemControl at (1144,74)."
+        "timestamp": "2025-10-15T12:40:48.520768",
+        "evidence": "Single left Clicked on  Element with ControlType ListControl at (1139,71)."
       },
       {
         "step": 9,
         "status": "completed",
-        "timestamp": "2025-10-15T11:53:29.564535",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
+        "timestamp": "2025-10-15T12:40:50.768463",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Maximized Size: (1938,1038)\nName: Default Depth: 4 Status: Normal Size: (1499,770)\nName: Pricing | OpenAI and 4 more pages - Personal - Mic"
       },
       {
         "step": 10,
         "status": "completed",
-        "timestamp": "2025-10-15T11:53:33.838941",
-        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1401,571)."
+        "timestamp": "2025-10-15T12:40:55.383975",
+        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1334,567)."
       },
       {
         "step": 11,
         "status": "completed",
-        "timestamp": "2025-10-15T11:53:35.466523",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
+        "timestamp": "2025-10-15T12:40:58.305229",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Maximized Size: (1938,1038)\nName: Default Depth: 4 Status: Normal Size: (1499,770)\nName: Pricing | OpenAI and 4 more pages - Personal - Mic"
       },
       {
         "step": 12,
         "status": "completed",
-        "timestamp": "2025-10-15T11:53:51.413310",
+        "timestamp": "2025-10-15T12:41:14.295035",
         "evidence": "Typed: \"C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-...\""
       },
       {
         "step": 13,
         "status": "completed",
-        "timestamp": "2025-10-15T11:53:53.053724",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
+        "timestamp": "2025-10-15T12:41:16.700302",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Maximized Size: (1938,1038)\nName: Default Depth: 4 Status: Normal Size: (1499,770)\nName: Pricing | OpenAI and 4 more pages - Personal - Mic"
       },
       {
         "step": 14,
         "status": "completed",
-        "timestamp": "2025-10-15T11:53:58.772858",
-        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1616,290)."
+        "timestamp": "2025-10-15T12:41:21.022109",
+        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1752,332)."
       },
       {
         "step": 15,
         "status": "completed",
-        "timestamp": "2025-10-15T11:54:00.410287",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
+        "timestamp": "2025-10-15T12:41:23.731351",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Maximized Size: (1938,1038)\nName: Default Depth: 4 Status: Normal Size: (1499,770)\nName: Pricing | OpenAI and 4 more pages - Personal - Mic"
       },
       {
         "step": 16,
         "status": "completed",
-        "timestamp": "2025-10-15T11:54:01.419018",
+        "timestamp": "2025-10-15T12:41:24.807676",
         "evidence": "Pressed ctrl+a."
       },
       {
         "step": 17,
         "status": "completed",
-        "timestamp": "2025-10-15T11:54:03.054938",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
+        "timestamp": "2025-10-15T12:41:27.460791",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Maximized Size: (1938,1038)\nName: Default Depth: 4 Status: Normal Size: (1499,770)\nName: Pricing | OpenAI and 4 more pages - Personal - Mic"
       },
       {
         "step": 18,
         "status": "completed",
-        "timestamp": "2025-10-15T11:54:04.068123",
+        "timestamp": "2025-10-15T12:41:28.494812",
         "evidence": "Pressed the key enter."
       },
       {
         "step": 19,
         "status": "completed",
-        "timestamp": "2025-10-15T11:54:05.528312",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
+        "timestamp": "2025-10-15T12:41:30.676373",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Maximized Size: (1938,1038)\nName: Default Depth: 4 Status: Normal Size: (1499,770)\nName: Pricing | OpenAI and 4 more pages - Personal - Mic"
       },
       {
         "step": 20,
         "status": "completed",
-        "timestamp": "2025-10-15T11:54:09.140054",
-        "evidence": "Single left Clicked on Concatenate Element with ControlType TabItemControl at (1511,985)."
+        "timestamp": "2025-10-15T12:41:34.700615",
+        "evidence": "Single left Clicked on C:/Users/ADMIN/Downloads/ev-data-pack-v10/ev-data-pack-v10/electric_cars/log_files/Tesla Model 3/LOG/3F78A21D/00000001/00000001.MF4 Element with ControlType ListItemControl at (1364,1002)."
       },
       {
         "step": 21,
         "status": "completed",
-        "timestamp": "2025-10-15T11:54:10.851486",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
+        "timestamp": "2025-10-15T12:41:37.385791",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Maximized Size: (1938,1038)\nName: Default Depth: 4 Status: Normal Size: (1499,770)\nName: Pricing | OpenAI and 4 more pages - Personal - Mic"
       },
       {
         "step": 22,
         "status": "completed",
-        "timestamp": "2025-10-15T11:54:15.332221",
-        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1418,472)."
+        "timestamp": "2025-10-15T12:41:42.197054",
+        "evidence": "Single left Clicked on File name: Element with ControlType EditControl at (1456,471)."
       },
       {
         "step": 23,
         "status": "completed",
-        "timestamp": "2025-10-15T11:54:17.198719",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
+        "timestamp": "2025-10-15T12:41:45.073746",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Maximized Size: (1938,1038)\nName: Default Depth: 4 Status: Normal Size: (1499,770)\nName: Pricing | OpenAI and 4 more pages - Personal - Mic"
       },
       {
         "step": 24,
         "status": "completed",
-        "timestamp": "2025-10-15T11:54:35.276715",
+        "timestamp": "2025-10-15T12:42:03.730539",
         "evidence": "Typed: \"C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-...\""
       },
       {
         "step": 25,
         "status": "completed",
-        "timestamp": "2025-10-15T11:54:37.732512",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
+        "timestamp": "2025-10-15T12:42:07.910788",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Maximized Size: (1938,1038)\nName: Default Depth: 4 Status: Normal Size: (1499,770)\nName: Pricing | OpenAI and 4 more pages - Personal - Mic"
       },
       {
         "step": 26,
         "status": "completed",
-        "timestamp": "2025-10-15T11:54:44.184448",
-        "evidence": "Error calling tool 'Click-Tool': (-2147220991, 'An event was unable to invoke any of the subscribers', (None, None, None, 0, None))"
+        "timestamp": "2025-10-15T12:42:15.218945",
+        "evidence": "Single left Clicked on Concatenate Element with ControlType ButtonControl at (1702,621)."
       },
       {
         "step": 27,
         "status": "completed",
-        "timestamp": "2025-10-15T11:54:49.079190",
-        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: Scripts - File Explorer Depth: 3 Status: Minimized Size: (0,0)\nName: D:\\Work\\FusGen\\asammdf_Agent\\.venv\\Scripts\\asammdf.exe Depth: 4 Status: Minimized Size: (0,0)\nName: Gi"
+        "timestamp": "2025-10-15T12:42:24.275396",
+        "evidence": "\n    Default Language of User:\n    English (United States) with encoding: cp1252\n\n    Focused App:\n    Name: asammdf 8.6.10 [PID=3660] - Batch processing Depth: 1 Status: Normal Size: (957,981)\n\n    Opened Apps:\n    Name: autonomous_workflow.py - asammdf_agent - Visual Studio Code Depth: 2 Status: Normal Size: (960,1020)\nName: GitHub Desktop Depth: 3 Status: Maximized Size: (1938,1038)\nName: Default Depth: 4 Status: Normal Size: (1499,770)\nName: Pricing | OpenAI and 4 more pages - Personal - Mic"
       }
     ]
   },
-  "updated_at": "2025-10-15T11:54:49.079210"
+  "updated_at": "2025-10-15T12:42:24.275439"
 }

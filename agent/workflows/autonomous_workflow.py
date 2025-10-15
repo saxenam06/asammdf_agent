@@ -18,6 +18,7 @@ from agent.rag.knowledge_retriever import KnowledgeRetriever
 from agent.planning.workflow_planner import WorkflowPlanner
 from agent.execution.mcp_client import MCPClient
 from agent.execution.adaptive_executor import AdaptiveExecutor
+from agent.utils.cost_tracker import get_global_tracker
 
 
 class WorkflowState(TypedDict):
@@ -291,6 +292,11 @@ class AutonomousWorkflow:
                 print("\n" + "="*80)
                 print("✓ Success!" if results["success"] else f"✗ Failed: {results['error']}")
                 print("="*80)
+
+                # Display cost summary
+                tracker = get_global_tracker()
+                if tracker.calls:
+                    tracker.print_summary()
 
                 return results
 

@@ -82,6 +82,8 @@ Failure detected → saves snapshot → summarizes progress (14 done, 1 failed, 
 ✅ **Self-healing** - Auto-replans on failures (up to 3 attempts)
 ✅ **State-aware** - Caches UI state for dynamic coordinate resolution
 ✅ **Versioned plans** - `Plan_0`, `Plan_1` with merge logic
+✅ **Centralized prompts** - All LLM prompts in dedicated modules for easy iteration
+✅ **Cost tracking** - Real-time API cost monitoring per component
 ✅ **Production-ready** - Error handling, logging, timestamped snapshots
 
 ## Architecture
@@ -89,6 +91,13 @@ Failure detected → saves snapshot → summarizes progress (14 done, 1 failed, 
 ```
 agent/
 ├── workflows/autonomous_workflow.py    # LangGraph orchestrator (6-node state machine)
+├── prompts/                            # Centralized LLM prompts
+│   ├── planning_prompt.py              # Plan generation prompts
+│   ├── recovery_prompt.py              # Replanning prompts
+│   ├── coordinate_resolution_prompt.py # UI element resolution prompts
+│   └── doc_parsing_prompt.py           # Documentation extraction prompts
+├── utils/
+│   └── cost_tracker.py                 # API cost tracking & reporting
 ├── rag/
 │   ├── doc_parser.py                   # GPT extracts knowledge from docs
 │   └── knowledge_retriever.py          # ChromaDB semantic search
@@ -154,6 +163,23 @@ GPT parses asammdf docs → structured JSON patterns:
 - `handle_error` → Retry logic
 
 **Routing**: Success → next | Failure → retry (2x) → replan (3x) → abort
+
+### 7. Centralized Prompts (`prompts/`)
+All LLM prompts in dedicated modules:
+- `planning_prompt.py` - Plan generation (system + user prompts)
+- `recovery_prompt.py` - Replanning with failure analysis
+- `coordinate_resolution_prompt.py` - UI element coordinate resolution
+- `doc_parsing_prompt.py` - Knowledge extraction from documentation
+
+**Benefits**: Single source of truth, easy A/B testing, version control
+
+### 8. Cost Tracking (`utils/cost_tracker.py`)
+Automatic API cost monitoring:
+- Tracks all OpenAI API calls with token counts
+- Component breakdown (planning, recovery, resolution, doc_parsing)
+- Model breakdown (gpt-5-mini, gpt-4o-mini)
+- Export to JSON for analysis
+- Real-time cost visibility during execution
 
 ## Performance
 
@@ -232,6 +258,16 @@ workflow = AutonomousWorkflow(
 result = await workflow.run("Your task")
 ```
 
+### Cost Tracking
+```python
+from agent.utils.cost_tracker import get_global_tracker
+
+# After workflow execution
+tracker = get_global_tracker()
+tracker.print_summary()  # Shows cost breakdown by component/model
+tracker.save_to_file()   # Exports to cost_reports/cost_TIMESTAMP.json
+```
+
 ## Limitations
 
 - Windows-only (Windows UI Automation)
@@ -260,14 +296,16 @@ result = await workflow.run("Your task")
 
 ## Tech Stack Summary
 
-- **RAG**: ChromaDB + sentence-transformers
-- **Planning**: GPT-5-mini (OpenAI API)
-- **Execution**: GPT-4o-mini (coordinate resolution)
+- **RAG**: ChromaDB + sentence-transformers → semantic search
+- **Planning**: GPT-5-mini (OpenAI API) → MCP tool sequences
+- **Execution**: GPT-4o-mini → dynamic coordinate resolution
 - **Recovery**: Plan tracking + KB-augmented replanning
-- **Orchestration**: LangGraph state machine
-- **MCP Integration**: Windows-MCP server (13+ GUI tools)
-- **Schemas**: Pydantic for type safety
-- **Async**: nest_asyncio for event loop management
+- **Orchestration**: LangGraph → state machine with retry/replan logic
+- **Prompts**: Centralized prompt management → easy iteration
+- **Cost Tracking**: Per-call API cost monitoring → budget visibility
+- **MCP Integration**: Windows-MCP server → 13+ GUI automation tools
+- **Schemas**: Pydantic → type safety
+- **Async**: nest_asyncio → event loop management
 
 ## Project Status
 
