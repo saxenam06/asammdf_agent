@@ -44,83 +44,36 @@ TOOL SCHEMA ({action.tool_name}):
 {chr(10).join(params_desc)}
 """
 
-    return f"""You are a UI element coordinate resolver for an automation system. Your task is to find the exact [x, y] coordinates of a UI element from the current state.
+    return f"""Find exact [x, y] coordinates for a UI element from the current state.
 
-═══════════════════════════════════════════════════════════════════════════════
-SECTION 1: WHAT YOU'RE TRYING TO DO
-═══════════════════════════════════════════════════════════════════════════════
+ACTION CONTEXT:
 {context_info}
+Tool: {action.tool_name}
+Intent: {action.reasoning}
 
-Key Understanding:
-• Tool Name: {action.tool_name}
-• Intent/Goal: {action.reasoning}
-• This reasoning tells you WHY this element needs to be found and what it will be used for
-
-═══════════════════════════════════════════════════════════════════════════════
-SECTION 2: CURRENT UI STATE (What's Actually Visible)
-═══════════════════════════════════════════════════════════════════════════════
+CURRENT UI STATE:
 ```
 {state_output}
 ```
 
-═══════════════════════════════════════════════════════════════════════════════
-SECTION 3: YOUR TASK
-═══════════════════════════════════════════════════════════════════════════════
-Find coordinates for ONE of these element references (try in order of priority):
+FIND COORDINATES FOR (try in priority order):
 {refs_list}
 
-UNDERSTANDING ELEMENT REFERENCES:
-• Structured format: "last_state:control_type:element_name" (e.g., "last_state:button:Save")
-• Natural language: "Save button", "File menu", "OK dialog"
-• Any description that identifies a UI element
+Element reference formats:
+- Structured: "last_state:control_type:element_name" (e.g., "last_state:button:Save")
+- Natural: "Save button", "File menu", "OK dialog"
 
-═══════════════════════════════════════════════════════════════════════════════
-SECTION 4: DECISION LOGIC (Follow This Process)
-═══════════════════════════════════════════════════════════════════════════════
+RESOLUTION LOGIC:
+1. Search for exact matches first
+2. If no match, use intent to find elements serving the same purpose
+3. For multiple matches, use context and position to choose the best one
+4. ONLY return coordinates for elements ACTUALLY PRESENT in the UI state
 
-Step 1: EXACT MATCH SEARCH
-→ Search the UI state for exact matches to the element references
-→ If found, extract coordinates and proceed to response
+JSON RESPONSE:
+Success:
+{{"found": true, "coordinates": [x, y], "matched_ref": "...", "adaptation": "explain if adapted, else empty"}}
 
-Step 2: INTENT-BASED ADAPTATION (If no exact match)
-→ Use the tool reasoning to understand the INTENT
-→ Look for elements that serve the SAME PURPOSE
-→ Example: If looking for "Mode menu" to access settings, and only "Preferences" exists,
-   Preferences might serve the same intent
+Failure:
+{{"found": false, "reason": "why no match", "suggestion": "alternative visible elements"}}
 
-Step 3: MULTIPLE INSTANCE HANDLING
-→ If multiple elements match (same control_type and name):
-   - Use the tool reasoning to pick the most contextually appropriate one
-   - Consider position (top/bottom, left/right) based on typical UI conventions
-   - Prefer the element that best aligns with the intended action
-
-Step 4: VALIDATION
-→ ONLY return coordinates for elements ACTUALLY PRESENT in the UI state
-→ NEVER return coordinates for invisible or non-existent elements
-→ If nothing matches, provide helpful suggestions in the failure response
-
-═══════════════════════════════════════════════════════════════════════════════
-SECTION 5: RESPONSE FORMAT
-═══════════════════════════════════════════════════════════════════════════════
-
-Return ONLY a JSON object (no other text):
-
-✓ SUCCESS CASE (Element found):
-{{
-  "found": true,
-  "coordinates": [x, y],
-  "matched_ref": "which reference matched",
-  "adaptation": "explanation if you used intent-based adaptation instead of exact match (leave empty if exact match)"
-}}
-
-✗ FAILURE CASE (No element found):
-{{
-  "found": false,
-  "reason": "clear explanation of why none of the references matched",
-  "suggestion": "alternative elements visible in current state that might achieve the same goal based on reasoning"
-}}
-
-═══════════════════════════════════════════════════════════════════════════════
-Now proceed with coordinate resolution.
-═══════════════════════════════════════════════════════════════════════════════
-"""
+Return ONLY JSON, no other text."""

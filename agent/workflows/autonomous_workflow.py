@@ -367,14 +367,13 @@ if __name__ == "__main__":
     # Default task and GUI instructions (separated for clarity)
     default_task = (
         "Concatenate all .MF4 files in the folder "
-        r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Tesla Model 3\LOG\3F78A21D\00000001. "
-        "Save the concatenated file as Tesla_Model_3_3F78A21D.mf4 in the same folder."
+        r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\LOG\2F6913DB\00001026\."
+        "Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder."
     )
 
     default_gui_instructions = (
         "To load all MF4 files:"
-        "Option 1: Go to File → Open Folder, then enter the path of the desired folder and select it to automatically load all MF4 files within that folder."
-        "Option 2: Go to File → Open, then enter the path of the desired folder, select any .MF4 file, press Ctrl + A to highlight all files in the folder, and then press Enter to load them all."
+        " Go to File → Open, then enter the path of the desired folder, select any .MF4 file, press Ctrl + A to highlight all files in the folder, and then press Enter to load them all."
     )
 
     # Build final task
