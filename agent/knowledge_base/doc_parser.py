@@ -1,6 +1,8 @@
 """
-Automatic knowledge extraction from asammdf GUI documentation
-Uses OpenAI GPT-5-MINI API to parse documentation and extract structured knowledge patterns
+Documentation Parser for Knowledge Base
+
+Automatically extracts GUI knowledge patterns from asammdf documentation
+using OpenAI GPT-5-MINI API to parse documentation and extract structured knowledge patterns.
 """
 
 import json
@@ -101,13 +103,10 @@ class DocumentationParser:
                 output_tokens=usage.completion_tokens,
                 task_context=doc_url
             )
-            print(f"💰 Doc parsing cost: ${cost:.4f} ({usage.prompt_tokens:,} in + {usage.completion_tokens:,} out tokens)")
+            print(f"[Cost] Doc parsing: ${cost:.4f} ({usage.prompt_tokens:,} in + {usage.completion_tokens:,} out tokens)")
 
             # Extract JSON from response
             content = response.choices[0].message.content
-
-            print(f"DEBUG: Response content length: {len(content) if content else 0}")
-            print(f"DEBUG: First 500 chars of response:\n{content[:500] if content else 'None'}\n")
 
             # Try to find JSON array in response
             if content.strip().startswith('['):
@@ -146,15 +145,17 @@ class DocumentationParser:
         """
         knowledge_dict = [knowledge.model_dump() for knowledge in knowledge_patterns]
 
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(knowledge_dict, f, indent=2, ensure_ascii=False)
 
-        print(f"Saved {len(knowledge_patterns)} knowledge patterns to {output_path}")
+        print(f"[Saved] {len(knowledge_patterns)} knowledge patterns to {output_path}")
 
 
 def build_knowledge_catalog(
     doc_url: str = "https://asammdf.readthedocs.io/en/stable/gui.html",
-    output_path: str = "agent/knowledge_base/json/knowledge_catalog_gpt5.json",
+    output_path: str = "agent/knowledge_base/parsed_knowledge/knowledge_catalog.json",
     api_key: Optional[str] = None
 ) -> List[KnowledgeSchema]:
     """
@@ -170,18 +171,17 @@ def build_knowledge_catalog(
     """
     parser = DocumentationParser(api_key=api_key)
 
-    print(f"Fetching documentation from {doc_url}...")
+    print(f"\n[Parsing] Fetching documentation from {doc_url}...")
     doc_content = parser.fetch_documentation(doc_url)
 
-    print(f"Extracting knowledge patterns using {parser.model}...")
+    print(f"[Parsing] Extracting knowledge patterns using {parser.model}...")
     knowledge_patterns = parser.extract_knowledge(doc_content, doc_url)
 
-    print(f"Extracted {len(knowledge_patterns)} knowledge patterns:")
+    print(f"\n[Extracted] {len(knowledge_patterns)} knowledge patterns:")
     for knowledge in knowledge_patterns:
         print(f"  - {knowledge.knowledge_id}: {knowledge.description}")
 
     # Save to file
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     parser.save_knowledge(knowledge_patterns, output_path)
 
     return knowledge_patterns
@@ -190,7 +190,8 @@ def build_knowledge_catalog(
 if __name__ == "__main__":
     """
     Run knowledge extraction as standalone script
-    Usage: python agent/rag/doc_parser.py
+
+    Usage: python agent/knowledge_base/doc_parser.py
     """
     import argparse
 
@@ -202,7 +203,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--output",
-        default="agent/knowledge_base/json/knowledge_catalog_gpt5_mini.json",
+        default="agent/knowledge_base/parsed_knowledge/knowledge_catalog.json",
         help="Output file path"
     )
 
@@ -213,8 +214,8 @@ if __name__ == "__main__":
             doc_url=args.doc_url,
             output_path=args.output
         )
-        print(f"\n✓ Successfully built knowledge catalog with {len(knowledge_patterns)} patterns")
+        print(f"\n[SUCCESS] Built knowledge catalog with {len(knowledge_patterns)} patterns")
 
     except Exception as e:
-        print(f"\n✗ Error: {e}")
+        print(f"\n[ERROR] {e}")
         sys.exit(1)

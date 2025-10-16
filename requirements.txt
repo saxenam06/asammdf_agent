@@ -19,5 +19,11 @@ lxml>=5.0.0
 # MCP client
 mcp>=1.0.0
 
+# HITL (Human-in-the-Loop) learning system
+mem0ai>=0.1.0
+
+# Async support
+nest-asyncio>=1.5.0
+
 # Utilities
 python-dotenv>=1.0.0

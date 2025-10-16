@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from agent.execution.mcp_client import get_mcp_client
 from agent.execution.adaptive_executor import AdaptiveExecutor
 from agent.planning.workflow_planner import load_plan
-from agent.rag.knowledge_retriever import KnowledgeRetriever
+from agent.knowledge_base.retriever import KnowledgeRetriever
 
 
 def test_replanning_workflow():
@@ -31,7 +31,7 @@ def test_replanning_workflow():
 
     # Configuration
     plan_file = "Concatenate_all_MF4_files_in_C__Users_ADMIN_Downlo_bad75d6c.json"
-    plan_path = os.path.join("agent", "plans", plan_file)
+    plan_path = os.path.join("agent", "planning", "plans", plan_file)
 
     if not os.path.exists(plan_path):
         print(f"✗ Plan file not found: {plan_path}")

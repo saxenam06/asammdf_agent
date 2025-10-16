@@ -14,11 +14,22 @@ if sys.platform == 'win32':
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from agent.planning.schemas import KnowledgeSchema, PlanSchema, ExecutionResult, VerifiedSkillSchema, ActionSchema
-from agent.rag.knowledge_retriever import KnowledgeRetriever
+from agent.knowledge_base.retriever import KnowledgeRetriever
 from agent.planning.workflow_planner import WorkflowPlanner
 from agent.execution.mcp_client import MCPClient
 from agent.execution.adaptive_executor import AdaptiveExecutor
 from agent.utils.cost_tracker import get_global_tracker
+
+# HITL imports
+try:
+    from agent.feedback.human_observer import HumanObserver
+    from agent.feedback.memory_manager import LearningMemoryManager
+    from agent.learning.skill_library import SkillLibrary
+    from agent.feedback.schemas import VerificationStatus
+    HITL_AVAILABLE = True
+except ImportError:
+    HITL_AVAILABLE = False
+    print("[Warning] HITL components not available")
 
 
 class WorkflowState(TypedDict):
@@ -41,15 +52,17 @@ class AutonomousWorkflow:
     def __init__(
         self,
         app_name: str = "asammdf 8.6.10",
-        knowledge_catalog_path: str = "agent/knowledge_base/json/knowledge_catalog.json",
-        vector_db_path: str = "agent/knowledge_base/vector_store_gpt5_mini",
+        catalog_path: str = "agent/knowledge_base/parsed_knowledge/knowledge_catalog.json",
+        vector_db_path: str = "agent/knowledge_base/vector_store",
         max_retries: int = 2,
-        max_replan_attempts: int = 3
+        max_replan_attempts: int = 3,
+        enable_hitl: bool = True,
+        session_id: Optional[str] = None
     ):
         self.app_name = app_name
         self.max_retries = max_retries
         self.max_replan_attempts = max_replan_attempts
-        self.knowledge_catalog_path = knowledge_catalog_path
+        self.catalog_path = catalog_path
         self.vector_db_path = vector_db_path
         self.task = None
         self._retriever = None
@@ -58,11 +71,26 @@ class AutonomousWorkflow:
         self._client = None
         self._executor = None
 
+        # HITL components
+        self.enable_hitl = enable_hitl and HITL_AVAILABLE
+        self.session_id = session_id or f"session_{os.urandom(4).hex()}"
+        self._human_observer = None
+        self._memory_manager = None
+        self._skill_library = None
+
+        if self.enable_hitl:
+            print(f"[HITL] Enabled (session: {self.session_id})")
+            self._memory_manager = LearningMemoryManager()
+            self._skill_library = SkillLibrary()
+            # Observer will be started in run() method
+        else:
+            print("[HITL] Disabled")
+
     @property
     def retriever(self):
         if self._retriever is None:
             self._retriever = KnowledgeRetriever(
-                knowledge_catalog_path=self.knowledge_catalog_path,
+                catalog_path=self.catalog_path,
                 vector_db_path=self.vector_db_path
             )
         return self._retriever
@@ -70,7 +98,12 @@ class AutonomousWorkflow:
     @property
     def planner(self):
         if self._planner is None:
-            self._planner = WorkflowPlanner(mcp_client=self.client)
+            self._planner = WorkflowPlanner(
+                mcp_client=self.client,
+                skill_library=self._skill_library if self.enable_hitl else None,
+                memory_manager=self._memory_manager if self.enable_hitl else None,
+                session_id=self.session_id
+            )
         return self._planner
 
     @property
@@ -94,7 +127,10 @@ class AutonomousWorkflow:
                 self._executor = AdaptiveExecutor(
                     self.client,
                     knowledge_retriever=self.retriever,
-                    plan_filepath=plan_path
+                    plan_filepath=plan_path,
+                    human_observer=self._human_observer if self.enable_hitl else None,
+                    memory_manager=self._memory_manager if self.enable_hitl else None,
+                    session_id=self.session_id
                 )
         return self._executor
 
@@ -108,12 +144,23 @@ class AutonomousWorkflow:
         workflow.add_node("verify_step", self._verify_step_node)
         workflow.add_node("handle_error", self._handle_error_node)
 
+        # HITL node for final verification
+        if self.enable_hitl:
+            workflow.add_node("final_verification", self._final_verification_node)
+
         workflow.set_entry_point("retrieve_knowledge")
         workflow.add_edge("retrieve_knowledge", "generate_plan")
         workflow.add_edge("generate_plan", "validate_plan")
         workflow.add_conditional_edges("validate_plan", self._route_after_validation, {"execute": "execute_step", "error": END})
         workflow.add_edge("execute_step", "verify_step")
-        workflow.add_conditional_edges("verify_step", self._route_after_verification, {"next_step": "execute_step", "error": "handle_error", "done": END})
+
+        if self.enable_hitl:
+            # Route to final_verification instead of END on completion
+            workflow.add_conditional_edges("verify_step", self._route_after_verification, {"next_step": "execute_step", "error": "handle_error", "done": "final_verification"})
+            workflow.add_edge("final_verification", END)
+        else:
+            workflow.add_conditional_edges("verify_step", self._route_after_verification, {"next_step": "execute_step", "error": "handle_error", "done": END})
+
         workflow.add_conditional_edges("handle_error", self._route_after_error, {"retry": "execute_step", "failed": END})
 
         return workflow.compile()
@@ -251,6 +298,80 @@ class AutonomousWorkflow:
 
         return state
 
+    def _final_verification_node(self, state: WorkflowState) -> WorkflowState:
+        """HITL final verification and skill creation"""
+        print(f"\n[HITL] Final Verification")
+
+        if not self._human_observer:
+            print("  [Warning] Observer not available, skipping verification")
+            return state
+
+        # Prepare execution summary
+        execution_summary = {
+            "steps_completed": state.get("current_step", 0),
+            "human_feedbacks": 0,  # TODO: Track this in executor
+            "agent_recoveries": state.get("replan_count", 0)
+        }
+
+        # Request human verification
+        verification = self._human_observer.request_verification(
+            task=state["task"],
+            execution_summary=execution_summary
+        )
+
+        if verification.status == VerificationStatus.COMPLETED:
+            print(f"  ✓ Human verified task completion")
+
+            # Create verified skill if requested
+            if verification.create_skill and self._skill_library and state.get("plan"):
+                try:
+                    skill_id = self._skill_library.add_skill(
+                        task=state["task"],
+                        plan=state["plan"].model_dump(),
+                        success_rate=1.0,
+                        metadata={
+                            "session_id": self.session_id,
+                            "human_verified": True,
+                            "verification_reasoning": verification.reasoning,
+                            "steps_completed": state.get("current_step", 0)
+                        }
+                    )
+                    print(f"  [HITL] Created verified skill: {skill_id}")
+                except Exception as e:
+                    print(f"  [Warning] Failed to create skill: {e}")
+
+            # Store verification as learning
+            if self._memory_manager:
+                try:
+                    from agent.feedback.schemas import LearningEntry, LearningSource
+                    learning_id = f"verify_{self.session_id}_{state['task'][:20]}"
+                    learning = LearningEntry(
+                        learning_id=learning_id,
+                        session_id=self.session_id,
+                        source=LearningSource.HUMAN_PROACTIVE,
+                        task=state["task"],
+                        step_num=-1,  # Final verification
+                        human_reasoning=verification.reasoning,
+                        ui_state="Task completed"
+                    )
+                    self._memory_manager.store_learning(
+                        session_id=self.session_id,
+                        source=LearningSource.HUMAN_PROACTIVE,
+                        learning_data=learning.model_dump(),
+                        context=f"Task completion verification: {verification.status}"
+                    )
+                    print(f"  [HITL] Stored verification feedback")
+                except Exception as e:
+                    print(f"  [Warning] Failed to store learning: {e}")
+        else:
+            print(f"  ✗ Verification status: {verification.status}")
+            print(f"     Reason: {verification.reasoning}")
+            if verification.status == VerificationStatus.NOT_COMPLETED:
+                state["completed"] = False
+                state["error"] = f"Human verification: {verification.reasoning}"
+
+        return state
+
     def _route_after_validation(self, state: WorkflowState) -> str:
         return "error" if state.get("error") else "execute"
 
@@ -273,6 +394,12 @@ class AutonomousWorkflow:
             current_step=0, execution_log=[], error=None, completed=False,
             retry_count=0, replan_count=0, force_regenerate_plan=force_regenerate_plan
         )
+
+        # Start HITL observer if enabled
+        if self.enable_hitl and HITL_AVAILABLE:
+            self._human_observer = HumanObserver(session_id=self.session_id)
+            self._human_observer.start()
+            print("[HITL] Observer started (press Ctrl+I to interrupt)")
 
         async with MCPClient() as client:
             self._client = client
@@ -304,6 +431,12 @@ class AutonomousWorkflow:
                 print(f"\n✗ Error: {e}")
                 return {"success": False, "task": task, "error": str(e)}
 
+            finally:
+                # Stop HITL observer
+                if self.enable_hitl and self._human_observer:
+                    self._human_observer.stop()
+                    print("[HITL] Observer stopped")
+
     def run_sync(self, task: str, force_regenerate_plan: bool = False) -> dict:
         """
         Sync wrapper for run() - for backward compatibility
@@ -321,8 +454,8 @@ class AutonomousWorkflow:
 def execute_autonomous_task(
     task: str,
     app_name: str = "asammdf 8.6.10",
-    knowledge_catalog_path: str = "agent/knowledge_base/json/knowledge_catalog_gpt5_mini.json",
-    vector_db_path: str = "agent/knowledge_base/vector_store_gpt5_mini",
+    catalog_path: str = "agent/knowledge_base/parsed_knowledge/knowledge_catalog.json",
+    vector_db_path: str = "agent/knowledge_base/vector_store",
 ) -> dict:
     """
     Convenience function to execute a task autonomously
@@ -330,14 +463,14 @@ def execute_autonomous_task(
     Args:
         task: Natural language task description
         app_name: Application window name
-        knowledge_catalog_path: Path to knowledge catalog
+        catalog_path: Path to knowledge catalog
 
     Returns:
         Execution results
     """
     workflow = AutonomousWorkflow(
         app_name=app_name,
-        knowledge_catalog_path=knowledge_catalog_path,
+        catalog_path=catalog_path,
         vector_db_path=vector_db_path
     )
 
@@ -392,7 +525,7 @@ if __name__ == "__main__":
     else:
         full_task = task
 
-    results = execute_autonomous_task(task=full_task, knowledge_catalog_path="agent/knowledge_base/json/knowledge_catalog_gpt5_mini.json",vector_db_path="agent/knowledge_base/vector_store_gpt5_mini")
+    results = execute_autonomous_task(task=full_task, catalog_path="agent/knowledge_base/parsed_knowledge/knowledge_catalog.json", vector_db_path="agent/knowledge_base/vector_store")
 
     print(f"\n\nFinal Results:")
     print(f"  Success: {results['success']}")

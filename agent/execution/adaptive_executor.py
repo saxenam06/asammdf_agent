@@ -18,6 +18,16 @@ from agent.planning.plan_recovery import PlanRecoveryManager
 from agent.prompts.coordinate_resolution_prompt import get_coordinate_resolution_prompt
 from agent.utils.cost_tracker import track_api_call
 
+# HITL imports
+try:
+    from agent.feedback.human_observer import HumanObserver
+    from agent.feedback.memory_manager import LearningMemoryManager
+    from agent.feedback.schemas import LearningSource, SelfExplorationLearning, ConfidenceLevel
+    HITL_AVAILABLE = True
+except ImportError:
+    HITL_AVAILABLE = False
+    print("[Warning] HITL components not available")
+
 load_dotenv()
 
 
@@ -49,7 +59,16 @@ class AdaptiveExecutor:
     - Uses GPT-4o-mini for lightweight reasoning
     """
 
-    def __init__(self, mcp_client: MCPClient, api_key: Optional[str] = None, knowledge_retriever=None, plan_filepath: Optional[str] = None):
+    def __init__(
+        self,
+        mcp_client: MCPClient,
+        api_key: Optional[str] = None,
+        knowledge_retriever=None,
+        plan_filepath: Optional[str] = None,
+        human_observer: Optional['HumanObserver'] = None,
+        memory_manager: Optional['LearningMemoryManager'] = None,
+        session_id: Optional[str] = None
+    ):
         """
         Initialize adaptive executor
 
@@ -58,12 +77,20 @@ class AdaptiveExecutor:
             api_key: OpenAI API key (defaults to env var)
             knowledge_retriever: Optional KnowledgeRetriever instance for KB queries
             plan_filepath: Optional path to plan file for recovery tracking
+            human_observer: Optional HumanObserver for HITL feedback
+            memory_manager: Optional LearningMemoryManager for storing learnings
+            session_id: Optional session ID for memory tracking
         """
         self.mcp_client = mcp_client
         self.state_cache = StateCache()
         self.knowledge_retriever = knowledge_retriever
         self.plan_filepath = plan_filepath
         self.recovery_manager = None
+
+        # HITL components
+        self.human_observer = human_observer
+        self.memory_manager = memory_manager
+        self.session_id = session_id or "default_session"
 
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         if not self.api_key:
@@ -217,6 +244,78 @@ class AdaptiveExecutor:
 
         return resolved_args
 
+    def _calculate_confidence(
+        self,
+        action: ActionSchema,
+        resolved_args: Dict[str, Any],
+        context: List[ActionSchema]
+    ) -> Tuple[float, str]:
+        """
+        Calculate confidence score for an action execution
+
+        Args:
+            action: The action to execute
+            resolved_args: Resolved arguments
+            context: Previous actions for context
+
+        Returns:
+            Tuple of (confidence_score 0-1, reasoning_string)
+        """
+        confidence = 1.0
+        reasons = []
+
+        # Factor 1: State availability (required for coordinate resolution)
+        if 'loc' in resolved_args and not self.state_cache.get_latest_state():
+            confidence *= 0.3
+            reasons.append("No cached state for coordinate resolution")
+
+        # Factor 2: Coordinate resolution success
+        if 'loc' in action.tool_arguments:
+            original_loc = action.tool_arguments['loc']
+            resolved_loc = resolved_args.get('loc')
+
+            # If loc is a list of strings, it required resolution
+            if isinstance(original_loc, list) and all(isinstance(x, str) for x in original_loc):
+                if resolved_loc:
+                    # Resolution succeeded
+                    if len(original_loc) > 1:
+                        confidence *= 0.8  # Had multiple alternatives, moderate confidence
+                        reasons.append(f"Resolved from {len(original_loc)} alternatives")
+                    else:
+                        confidence *= 0.9  # Single reference resolved
+                        reasons.append("Coordinate resolved")
+                else:
+                    confidence *= 0.2  # Resolution failed
+                    reasons.append("Coordinate resolution failed")
+
+        # Factor 3: Action reasoning quality
+        if action.reasoning:
+            if len(action.reasoning) < 20:
+                confidence *= 0.85
+                reasons.append("Brief reasoning")
+            elif "uncertain" in action.reasoning.lower() or "might" in action.reasoning.lower():
+                confidence *= 0.7
+                reasons.append("Uncertain reasoning")
+        else:
+            confidence *= 0.8
+            reasons.append("No reasoning provided")
+
+        # Factor 4: Context alignment
+        if context and len(context) > 0:
+            # Check if this action logically follows previous ones
+            last_action = context[-1]
+            if action.tool_name == "State-Tool":
+                confidence *= 1.0  # State checks are always good
+            elif last_action.tool_name == "State-Tool":
+                confidence *= 1.1  # Acting after state check is good (cap at 1.0 later)
+                reasons.append("Following state verification")
+
+        # Cap confidence at 1.0
+        confidence = min(1.0, confidence)
+
+        reasoning = "; ".join(reasons) if reasons else "High confidence"
+        return confidence, reasoning
+
     def execute_action(
         self,
         action: ActionSchema,
@@ -275,6 +374,54 @@ class AdaptiveExecutor:
                 action=action.tool_name,
                 error=f"Failed to resolve arguments: {e}"
             )
+
+        # Step 2.5: Calculate confidence and request human approval if needed
+        if HITL_AVAILABLE and self.human_observer:
+            confidence, conf_reasoning = self._calculate_confidence(action, resolved_args, context or [])
+            print(f"  → Confidence: {confidence:.2f} ({conf_reasoning})")
+
+            # Request approval for low-confidence actions (< 0.5)
+            if confidence < 0.5:
+                print(f"  ⚠️  Low confidence detected - requesting human approval")
+                approval_result = self.human_observer.request_approval(
+                    action=action,
+                    confidence=confidence,
+                    reason=conf_reasoning
+                )
+
+                if not approval_result.approved:
+                    print(f"  ✗ Human rejected action: {approval_result.reasoning}")
+
+                    # If human provided correction, use it
+                    if approval_result.correction:
+                        print(f"  → Using human correction")
+                        correction_action = ActionSchema(**approval_result.correction)
+                        resolved_action = correction_action
+
+                        # Store learning from human correction
+                        if self.memory_manager and step_num is not None:
+                            from agent.feedback.schemas import HumanInterruptLearning
+                            learning = HumanInterruptLearning(
+                                task=f"Step {step_num + 1}",
+                                step_num=step_num,
+                                original_action=action.model_dump(),
+                                correction=approval_result.correction,
+                                reasoning=approval_result.reasoning or "Human correction"
+                            )
+                            self.memory_manager.store_learning(
+                                session_id=self.session_id,
+                                source=LearningSource.HUMAN_INTERRUPT,
+                                learning=learning
+                            )
+                    else:
+                        # Human rejected without correction - fail the action
+                        return ExecutionResult(
+                            success=False,
+                            action=action.tool_name,
+                            error=f"Human rejected: {approval_result.reasoning}"
+                        )
+                else:
+                    print(f"  ✓ Human approved action")
 
         # Step 3: Execute the resolved action
         result = self.mcp_client.execute_action_sync(resolved_action)
@@ -364,6 +511,29 @@ class AdaptiveExecutor:
             print(f"✅ REPLANNING COMPLETE - Continue with merged plan")
             print(f"  New plan file: {os.path.basename(new_filepath)}")
             print(f"{'='*80}\n")
+
+            # Store self-recovery learning
+            if HITL_AVAILABLE and self.memory_manager:
+                from agent.feedback.schemas import SelfExplorationLearning
+                learning = SelfExplorationLearning(
+                    task=f"Recovery from step {step_num + 1} failure",
+                    step_num=step_num,
+                    failed_action=failed_action.model_dump(),
+                    error=error,
+                    recovery_strategy=recovery_plan.recovery_reasoning,
+                    outcome="replanning_triggered",
+                    tools_used=["PlanRecoveryManager"],
+                    verification={"new_plan": new_filepath}
+                )
+                try:
+                    self.memory_manager.store_learning(
+                        session_id=self.session_id,
+                        source=LearningSource.AGENT_SELF_EXPLORATION,
+                        learning=learning
+                    )
+                    print(f"  [HITL] Stored self-recovery learning")
+                except Exception as e:
+                    print(f"  [Warning] Failed to store learning: {e}")
 
             # Return a special result that signals replanning occurred
             # The LangGraph workflow will detect this and restart execution with the merged plan

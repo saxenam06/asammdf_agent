@@ -5,10 +5,8 @@
 # # Byte-compiled / optimized / DLL files
 __pycache__/
 
-## Skills Vector store
+## Knowledge Base Vector store
 agent/knowledge_base/vector_store
-agent/knowledge_base/vector_store_gpt5
-agent/knowledge_base/vector_store_gpt5_mini
 
 ## Ignore
 .env

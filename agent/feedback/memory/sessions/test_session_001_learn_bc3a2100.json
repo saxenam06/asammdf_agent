@@ -1,0 +1,24 @@
+{
+  "learning_id": "learn_bc3a2100",
+  "session_id": "test_session_001",
+  "source": "human_interrupt",
+  "timestamp": "2025-10-16T10:14:15.932838",
+  "task": "Concatenate MF4 files",
+  "step_num": 20,
+  "ui_state": null,
+  "original_action": {
+    "tool_name": "Click-Tool",
+    "loc": [
+      600,
+      200
+    ]
+  },
+  "corrected_action": {
+    "type": "skip_step"
+  },
+  "human_reasoning": "This step is not needed, skip it",
+  "agent_reasoning": null,
+  "original_error": null,
+  "recovery_approach": null,
+  "why_it_worked": null
+}
