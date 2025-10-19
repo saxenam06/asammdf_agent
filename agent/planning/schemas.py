@@ -2,12 +2,12 @@
 Pydantic schemas for autonomous workflow components
 """
 
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from pydantic import BaseModel, Field
 
 
 class KnowledgeSchema(BaseModel):
-    """Schema for GUI knowledge patterns extracted from documentation"""
+    """Schema for GUI knowledge patterns extracted from documentation with accumulated learnings"""
     knowledge_id: str = Field(..., description="Short snake_case unique identifier (e.g., 'concatenate_files', 'export_csv', 'open_folder')")
     description: str = Field(..., description="Clear human-readable explanation of what this knowledge pattern does")
     ui_location: str = Field(..., description="Where in GUI (tab/menu/toolbar) it is accessed (e.g., 'File menu', 'Plot window', 'Batch processing tab')")
@@ -17,6 +17,16 @@ class KnowledgeSchema(BaseModel):
     output_state: str = Field(..., description="Expected state of the result after performing action (e.g., 'file_opened', 'plot_created', 'concatenated_file_loaded')")
     doc_citation: str = Field(..., description="Relative section citation string in the URL or doc (e.g., 'GUI#File-operations')")
     parameters: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Configurable parameters")
+
+    # KB learnings and trust tracking
+    kb_learnings: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="List of learnings (SelfExplorationLearning or HumanInterruptLearning) from past failures using this KB item"
+    )
+    trust_score: float = Field(
+        1.0,
+        description="Confidence in this KB item (1.0=fully trusted, <1.0=has known issues). Decreases with failures."
+    )
 
     class Config:
         json_schema_extra = {
@@ -47,13 +57,18 @@ class ActionSchema(BaseModel):
     tool_name: str = Field(..., description="MCP tool name to execute (e.g., 'Click-Tool', 'Type-Tool', 'State-Tool')")
     tool_arguments: Dict[str, Any] = Field(default_factory=dict, description="Arguments to pass to MCP tool")
     reasoning: Optional[str] = Field(None, description="Why this action is needed (optional, for clarity)")
+    kb_source: Optional[str] = Field(
+        None,
+        description="Knowledge base item ID this action is derived from (e.g., 'open_files'). Leave null/empty if not from KB."
+    )
 
     class Config:
         json_schema_extra = {
             "example": {
                 "tool_name": "Click-Tool",
-                "tool_arguments": {"loc": [450, 300], "button": "left", "clicks": 1},
-                "reasoning": "Click OK button to confirm dialog"
+                "tool_arguments": {"loc": ["last_state:menu:File"], "button": "left", "clicks": 1},
+                "reasoning": "Open File menu to access Open command",
+                "kb_source": "open_files"
             }
         }
 

@@ -8,6 +8,7 @@ from typing import Dict, Any, List, Optional, Tuple
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
@@ -519,8 +520,8 @@ class AdaptiveExecutor:
             print(f"  New plan file: {os.path.basename(new_filepath)}")
             print(f"{'='*80}\n")
 
-            # Store self-recovery learning
-            if HITL_AVAILABLE and self.memory_manager:
+            # Store self-recovery learning and attach to KB item
+            if HITL_AVAILABLE:
                 from agent.feedback.schemas import SelfExplorationLearning
                 learning = SelfExplorationLearning(
                     task=self.recovery_manager.original_task,  # Use actual task, not "Recovery from..."
@@ -530,17 +531,17 @@ class AdaptiveExecutor:
                     recovery_approach=recovery_plan.reasoning
                 )
                 try:
-                    self.memory_manager.store_learning(
-                        session_id=self.session_id,
-                        source=LearningSource.AGENT_SELF_EXPLORATION,
-                        learning_data=learning.model_dump(),
-                        context={
-                            "ui_state": latest_state  # task and step_num already in learning_data
-                        }
-                    )
-                    print(f"  [HITL] Stored self-recovery learning")
+                    # Attach learning to KB item if kb_source is set
+                    if failed_action.kb_source:
+                        self._attach_learning_to_kb(
+                            kb_id=failed_action.kb_source,
+                            learning=learning
+                        )
+                        print(f"  [KB Learning] Attached to KB item: {failed_action.kb_source}")
+                    else:
+                        print(f"  [KB Learning] No KB source - action was not from KB")
                 except Exception as e:
-                    print(f"  [Warning] Failed to store learning: {e}")
+                    print(f"  [Warning] Failed to attach learning to KB: {e}")
 
             # Return a special result that signals replanning occurred
             # The LangGraph workflow will detect this and restart execution with the merged plan
@@ -558,6 +559,59 @@ class AdaptiveExecutor:
                 action=failed_action.tool_name,
                 error=f"Replanning failed: {e}"
             )
+
+    def _attach_learning_to_kb(
+        self,
+        kb_id: str,
+        learning
+    ):
+        """
+        Attach a learning to a KB item in the catalog and persist
+
+        Args:
+            kb_id: Knowledge base item ID to attach learning to
+            learning: SelfExplorationLearning or HumanInterruptLearning object
+        """
+        catalog_path = "agent/knowledge_base/parsed_knowledge/knowledge_catalog.json"
+
+        try:
+            # Load catalog
+            with open(catalog_path, 'r', encoding='utf-8') as f:
+                catalog_data = json.load(f)
+
+            # Find KB item and attach learning
+            kb_found = False
+            for item in catalog_data:
+                if item.get("knowledge_id") == kb_id:
+                    # Initialize kb_learnings if doesn't exist
+                    if "kb_learnings" not in item:
+                        item["kb_learnings"] = []
+
+                    # Append learning as dict
+                    item["kb_learnings"].append(learning.model_dump())
+
+                    # Update trust score (decrease with each failure)
+                    current_trust = item.get("trust_score", 1.0)
+                    item["trust_score"] = max(0.5, current_trust * 0.95)
+
+                    kb_found = True
+                    print(f"  [KB] Updated '{kb_id}': {len(item['kb_learnings'])} learnings, trust={item['trust_score']:.2f}")
+                    break
+
+            if not kb_found:
+                print(f"  [Warning] KB item '{kb_id}' not found in catalog")
+                return
+
+            # Save updated catalog
+            with open(catalog_path, 'w', encoding='utf-8') as f:
+                json.dump(catalog_data, f, indent=2, ensure_ascii=False)
+
+            print(f"  [KB] Catalog updated successfully")
+
+        except Exception as e:
+            print(f"  [Error] Failed to attach learning to KB: {e}")
+            import traceback
+            traceback.print_exc()
 
 
 if __name__ == "__main__":

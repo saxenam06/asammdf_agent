@@ -27,6 +27,20 @@ CORE RULES:
    - File name: ["last_state:edit:File name"]
 6. Windows paths: Use single backslash (\) only - e.g., C:\Users\ADMIN\file.mf4
 
+KB SOURCE ATTRIBUTION (CRITICAL):
+For EACH action in your plan, you MUST set the "kb_source" field:
+- If the action is derived from a knowledge base (KB) item, set kb_source to that KB item's knowledge_id
+- If the action is from your own reasoning (not from any KB item), set kb_source to null
+- This helps track which KB items led to failures so we can improve them
+
+Example with kb_source:
+{{
+  "tool_name": "Click-Tool",
+  "tool_arguments": {{"loc": ["last_state:menu:File"], "button": "left"}},
+  "reasoning": "Open File menu to access Open command (from KB: open_files)",
+  "kb_source": "open_files"
+}}
+
 LEARNING-BASED PLANNING:
 You will receive past learnings from previous task executions. These learnings show:
 - How plans derived from knowledge base FAILED in practice(original errors)
@@ -53,22 +67,26 @@ JSON OUTPUT:
     {{
       "tool_name": "Switch-Tool",
       "tool_arguments": {{"name": "asammdf"}},
-      "reasoning": "Activate asammdf window"
+      "reasoning": "Activate asammdf window",
+      "kb_source": null
     }},
     {{
       "tool_name": "State-Tool",
       "tool_arguments": {{"use_vision": false}},
-      "reasoning": "Discover available UI elements"
+      "reasoning": "Discover available UI elements",
+      "kb_source": null
     }},
     {{
       "tool_name": "Click-Tool",
-      "tool_arguments": {{"loc": ["last_state:menu:Mode"], "button": "left", "clicks": 1}},
-      "reasoning": "Open Mode menu from discovered elements"
+      "tool_arguments": {{"loc": ["last_state:menu:File"], "button": "left", "clicks": 1}},
+      "reasoning": "Open File menu (from KB: open_files)",
+      "kb_source": "open_files"
     }},
     {{
       "tool_name": "Type-Tool",
       "tool_arguments": {{"text": "C:\Users\ADMIN\output.mf4", "clear": true, "press_enter": false}},
-      "reasoning": "Enter output path"
+      "reasoning": "Enter output path",
+      "kb_source": null
     }}
   ],
   "reasoning": "Overall strategy and why this accomplishes the task",

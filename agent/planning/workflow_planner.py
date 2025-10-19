@@ -20,7 +20,6 @@ from agent.utils.cost_tracker import track_api_call
 # HITL imports
 try:
     from agent.learning.skill_library import SkillLibrary
-    from agent.feedback.memory_manager import LearningMemoryManager
     HITL_AVAILABLE = True
 except ImportError:
     HITL_AVAILABLE = False
@@ -84,14 +83,20 @@ def get_latest_plan_number(task: str) -> int:
     return max_plan_num
 
 
-def save_plan(task: str, plan: PlanSchema, plan_number: int = 0) -> str:
+def save_plan(
+    task: str,
+    plan: PlanSchema,
+    plan_number: int = 0,
+    metadata: Optional[Dict[str, Any]] = None
+) -> str:
     """
-    Save a plan to the plans directory
+    Save a plan to the plans directory with metadata about retrieved KB items
 
     Args:
         task: Task description
         plan: Plan to save
         plan_number: Plan iteration number (0 for initial, 1+ for replans)
+        metadata: Optional metadata (e.g., retrieved KB items)
 
     Returns:
         Path to saved plan file
@@ -103,7 +108,8 @@ def save_plan(task: str, plan: PlanSchema, plan_number: int = 0) -> str:
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump({
             "task": task,
-            "plan": plan.model_dump()
+            "plan": plan.model_dump(),
+            "metadata": metadata or {}
         }, f, indent=2)
 
     return filepath
@@ -270,68 +276,16 @@ class WorkflowPlanner:
         tools_description = self.mcp_client.get_tools_description_sync(self.available_tools)
         valid_tool_names = self.mcp_client.get_valid_tool_names_sync(self.available_tools)
 
-        # Format knowledge for prompt
-        knowledge_json = json.dumps(
-            [knowledge.model_dump() for knowledge in available_knowledge],
-            indent=2
-        )
+        # Format knowledge for prompt WITH learnings attached to KB items
+        kb_formatted = self._format_kb_with_learnings(available_knowledge)
 
-        # Step 3: Retrieve learnings from memory
-        learnings_context = ""
-        if HITL_AVAILABLE and self.memory_manager:
-            print("  [HITL] Retrieving learnings from memory...")
-            try:
-                learnings = self.memory_manager.retrieve_all_learnings_for_task(
-                    task=task,
-                    session_id=self.session_id
-                )
-
-                # Format learnings for context - use complete_learning if available
-                learnings_parts = []
-
-                if learnings.get("human_proactive"):
-                    learnings_parts.append(f"\n**Human Guidance ({len(learnings['human_proactive'])} items)**:")
-                    for learning in learnings["human_proactive"][:3]:  # Top 3
-                        complete = learning.get('complete_learning')
-                        if complete:
-                            learnings_parts.append(f"\n```json\n{json.dumps(complete, indent=2)}\n```")
-                        else:
-                            learnings_parts.append(f"  - {learning.get('memory', 'No details')}")
-
-                if learnings.get("human_interrupt"):
-                    learnings_parts.append(f"\n**Human Corrections ({len(learnings['human_interrupt'])} items)**:")
-                    for learning in learnings["human_interrupt"][:3]:  # Top 3
-                        complete = learning.get('complete_learning')
-                        if complete:
-                            learnings_parts.append(f"\n```json\n{json.dumps(complete, indent=2)}\n```")
-                        else:
-                            learnings_parts.append(f"  - {learning.get('memory', 'No details')}")
-
-                if learnings.get("agent_self_exploration"):
-                    learnings_parts.append(f"\n**Agent Self-Recovery ({len(learnings['agent_self_exploration'])} items)**:")
-                    for learning in learnings["agent_self_exploration"][:2]:  # Top 2
-                        complete = learning.get('complete_learning')
-                        if complete:
-                            learnings_parts.append(f"\n```json\n{json.dumps(complete, indent=2)}\n```")
-                        else:
-                            learnings_parts.append(f"  - {learning.get('memory', 'No details')}")
-
-                if learnings_parts:
-                    learnings_context = "\n\n## Past Learnings\n" + "\n".join(learnings_parts)
-                    print(f"  [HITL] Retrieved {sum(len(v) for v in learnings.values())} learnings")
-                else:
-                    print("  [HITL] No learnings found for this task")
-            except Exception as e:
-                print(f"  [Warning] Failed to retrieve learnings: {e}")
-
-        # Build prompts using centralized templates (with learnings integrated)
+        # Build prompts using centralized templates (with KB learnings)
         system_prompt = get_planning_system_prompt(tools_description)
         user_prompt = get_planning_user_prompt(
             task=task,
-            knowledge_json=knowledge_json,
+            knowledge_json=kb_formatted,  # Use formatted KB with learnings
             context=context or "",
             latest_state=latest_state or "",
-            learnings_context=learnings_context or ""
         )
 
         try:
@@ -380,8 +334,12 @@ class WorkflowPlanner:
             # Validate with Pydantic
             plan = PlanSchema(**plan_data)
 
-            # Save the generated plan to cache as Plan_0
-            saved_path = save_plan(task, plan, plan_number=0)
+            # Save the generated plan to cache as Plan_0 with KB metadata
+            plan_metadata = {
+                "retrieved_kb_ids": [kb.knowledge_id for kb in available_knowledge],
+                "kb_count": len(available_knowledge)
+            }
+            saved_path = save_plan(task, plan, plan_number=0, metadata=plan_metadata)
             print(f"  ✓ Plan saved to: {os.path.basename(saved_path)}")
 
             return plan
@@ -389,6 +347,80 @@ class WorkflowPlanner:
         except Exception as e:
             print(f"Error generating plan: {e}")
             raise
+
+    def _format_kb_with_learnings(self, kb_items: List[KnowledgeSchema]) -> str:
+        """
+        Format KB items with their attached learnings for LLM context
+
+        Args:
+            kb_items: List of knowledge base items with learnings
+
+        Returns:
+            Formatted string with KB items and their learnings
+        """
+        formatted_parts = []
+
+        for kb in kb_items:
+            # Basic KB info with knowledge_id prominent
+            kb_section = f"""
+---
+KB ID: {kb.knowledge_id}
+Description: {kb.description}
+UI Location: {kb.ui_location}
+Action Sequence:
+{chr(10).join(f"  - {action}" for action in kb.action_sequence)}
+"""
+            if kb.shortcut:
+                kb_section += f"Shortcut: {kb.shortcut}\n"
+
+            kb_section += "---"
+
+            # Add learnings if they exist
+            if kb.kb_learnings and len(kb.kb_learnings) > 0:
+                kb_section += f"\n\n⚠️ PAST LEARNINGS ({len(kb.kb_learnings)} correction(s)):\n"
+
+                for idx, learning_dict in enumerate(kb.kb_learnings[:3], 1):  # Top 3
+                    # Check if it's a self-exploration learning
+                    if 'recovery_approach' in learning_dict:
+                        kb_section += f"""
+{idx}. Agent Self-Recovery:
+   - Failed Action: {learning_dict.get('original_action', {}).get('tool_name', 'N/A')}
+   - Error: {learning_dict.get('original_error', 'N/A')[:150]}...
+   - What Worked: {learning_dict.get('recovery_approach', 'N/A')[:200]}...
+   - Task Context: {learning_dict.get('task', 'N/A')[:100]}...
+"""
+                    # Check if it's a human interrupt learning
+                    elif 'human_reasoning' in learning_dict:
+                        kb_section += f"""
+{idx}. Human Correction:
+   - Human Said: {learning_dict.get('human_reasoning', 'N/A')[:200]}...
+   - Corrected To: {learning_dict.get('corrected_action', {}).get('tool_name', 'N/A')}
+   - Task Context: {learning_dict.get('task', 'N/A')[:100]}...
+"""
+
+            # Trust score warning if low
+            if kb.trust_score < 0.9:
+                kb_section += f"\n⚠️ CAUTION: Trust score {kb.trust_score:.2f} (has {len(kb.kb_learnings)} known issue(s))\n"
+
+            formatted_parts.append(kb_section)
+
+        result = "\n".join(formatted_parts)
+
+        # Add summary header
+        total_learnings = sum(len(kb.kb_learnings) for kb in kb_items)
+        if total_learnings > 0:
+            header = f"""
+KNOWLEDGE BASE PATTERNS WITH LEARNINGS
+Total KB items: {len(kb_items)}
+Total learnings attached: {total_learnings}
+
+IMPORTANT: Each KB item shows its knowledge_id. When using a KB item in your plan,
+set the action's kb_source field to that knowledge_id.
+
+"""
+            result = header + result
+
+        return result
 
     def validate_plan(self, plan: PlanSchema) -> tuple[bool, Optional[str]]:
         """

@@ -23,7 +23,6 @@ from agent.utils.cost_tracker import get_global_tracker
 # HITL imports
 try:
     from agent.feedback.human_observer import HumanObserver
-    from agent.feedback.memory_manager import LearningMemoryManager
     from agent.learning.skill_library import SkillLibrary
     from agent.feedback.schemas import VerificationStatus
     HITL_AVAILABLE = True
@@ -75,12 +74,10 @@ class AutonomousWorkflow:
         self.enable_hitl = enable_hitl and HITL_AVAILABLE
         self.session_id = "session_fe2424ebd"
         self._human_observer = None
-        self._memory_manager = None
         self._skill_library = None
 
         if self.enable_hitl:
             print(f"[HITL] Enabled (session: {self.session_id})")
-            self._memory_manager = LearningMemoryManager()
             self._skill_library = SkillLibrary()
             # Observer will be started in run() method
         else:
@@ -101,7 +98,7 @@ class AutonomousWorkflow:
             self._planner = WorkflowPlanner(
                 mcp_client=self.client,
                 skill_library=self._skill_library if self.enable_hitl else None,
-                memory_manager=self._memory_manager if self.enable_hitl else None,
+                memory_manager=None,  # Removed - using KB-attached learnings instead
                 session_id=self.session_id
             )
         return self._planner
@@ -129,7 +126,7 @@ class AutonomousWorkflow:
                     knowledge_retriever=self.retriever,
                     plan_filepath=plan_path,
                     human_observer=self._human_observer if self.enable_hitl else None,
-                    memory_manager=self._memory_manager if self.enable_hitl else None,
+                    memory_manager=None,  # Removed - using KB-attached learnings instead
                     session_id=self.session_id
                 )
         return self._executor
@@ -340,32 +337,8 @@ class AutonomousWorkflow:
                 except Exception as e:
                     print(f"  [Warning] Failed to create skill: {e}")
 
-            # Store verification as learning
-            if self._memory_manager:
-                try:
-                    from agent.feedback.schemas import LearningEntry, LearningSource
-                    learning_id = f"verify_{self.session_id}_{state['task'][:20]}"
-                    learning = LearningEntry(
-                        learning_id=learning_id,
-                        session_id=self.session_id,
-                        source=LearningSource.HUMAN_PROACTIVE,
-                        task=state["task"],
-                        step_num=-1,  # Final verification
-                        human_reasoning=verification.reasoning,
-                        ui_state="Task completed"
-                    )
-                    self._memory_manager.store_learning(
-                        session_id=self.session_id,
-                        source=LearningSource.HUMAN_PROACTIVE,
-                        learning_data=learning.model_dump(),
-                        context={
-                            "task": state["task"],
-                            "step": -1  # Final verification
-                        }
-                    )
-                    print(f"  [HITL] Stored verification feedback")
-                except Exception as e:
-                    print(f"  [Warning] Failed to store learning: {e}")
+            # Verification feedback (no longer stored in Mem0, using KB-attached learnings instead)
+            print(f"  [HITL] Verification complete: {verification.reasoning}")
         else:
             print(f"  ✗ Verification status: {verification.status}")
             print(f"     Reason: {verification.reasoning}")

@@ -15,7 +15,9 @@
     ],
     "output_state": "file(s)_opened",
     "doc_citation": "GUI#Menu",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "open_folder",
@@ -33,7 +35,9 @@
     ],
     "output_state": "files_from_folder_opened",
     "doc_citation": "GUI#Menu",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "load_display_configuration",
@@ -51,7 +55,9 @@
     ],
     "output_state": "configuration_loaded",
     "doc_citation": "GUI#Menu",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "save_display_configuration",
@@ -70,7 +76,9 @@
     ],
     "output_state": "configuration_saved",
     "doc_citation": "GUI#Menu",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "set_mode_single_files",
@@ -86,7 +94,9 @@
     ],
     "output_state": "mode_single_files",
     "doc_citation": "GUI#Mode",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "set_mode_batch_processing",
@@ -102,7 +112,9 @@
     ],
     "output_state": "mode_batch_processing",
     "doc_citation": "GUI#Mode",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "set_mode_comparison",
@@ -119,7 +131,9 @@
     ],
     "output_state": "mode_comparison",
     "doc_citation": "GUI#Mode",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "toggle_subwindows_setting",
@@ -136,7 +150,9 @@
     ],
     "output_state": "subwindows_setting_updated",
     "doc_citation": "GUI#Settings",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "toggle_link_subwindows_x_axis",
@@ -154,7 +170,9 @@
     ],
     "output_state": "link_subwindows_x_axis_updated",
     "doc_citation": "GUI#Settings",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "toggle_ignore_value2text",
@@ -171,7 +189,9 @@
     ],
     "output_state": "ignore_value2text_updated",
     "doc_citation": "GUI#Settings",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "set_plot_background",
@@ -188,7 +208,9 @@
     ],
     "output_state": "default_plot_background_changed",
     "doc_citation": "GUI#Settings",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "set_plot_x_axis_representation",
@@ -205,7 +227,9 @@
     ],
     "output_state": "plot_x_axis_format_changed",
     "doc_citation": "GUI#Settings",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "set_theme",
@@ -222,7 +246,9 @@
     ],
     "output_state": "theme_changed",
     "doc_citation": "GUI#Settings",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "set_step_mode_interpolation",
@@ -240,7 +266,9 @@
     ],
     "output_state": "interpolation_settings_updated",
     "doc_citation": "GUI#Settings",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "help_page",
@@ -255,7 +283,9 @@
     ],
     "output_state": "help_page_opened",
     "doc_citation": "GUI#General-shortcuts",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "create_plot_from_checked_channels",
@@ -275,7 +305,9 @@
     ],
     "output_state": "plot_window_created",
     "doc_citation": "GUI#General-shortcuts",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "create_numeric_window_from_selection",
@@ -295,7 +327,9 @@
     ],
     "output_state": "numeric_window_created",
     "doc_citation": "GUI#General-shortcuts",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "create_tabular_window_from_selection",
@@ -315,7 +349,9 @@
     ],
     "output_state": "tabular_window_created",
     "doc_citation": "GUI#General-shortcuts",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "select_all_channels",
@@ -331,7 +367,9 @@
     ],
     "output_state": "all_channels_checked",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "reset_channel_selection",
@@ -347,7 +385,9 @@
     ],
     "output_state": "no_channels_checked",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "advanced_search_and_select",
@@ -366,7 +406,9 @@
     ],
     "output_state": "channels_selected_or_pattern_window_defined",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "create_pattern_based_window",
@@ -385,7 +427,9 @@
     ],
     "output_state": "pattern_based_window_created_and_saved_in_configuration",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "create_bus_trace_window",
@@ -404,7 +448,9 @@
     ],
     "output_state": "bus_trace_window_created",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "drag_and_drop_channels_between_subwindows",
@@ -422,7 +468,9 @@
     ],
     "output_state": "channels_moved_or_new_window_created",
     "doc_citation": "GUI#Drag-&-Drop",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "opened_files_tabs_management",
@@ -439,7 +487,9 @@
     ],
     "output_state": "multiple_file_tabs_opened",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "channel_tree_display_mode",
@@ -456,7 +506,9 @@
     ],
     "output_state": "channel_tree_display_mode_changed",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "channel_double_click_show_metadata",
@@ -472,7 +524,9 @@
     ],
     "output_state": "channel_metadata_popup_shown",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "numeric_window_sort_column",
@@ -488,7 +542,9 @@
     ],
     "output_state": "column_sort_toggled",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "numeric_window_integer_format",
@@ -505,7 +561,9 @@
     ],
     "output_state": "integer_format_changed",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "numeric_window_set_float_decimals",
@@ -522,7 +580,9 @@
     ],
     "output_state": "float_display_precision_updated",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "numeric_window_timestamp_selection",
@@ -538,7 +598,9 @@
     ],
     "output_state": "timestamp_changed",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "numeric_window_search_values",
@@ -559,7 +621,9 @@
     ],
     "output_state": "search_results_highlighted",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "numeric_window_row_double_click_range_editor",
@@ -575,7 +639,9 @@
     ],
     "output_state": "range_editor_dialog_opened",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_toggle_cursor",
@@ -591,7 +657,9 @@
     ],
     "output_state": "cursor_toggled",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_toggle_range",
@@ -609,7 +677,9 @@
     ],
     "output_state": "range_toggled_and_configurable",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_fit_all_y_axis",
@@ -625,7 +695,9 @@
     ],
     "output_state": "y_axis_fitted_for_all_active_channels",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_fit_selected_y_axis",
@@ -643,7 +715,9 @@
     ],
     "output_state": "y_axis_fitted_for_selected_channels",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_toggle_grid",
@@ -659,7 +733,9 @@
     ],
     "output_state": "grid_toggled",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_home_whole_signals",
@@ -675,7 +751,9 @@
     ],
     "output_state": "plot_homed_to_whole_signals",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_honeywell_zoom",
@@ -692,7 +770,9 @@
     ],
     "output_state": "zoom_centered_on_cursor_honeywell_level",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_zoom_in",
@@ -708,7 +788,9 @@
     ],
     "output_state": "x_axis_zoomed_in",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_zoom_out",
@@ -724,7 +806,9 @@
     ],
     "output_state": "x_axis_zoomed_out",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_zoom_to_range",
@@ -741,7 +825,9 @@
     ],
     "output_state": "zoomed_to_range",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_toggle_statistics_panel",
@@ -757,7 +843,9 @@
     ],
     "output_state": "statistics_panel_toggled",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_stack_all",
@@ -773,7 +861,9 @@
     ],
     "output_state": "all_active_channels_stacked",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_stack_selected",
@@ -791,7 +881,9 @@
     ],
     "output_state": "selected_channels_stacked",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_lock_unlock_region",
@@ -808,7 +900,9 @@
     ],
     "output_state": "region_lock_state_toggled",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_toggle_dots",
@@ -824,7 +918,9 @@
     ],
     "output_state": "dots_display_toggled",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_move_cursor_left",
@@ -841,7 +937,9 @@
     ],
     "output_state": "cursor_moved_left",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_move_cursor_right",
@@ -858,7 +956,9 @@
     ],
     "output_state": "cursor_moved_right",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_insert_computed_signal",
@@ -877,7 +977,9 @@
     ],
     "output_state": "computed_channel_inserted_in_plot",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_toggle_fullscreen",
@@ -894,7 +996,9 @@
     ],
     "output_state": "plot_fullscreen_toggled",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_toggle_trigger_texts",
@@ -910,7 +1014,9 @@
     ],
     "output_state": "trigger_texts_toggled",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_toggle_raw_samples",
@@ -928,7 +1034,9 @@
     ],
     "output_state": "selected_channels_raw_samples_toggled",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_toggle_scaled_samples",
@@ -946,7 +1054,9 @@
     ],
     "output_state": "selected_channels_scaled_samples_toggled",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_toggle_binary_representation",
@@ -964,7 +1074,9 @@
     ],
     "output_state": "integer_channels_binary_display_toggled",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_toggle_hex_representation",
@@ -982,7 +1094,9 @@
     ],
     "output_state": "integer_channels_hex_display_toggled",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_toggle_physical_representation",
@@ -1000,7 +1114,9 @@
     ],
     "output_state": "integer_channels_physical_display_toggled",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_insert_cursor_comment",
@@ -1020,7 +1136,9 @@
     ],
     "output_state": "cursor_comment_inserted",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_edit_color_ranges",
@@ -1040,7 +1158,9 @@
     ],
     "output_state": "color_ranges_updated",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_edit_y_axis_scaling",
@@ -1059,7 +1179,9 @@
     ],
     "output_state": "y_axis_scaling_updated",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_save_active_subplot_channels",
@@ -1079,7 +1201,9 @@
     ],
     "output_state": "new_mf4_file_saved_with_subplot_channels",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_save_all_subwindows_channels",
@@ -1098,7 +1222,9 @@
     ],
     "output_state": "new_mf4_file_saved_with_all_subwindow_channels",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_window_tiling_and_layout_controls",
@@ -1120,7 +1246,9 @@
     ],
     "output_state": "subwindow_layout_changed_or_ui_elements_toggled",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_shift_channels_time_and_order",
@@ -1141,7 +1269,9 @@
     ],
     "output_state": "selected_channels_shifted",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_signal_selection_item_elements",
@@ -1157,7 +1287,9 @@
     ],
     "output_state": "signal_item_visual_and_interactive_controls_available",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_create_channel_group",
@@ -1176,7 +1308,9 @@
     ],
     "output_state": "channel_group_created",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "tabular_window_header_context_menu",
@@ -1193,7 +1327,9 @@
     ],
     "output_state": "header_context_action_performed",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "tabular_window_integer_format_and_precision",
@@ -1211,7 +1347,9 @@
     ],
     "output_state": "tabular_format_settings_applied",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "tabular_window_timestamp_format",
@@ -1228,7 +1366,9 @@
     ],
     "output_state": "timestamp_format_updated",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "tabular_window_remove_prefix",
@@ -1244,7 +1384,9 @@
     ],
     "output_state": "column_prefixes_removed_or_restored",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "tabular_window_toggle_filters_view",
@@ -1260,7 +1402,9 @@
     ],
     "output_state": "filters_view_toggled",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "tabular_window_define_and_apply_filters",
@@ -1279,7 +1423,9 @@
     ],
     "output_state": "filters_applied_and_dataframe_filtered",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "file_modify_and_export_tools",
@@ -1298,7 +1444,9 @@
     ],
     "output_state": "file_processed_or_exported",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "extract_attachments",
@@ -1319,7 +1467,9 @@
     ],
     "output_state": "attachment_saved_to_file",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "file_info_overview",
@@ -1335,7 +1485,9 @@
     ],
     "output_state": "file_info_displayed",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "can_lin_flexray_decoding",
@@ -1355,7 +1507,9 @@
     ],
     "output_state": "bus_messages_decoded",
     "doc_citation": "GUI#Single-files",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "batch_rearrange_file_list",
@@ -1373,7 +1527,9 @@
     ],
     "output_state": "batch_file_list_reordered",
     "doc_citation": "GUI#Batch-processing",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "batch_delete_file_from_list",
@@ -1392,7 +1548,9 @@
     ],
     "output_state": "file_removed_from_batch_list",
     "doc_citation": "GUI#Batch-processing",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "batch_concatenate_files",
@@ -1416,7 +1574,9 @@
     ],
     "output_state": "concatenated_file_created",
     "doc_citation": "GUI#Batch-processing",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "batch_stack_files",
@@ -1439,7 +1599,9 @@
     ],
     "output_state": "stacked_file_created",
     "doc_citation": "GUI#Batch-processing",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "comparison_mode_search_channels",
@@ -1459,7 +1621,9 @@
     ],
     "output_state": "channels_found_across_files_listed",
     "doc_citation": "GUI#Comparison",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "plot_edit_signal_color",
@@ -1479,7 +1643,9 @@
     ],
     "output_state": "signal_color_updated",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "display_channel_value_label_conditions",
@@ -1496,7 +1662,9 @@
     ],
     "output_state": "value_labels_shown_for_active_cursor_or_range",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   },
   {
     "knowledge_id": "insert_cursor_comment_via_context_or_shortcut",
@@ -1516,6 +1684,8 @@
     ],
     "output_state": "cursor_comment_added_to_plot",
     "doc_citation": "GUI#Plot",
-    "parameters": {}
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
   }
 ]
