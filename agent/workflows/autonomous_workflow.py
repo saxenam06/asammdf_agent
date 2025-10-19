@@ -73,7 +73,7 @@ class AutonomousWorkflow:
 
         # HITL components
         self.enable_hitl = enable_hitl and HITL_AVAILABLE
-        self.session_id = session_id or f"session_{os.urandom(4).hex()}"
+        self.session_id = "session_fe2424ebd"
         self._human_observer = None
         self._memory_manager = None
         self._skill_library = None
@@ -358,7 +358,10 @@ class AutonomousWorkflow:
                         session_id=self.session_id,
                         source=LearningSource.HUMAN_PROACTIVE,
                         learning_data=learning.model_dump(),
-                        context=f"Task completion verification: {verification.status}"
+                        context={
+                            "task": state["task"],
+                            "step": -1  # Final verification
+                        }
                     )
                     print(f"  [HITL] Stored verification feedback")
                 except Exception as e:
@@ -505,8 +508,8 @@ if __name__ == "__main__":
     )
 
     default_gui_instructions = (
-        "To load all MF4 files:"
-        " Go to File → Open, then enter the path of the desired folder, select any .MF4 file, press Ctrl + A to highlight all files in the folder, and then press Enter to load them all."
+        # "To load all MF4 files:"
+        # " Go to File → Open, then enter the path of the desired folder, select any .MF4 file, press Ctrl + A to highlight all files in the folder, and then press Enter to load them all."
     )
 
     # Build final task

@@ -16,7 +16,7 @@ AVAILABLE MCP TOOLS:
 {tools_description}
 
 CORE RULES:
-1. Follow provided knowledge patterns as PRIMARY reference - they contain proven workflows
+1. Follow provided knowledge patterns as reference - they contain proven workflows
 2. Use ONLY listed tool names with exact argument schemas
 3. ALWAYS call State-Tool before interacting with UI elements
 4. Start with Switch-Tool to activate asammdf: {{"name": "asammdf"}}
@@ -26,6 +26,21 @@ CORE RULES:
    - Files: ["last_state:file name:data.MF4"] or ["last_state:file name:*.MF4"]
    - File name: ["last_state:edit:File name"]
 6. Windows paths: Use single backslash (\) only - e.g., C:\Users\ADMIN\file.mf4
+
+LEARNING-BASED PLANNING:
+You will receive past learnings from previous task executions. These learnings show:
+- How plans derived from knowledge base FAILED in practice(original errors)
+- How the agent successfully RECOVERED from those failures (recovery approaches)
+- Human corrections when the agent asked for help (human interrupt/proactive)
+
+Each learning includes:
+- SOURCE: "agent_self_exploration" (agent recovered on its own), "human_interrupt" (human corrected the agent), or "human_proactive" (agent asked, human answered)
+- ORIGINAL ERROR: What went wrong when following knowledge patterns
+- RECOVERY APPROACH: What actually worked to accomplish the task
+
+Use learnings to:
+1. AVOID actions/patterns that previously failed (check original_error)
+2. ADOPT recovery approaches that succeeded (check recovery_approach)
 
 
 WORKFLOW:
@@ -63,46 +78,64 @@ JSON OUTPUT:
 Return ONLY valid JSON. No explanatory text outside JSON."""
 
 
-def get_planning_user_prompt(task: str, knowledge_json: str, context: str = "", latest_state: str = "") -> str:
+def get_planning_user_prompt(
+    task: str,
+    knowledge_json: str,
+    context: str = "",
+    latest_state: str = "",
+    learnings_context: str = ""
+) -> str:
     """User prompt for plan generation
 
     Args:
         task: User's task description
-        knowledge_json: JSON-formatted knowledge patterns
+        knowledge_json: JSON-formatted knowledge patterns from documentation
         context: Optional additional context
         latest_state: Optional current UI state
+        learnings_context: Optional past learnings from previous task executions
 
     Returns:
         User prompt string
     """
     context_str = f"\n\nAdditional context: {context}" if context else ""
 
+    learnings_section = ""
+    if learnings_context:
+        learnings_section = f"""
+
+PAST LEARNINGS FROM PREVIOUS EXECUTIONS:
+{learnings_context}
+
+HOW TO USE THESE LEARNINGS:
+- SOURCE shows who/what provided the learning: "agent_self_exploration" (agent recovered), "human_interrupt" (human corrected), "human_proactive" (agent asked human)
+- ORIGINAL ERROR shows what failed when following knowledge base patterns
+- RECOVERY APPROACH shows what actually worked in practice
+"""
+
     state_context = ""
     if latest_state:
         state_context = f"""
 
-CURRENT UI STATE (for reference - understand the state format and available elements):
+CURRENT UI STATE (for reference when planning element interactions):
 ```
 {latest_state}
 ```
 
-Use this state to:
-- Understand what UI elements are currently available
-- See the format of State-Tool output (this is what you'll reference in your plan)
-- Make informed decisions about which elements to interact with
+Use this state to understand what UI elements are currently available and the format of State-Tool output.
 """
 
-    return f"""User task: "{task}"{context_str}{state_context}
+    return f"""User task: "{task}"{context_str}
 
 Available knowledge patterns from documentation:
 {knowledge_json}
-
-Generate a complete execution plan using ONLY these knowledge patterns.
+{learnings_section}
+Generate a complete execution plan using knowledge patterns and past learnings.
 
 Consider:
 - What prerequisite steps are needed (e.g., opening files before processing)
 - The correct order of operations
 - What arguments each action needs
+- Past learnings about what worked/failed in similar tasks
 - Expected GUI state after each action
-
+{state_context}
 Return ONLY valid JSON matching the schema. No explanatory text outside JSON."""

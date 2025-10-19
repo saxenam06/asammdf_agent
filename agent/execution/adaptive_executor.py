@@ -401,18 +401,25 @@ class AdaptiveExecutor:
                         # Store learning from human correction
                         if self.memory_manager and step_num is not None:
                             from agent.feedback.schemas import HumanInterruptLearning
+                            # Get actual task from recovery manager if available
+                            actual_task = self.recovery_manager.original_task if self.recovery_manager else f"Step {step_num + 1}"
                             learning = HumanInterruptLearning(
-                                task=f"Step {step_num + 1}",
+                                task=actual_task,
                                 step_num=step_num,
                                 original_action=action.model_dump(),
-                                correction=approval_result.correction,
-                                reasoning=approval_result.reasoning or "Human correction"
+                                corrected_action=approval_result.correction,
+                                human_reasoning=approval_result.reasoning or "Human correction"
                             )
-                            self.memory_manager.store_learning(
-                                session_id=self.session_id,
-                                source=LearningSource.HUMAN_INTERRUPT,
-                                learning=learning
-                            )
+                            try:
+                                self.memory_manager.store_learning(
+                                    session_id=self.session_id,
+                                    source=LearningSource.HUMAN_INTERRUPT,
+                                    learning_data=learning.model_dump(),
+                                    context={}  # task and step_num already in learning_data
+                                )
+                                print(f"  [HITL] Stored human correction learning")
+                            except Exception as e:
+                                print(f"  [Warning] Failed to store learning: {e}")
                     else:
                         # Human rejected without correction - fail the action
                         return ExecutionResult(
@@ -516,20 +523,20 @@ class AdaptiveExecutor:
             if HITL_AVAILABLE and self.memory_manager:
                 from agent.feedback.schemas import SelfExplorationLearning
                 learning = SelfExplorationLearning(
-                    task=f"Recovery from step {step_num + 1} failure",
+                    task=self.recovery_manager.original_task,  # Use actual task, not "Recovery from..."
                     step_num=step_num,
-                    failed_action=failed_action.model_dump(),
-                    error=error,
-                    recovery_strategy=recovery_plan.recovery_reasoning,
-                    outcome="replanning_triggered",
-                    tools_used=["PlanRecoveryManager"],
-                    verification={"new_plan": new_filepath}
+                    original_action=failed_action.model_dump(),
+                    original_error=error,
+                    recovery_approach=recovery_plan.reasoning
                 )
                 try:
                     self.memory_manager.store_learning(
                         session_id=self.session_id,
                         source=LearningSource.AGENT_SELF_EXPLORATION,
-                        learning=learning
+                        learning_data=learning.model_dump(),
+                        context={
+                            "ui_state": latest_state  # task and step_num already in learning_data
+                        }
                     )
                     print(f"  [HITL] Stored self-recovery learning")
                 except Exception as e:

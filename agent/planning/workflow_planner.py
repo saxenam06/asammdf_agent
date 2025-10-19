@@ -233,19 +233,21 @@ class WorkflowPlanner:
         # Step 1: Check SkillLibrary for verified skill (highest priority)
         if HITL_AVAILABLE and self.skill_library and not force_regenerate:
             print("  [HITL] Checking for verified skills...")
-            matched_skills = self.skill_library.find_similar_skills(task, threshold=0.7)
-            if matched_skills:
-                best_skill = matched_skills[0]  # Highest similarity
-                print(f"  ✓ [HITL] Found verified skill: '{best_skill.original_task}' "
-                      f"(similarity: {best_skill.similarity_score:.2f}, "
-                      f"success rate: {best_skill.success_rate:.1%})")
-                print(f"    Used {best_skill.usage_count} times")
+            matched_skill = self.skill_library.find_matching_skill(task, similarity_threshold=0.7)
+            if matched_skill:
+                print(f"  ✓ [HITL] Found verified skill: '{matched_skill.task_description}' "
+                      f"(success rate: {matched_skill.metadata.success_rate:.1%})")
+                print(f"    Used {matched_skill.metadata.times_used} times")
 
-                # Use the skill's plan
-                skill_plan = PlanSchema(**best_skill.plan)
+                # Use the skill's action plan
+                skill_plan = PlanSchema(
+                    reasoning=f"Using verified skill: {matched_skill.skill_id}",
+                    plan=matched_skill.action_plan,
+                    estimated_duration=60  # Default estimate
+                )
 
-                # Update usage statistics
-                self.skill_library.record_usage(best_skill.skill_id)
+                # Update usage statistics - will be updated after execution
+                # (success/failure tracked in workflow execution)
 
                 return skill_plan
             else:
@@ -284,22 +286,35 @@ class WorkflowPlanner:
                     session_id=self.session_id
                 )
 
-                # Format learnings for context
+                # Format learnings for context - use complete_learning if available
                 learnings_parts = []
+
                 if learnings.get("human_proactive"):
                     learnings_parts.append(f"\n**Human Guidance ({len(learnings['human_proactive'])} items)**:")
                     for learning in learnings["human_proactive"][:3]:  # Top 3
-                        learnings_parts.append(f"  - {learning.get('memory', 'No details')}")
+                        complete = learning.get('complete_learning')
+                        if complete:
+                            learnings_parts.append(f"\n```json\n{json.dumps(complete, indent=2)}\n```")
+                        else:
+                            learnings_parts.append(f"  - {learning.get('memory', 'No details')}")
 
                 if learnings.get("human_interrupt"):
                     learnings_parts.append(f"\n**Human Corrections ({len(learnings['human_interrupt'])} items)**:")
                     for learning in learnings["human_interrupt"][:3]:  # Top 3
-                        learnings_parts.append(f"  - {learning.get('memory', 'No details')}")
+                        complete = learning.get('complete_learning')
+                        if complete:
+                            learnings_parts.append(f"\n```json\n{json.dumps(complete, indent=2)}\n```")
+                        else:
+                            learnings_parts.append(f"  - {learning.get('memory', 'No details')}")
 
                 if learnings.get("agent_self_exploration"):
                     learnings_parts.append(f"\n**Agent Self-Recovery ({len(learnings['agent_self_exploration'])} items)**:")
                     for learning in learnings["agent_self_exploration"][:2]:  # Top 2
-                        learnings_parts.append(f"  - {learning.get('memory', 'No details')}")
+                        complete = learning.get('complete_learning')
+                        if complete:
+                            learnings_parts.append(f"\n```json\n{json.dumps(complete, indent=2)}\n```")
+                        else:
+                            learnings_parts.append(f"  - {learning.get('memory', 'No details')}")
 
                 if learnings_parts:
                     learnings_context = "\n\n## Past Learnings\n" + "\n".join(learnings_parts)
@@ -309,13 +324,15 @@ class WorkflowPlanner:
             except Exception as e:
                 print(f"  [Warning] Failed to retrieve learnings: {e}")
 
-        # Build prompts using centralized templates (with learnings context appended)
+        # Build prompts using centralized templates (with learnings integrated)
         system_prompt = get_planning_system_prompt(tools_description)
-        user_prompt = get_planning_user_prompt(task, knowledge_json, context or "", latest_state or "")
-
-        # Append learnings to user prompt if available
-        if learnings_context:
-            user_prompt += learnings_context
+        user_prompt = get_planning_user_prompt(
+            task=task,
+            knowledge_json=knowledge_json,
+            context=context or "",
+            latest_state=latest_state or "",
+            learnings_context=learnings_context or ""
+        )
 
         try:
             response = self.client.chat.completions.create(

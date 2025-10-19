@@ -61,12 +61,10 @@ class LearningEntry(BaseModel):
     original_action: Optional[Dict[str, Any]] = Field(None, description="Original action that prompted learning")
     corrected_action: Optional[Dict[str, Any]] = Field(None, description="Corrected action from human")
     human_reasoning: Optional[str] = Field(None, description="Why human provided this correction")
-    agent_reasoning: Optional[str] = Field(None, description="Why agent's self-recovery worked")
 
     # For agent self-exploration
     original_error: Optional[str] = Field(None, description="Error that triggered self-recovery")
     recovery_approach: Optional[str] = Field(None, description="How agent recovered")
-    why_it_worked: Optional[str] = Field(None, description="Analysis of why recovery succeeded")
 
     class Config:
         json_schema_extra = {
@@ -200,6 +198,58 @@ class VerifiedSkillMetadata(BaseModel):
                 "times_used": 5,
                 "success_count": 5,
                 "success_rate": 1.0
+            }
+        }
+
+
+class HumanInterruptLearning(BaseModel):
+    """
+    Learning from human interrupt/correction
+
+    Used when human stops execution and provides corrected action
+    Fields match LearningEntry for direct conversion
+    """
+    task: str = Field(..., description="Task being executed")
+    step_num: int = Field(..., description="Step number where interrupt occurred")
+    original_action: Dict[str, Any] = Field(..., description="Original action that was corrected")
+    corrected_action: Dict[str, Any] = Field(..., description="Corrected action from human")
+    human_reasoning: str = Field(..., description="Human's explanation for correction")
+    timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "task": "Step 5",
+                "step_num": 5,
+                "original_action": {"tool_name": "Click-Tool", "loc": [450, 300]},
+                "corrected_action": {"tool_name": "Shortcut-Tool", "shortcut": ["ctrl", "m"]},
+                "human_reasoning": "Button not visible, use shortcut instead"
+            }
+        }
+
+
+class SelfExplorationLearning(BaseModel):
+    """
+    Learning from agent self-recovery
+
+    Used when agent successfully recovers from an error on its own
+    Fields match LearningEntry for direct conversion
+    """
+    task: str = Field(..., description="Task being executed")
+    step_num: int = Field(..., description="Step number where error occurred")
+    original_action: Dict[str, Any] = Field(..., description="Action that failed")
+    original_error: str = Field(..., description="Error message that triggered recovery")
+    recovery_approach: str = Field(..., description="How agent recovered")
+    timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "task": "Recovery from step 10 failure",
+                "step_num": 10,
+                "original_action": {"tool_name": "Click-Tool", "loc": [500, 400]},
+                "original_error": "Element not found",
+                "recovery_approach": "Triggered replanning workflow"
             }
         }
 

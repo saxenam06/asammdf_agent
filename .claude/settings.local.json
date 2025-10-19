@@ -55,7 +55,12 @@
       "Bash(\".agent-venv\\Scripts\\python.exe\" -c \"from agent.planning.workflow_planner import PLANS_DIR, get_latest_plan_number; import os; print(f''[Plans Directory] {PLANS_DIR}''); print(f''[Exists] {os.path.exists(PLANS_DIR)}''); print(f''[Absolute Path] {os.path.abspath(PLANS_DIR)}''); files = os.listdir(PLANS_DIR) if os.path.exists(PLANS_DIR) else []; print(f''[Files] {len(files)} plan files found''); print(''[SUCCESS] Plans folder moved successfully!'')\")",
       "Bash(if [ -d \"agent/rag\" ])",
       "Bash(then echo \"RAG folder still exists\")",
-      "Bash(else echo \"RAG folder successfully deleted\")"
+      "Bash(else echo \"RAG folder successfully deleted\")",
+      "Bash(\".agent-venv\\Scripts\\python.exe\" -c \"from agent.planning.workflow_planner import WorkflowPlanner; from agent.learning.skill_library import SkillLibrary; print(''[SUCCESS] Import works after fix!'')\")",
+      "Bash(\".agent-venv\\Scripts\\python.exe\" -c \"from agent.feedback.schemas import LearningSource, SelfExplorationLearning, HumanInterruptLearning, ConfidenceLevel; print(''[SUCCESS] All schemas imported correctly!'')\")",
+      "Bash(\".agent-venv\\Scripts\\python.exe\" -c \"from agent.execution.adaptive_executor import AdaptiveExecutor; print(''[SUCCESS] AdaptiveExecutor imports work!'')\")",
+      "Bash(\".agent-venv\\Scripts\\python.exe\" -c \"from agent.workflows.autonomous_workflow import AutonomousWorkflow; from agent.planning.workflow_planner import WorkflowPlanner; from agent.learning.skill_library import SkillLibrary; print(''[SUCCESS] All HITL components import correctly!'')\")",
+      "WebFetch(domain:docs.mem0.ai)"
     ],
     "deny": [],
     "ask": []
