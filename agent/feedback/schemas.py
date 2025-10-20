@@ -31,7 +31,7 @@ class LearningSource(str, Enum):
     """Source of learning entry"""
     HUMAN_PROACTIVE = "human_proactive"          # Agent asks, human responds
     HUMAN_INTERRUPT = "human_interrupt"          # Human interrupts execution
-    AGENT_SELF_EXPLORATION = "agent_self_exploration"  # Agent recovers on its own
+    EXECUTION_FAILURE = "execution_failure"      # Execution failure with enriched context
 
 
 class VerificationStatus(str, Enum):
@@ -62,9 +62,9 @@ class LearningEntry(BaseModel):
     corrected_action: Optional[Dict[str, Any]] = Field(None, description="Corrected action from human")
     human_reasoning: Optional[str] = Field(None, description="Why human provided this correction")
 
-    # For agent self-exploration
-    original_error: Optional[str] = Field(None, description="Error that triggered self-recovery")
-    recovery_approach: Optional[str] = Field(None, description="How agent recovered")
+    # For execution failures
+    original_error: Optional[str] = Field(None, description="Error from execution failure")
+    recovery_approach: Optional[str] = Field(None, description="Successful approach after rerun")
 
     class Config:
         json_schema_extra = {
@@ -228,28 +228,28 @@ class HumanInterruptLearning(BaseModel):
         }
 
 
-class SelfExplorationLearning(BaseModel):
+class FailureLearning(BaseModel):
     """
-    Learning from agent self-recovery
+    Learning from execution failure
 
-    Used when agent successfully recovers from an error on its own
-    Fields match LearningEntry for direct conversion
+    Captures failure context. Related docs are retrieved dynamically during planning,
+    not stored with the learning.
     """
-    task: str = Field(..., description="Task being executed")
+    task: str = Field(..., description="Task being executed when failure occurred")
     step_num: int = Field(..., description="Step number where error occurred")
     original_action: Dict[str, Any] = Field(..., description="Action that failed")
-    original_error: str = Field(..., description="Error message that triggered recovery")
-    recovery_approach: str = Field(..., description="How agent recovered")
+    original_error: str = Field(..., description="Error message from the failure")
+    recovery_approach: str = Field("", description="Successful approach after rerun (empty until success)")
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
 
     class Config:
         json_schema_extra = {
             "example": {
-                "task": "Recovery from step 10 failure",
+                "task": "Concatenate MF4 files",
                 "step_num": 10,
                 "original_action": {"tool_name": "Click-Tool", "loc": [500, 400]},
-                "original_error": "Element not found",
-                "recovery_approach": "Triggered replanning workflow"
+                "original_error": "Element 'Add Files' button not found",
+                "recovery_approach": ""
             }
         }
 
@@ -308,19 +308,17 @@ if __name__ == "__main__":
     print(f"   Source: {learning1.source}")
     print(f"   Reasoning: {learning1.human_reasoning}\n")
 
-    # Test 2: Learning Entry (agent self-exploration)
-    print("2. Agent Self-Exploration Learning:")
+    # Test 2: Learning Entry (execution failure)
+    print("2. Execution Failure Learning:")
     learning2 = LearningEntry(
         learning_id="learn_002",
         session_id="session_test",
-        source=LearningSource.AGENT_SELF_EXPLORATION,
+        source=LearningSource.EXECUTION_FAILURE,
         task="Concatenate MF4 files",
         step_num=15,
         original_action={"tool_name": "Click-Tool", "loc": [500, 400]},
         original_error="Element not found",
-        recovery_approach="Tried using State-Tool to refresh UI, then found element",
-        why_it_worked="UI state had changed, refreshing state cache revealed new element location",
-        agent_reasoning="Self-recovery successful by adapting to dynamic UI"
+        recovery_approach="Used File->Open menu instead"
     )
     print(f"   ID: {learning2.learning_id}")
     print(f"   Source: {learning2.source}")

@@ -155,6 +155,75 @@ class KnowledgeRetriever:
 
         return knowledge_patterns
 
+    def update_vector_metadata(
+        self,
+        kb_id: str,
+        has_learnings: bool = True,
+        learning_count: Optional[int] = None,
+        latest_learning: Optional[dict] = None
+    ) -> bool:
+        """
+        Update vector metadata with latest KnowledgeSchema from catalog
+
+        Reloads the full KnowledgeSchema from catalog to keep vector metadata
+        consistent with the source of truth.
+
+        Args:
+            kb_id: Knowledge base item ID
+            has_learnings: Whether the KB item has learnings (derived from catalog)
+            learning_count: Number of learnings (derived from catalog)
+            latest_learning: Ignored - metadata comes from catalog
+
+        Returns:
+            True if updated successfully, False otherwise
+        """
+        try:
+            # Reload full KnowledgeSchema from catalog (source of truth)
+            if not os.path.exists(self.catalog_path):
+                print(f"  [Error] Catalog not found: {self.catalog_path}")
+                return False
+
+            with open(self.catalog_path, 'r', encoding='utf-8') as f:
+                catalog_data = json.load(f)
+
+            # Find the KB item in catalog
+            kb_item_dict = None
+            for item in catalog_data:
+                if item.get('knowledge_id') == kb_id:
+                    kb_item_dict = item
+                    break
+
+            if not kb_item_dict:
+                print(f"  [Warning] KB item '{kb_id}' not found in catalog")
+                return False
+
+            # Create KnowledgeSchema and update vector metadata with it
+            knowledge = KnowledgeSchema(**kb_item_dict)
+
+            # Prepare updated metadata (consistent with KnowledgeSchema)
+            updated_metadata = {
+                "full_knowledge": json.dumps(knowledge.model_dump()),
+                # Quick access fields (duplicated for convenience)
+                "knowledge_id": knowledge.knowledge_id,
+                "has_learnings": len(knowledge.kb_learnings) > 0,
+                "learning_count": len(knowledge.kb_learnings),
+                "trust_score": knowledge.trust_score
+            }
+
+            # Update the vector's metadata
+            self.collection.update(
+                ids=[kb_id],
+                metadatas=[updated_metadata]
+            )
+
+            return True
+
+        except Exception as e:
+            print(f"  [Error] Failed to update vector metadata: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+
     def get_stats(self) -> dict:
         """
         Get retriever statistics

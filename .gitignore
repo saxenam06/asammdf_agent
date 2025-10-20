@@ -8,6 +8,9 @@ __pycache__/
 ## Knowledge Base Vector store
 agent/knowledge_base/vector_store
 
+## Planning prompt history
+agent/prompts/planning_history/
+
 ## Ignore
 .env
 

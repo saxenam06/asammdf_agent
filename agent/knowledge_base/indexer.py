@@ -116,12 +116,17 @@ class KnowledgeIndexer:
 
             ids.append(knowledge.knowledge_id)
             documents.append(doc_text)
+
+            # Store full KnowledgeSchema as JSON for consistency
+            # This ensures retriever can reconstruct exact KnowledgeSchema objects
+            knowledge_dict = knowledge.model_dump()
             metadatas.append({
+                "full_knowledge": json.dumps(knowledge_dict),
+                # Also store key fields for quick filtering (duplicated for convenience)
                 "knowledge_id": knowledge.knowledge_id,
-                "description": knowledge.description,
-                "ui_location": knowledge.ui_location,
-                "doc_citation": knowledge.doc_citation,
-                "full_knowledge": json.dumps(knowledge.model_dump())
+                "has_learnings": len(knowledge_dict.get('kb_learnings', [])) > 0,
+                "learning_count": len(knowledge_dict.get('kb_learnings', [])),
+                "trust_score": knowledge_dict.get('trust_score', 1.0)
             })
 
         # Index into ChromaDB

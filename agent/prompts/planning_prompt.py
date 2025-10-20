@@ -1,5 +1,9 @@
 """Planning prompts for WorkflowPlanner"""
 
+import os
+from datetime import datetime
+from typing import Optional
+
 
 def get_planning_system_prompt(tools_description: str) -> str:
     """System prompt for plan generation
@@ -55,6 +59,11 @@ Each learning includes:
 Use learnings to:
 1. AVOID actions/patterns that previously failed (check original_error)
 2. ADOPT recovery approaches that succeeded (check recovery_approach)
+3. **CRITICAL**: DO NOT repeat the same failed action just because other KB items (without learnings) suggest it.
+   - If a learning shows that clicking button X failed, DO NOT click button X again
+   - Even if 5 other KB documents suggest clicking button X, prioritize the failure learning
+   - Learnings trump documentation - they show real-world execution results
+   - Always check if any learning contradicts a KB pattern before using it
 
 
 WORKFLOW:
@@ -157,3 +166,72 @@ Consider:
 - Expected GUI state after each action
 {state_context}
 Return ONLY valid JSON matching the schema. No explanatory text outside JSON."""
+
+
+def save_prompt_to_markdown(
+    task: str,
+    system_prompt: str,
+    user_prompt: str,
+    plan_number: int = 0,
+    output_dir: str = "agent/prompts/planning_history"
+) -> Optional[str]:
+    """Save planning prompts to markdown file for inspection
+
+    Args:
+        task: Task description
+        system_prompt: System prompt content
+        user_prompt: User prompt content
+        plan_number: Plan iteration number
+        output_dir: Directory to save prompt files
+
+    Returns:
+        Path to saved file, or None if save failed
+    """
+    try:
+        # Create output directory
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Create filename from task and timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        task_slug = "".join(c if c.isalnum() or c in (' ', '_') else '' for c in task)
+        task_slug = "_".join(task_slug.split())[:50]  # Limit length
+        filename = f"{task_slug}_Plan_{plan_number}_{timestamp}.md"
+        filepath = os.path.join(output_dir, filename)
+
+        # Format markdown content
+        markdown_content = f"""# Planning Prompt - {task}
+
+**Plan Number**: {plan_number}
+**Timestamp**: {datetime.now().isoformat()}
+**Task**: {task}
+
+---
+
+## System Prompt
+
+```
+{system_prompt}
+```
+
+---
+
+## User Prompt
+
+```
+{user_prompt}
+```
+
+---
+
+**File generated**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+"""
+
+        # Write to file
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(markdown_content)
+
+        return filepath
+
+    except Exception as e:
+        print(f"  [Warning] Failed to save prompt to markdown: {e}")
+        return None

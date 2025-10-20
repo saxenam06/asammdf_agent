@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from agent.planning.schemas import KnowledgeSchema, PlanSchema
 from agent.execution.mcp_client import MCPClient
-from agent.prompts.planning_prompt import get_planning_system_prompt, get_planning_user_prompt
+from agent.prompts.planning_prompt import get_planning_system_prompt, get_planning_user_prompt, save_prompt_to_markdown
 from agent.utils.cost_tracker import track_api_call
 
 # HITL imports
@@ -188,7 +188,7 @@ class WorkflowPlanner:
         api_key: Optional[str] = None,
         mcp_client: MCPClient = None,
         skill_library: Optional['SkillLibrary'] = None,
-        memory_manager: Optional['LearningMemoryManager'] = None,
+        knowledge_retriever = None,
         session_id: Optional[str] = None
     ):
         """
@@ -198,8 +198,8 @@ class WorkflowPlanner:
             api_key: OpenAI API key (defaults to OPENAI_API_KEY env var)
             mcp_client: MCPClient instance (creates new one if None)
             skill_library: Optional SkillLibrary for verified skills
-            memory_manager: Optional LearningMemoryManager for learnings
-            session_id: Optional session ID for memory retrieval
+            knowledge_retriever: Optional KnowledgeRetriever for dynamic doc retrieval
+            session_id: Optional session ID for tracking
         """
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         if not self.api_key:
@@ -212,7 +212,7 @@ class WorkflowPlanner:
 
         # HITL components
         self.skill_library = skill_library
-        self.memory_manager = memory_manager
+        self.knowledge_retriever = knowledge_retriever
         self.session_id = session_id or "default_session"
 
     def generate_plan(
@@ -288,6 +288,19 @@ class WorkflowPlanner:
             latest_state=latest_state or "",
         )
 
+        # Get plan number for this task
+        plan_number = get_latest_plan_number(task) + 1
+
+        # Save prompts to markdown for inspection
+        prompt_file = save_prompt_to_markdown(
+            task=task,
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            plan_number=plan_number
+        )
+        if prompt_file:
+            print(f"  📝 Prompt saved: {os.path.basename(prompt_file)}")
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -306,7 +319,7 @@ class WorkflowPlanner:
                 component="planning",
                 input_tokens=usage.prompt_tokens,
                 output_tokens=usage.completion_tokens,
-                task_context=task[:100]
+                task_context=task
             )
             print(f"  💰 Planning cost: ${cost:.4f} ({usage.prompt_tokens:,} in + {usage.completion_tokens:,} out tokens)")
 
@@ -352,11 +365,13 @@ class WorkflowPlanner:
         """
         Format KB items with their attached learnings for LLM context
 
+        For KB items with learnings, dynamically retrieves related docs to help solve errors
+
         Args:
             kb_items: List of knowledge base items with learnings
 
         Returns:
-            Formatted string with KB items and their learnings
+            Formatted string with KB items, learnings, and dynamically retrieved related docs
         """
         formatted_parts = []
 
@@ -380,22 +395,44 @@ Action Sequence:
                 kb_section += f"\n\n⚠️ PAST LEARNINGS ({len(kb.kb_learnings)} correction(s)):\n"
 
                 for idx, learning_dict in enumerate(kb.kb_learnings[:3], 1):  # Top 3
-                    # Check if it's a self-exploration learning
+                    # Check if it's a failure learning
                     if 'recovery_approach' in learning_dict:
                         kb_section += f"""
-{idx}. Agent Self-Recovery:
+{idx}. Past Failure:
    - Failed Action: {learning_dict.get('original_action', {}).get('tool_name', 'N/A')}
-   - Error: {learning_dict.get('original_error', 'N/A')[:150]}...
-   - What Worked: {learning_dict.get('recovery_approach', 'N/A')[:200]}...
-   - Task Context: {learning_dict.get('task', 'N/A')[:100]}...
+   - Error: {learning_dict.get('original_error', 'N/A')}...
+   - Successful Approach: {learning_dict.get('recovery_approach', 'N/A') if learning_dict.get('recovery_approach') else '(Not yet resolved - see related docs below)'}
+   - Task Context: {learning_dict.get('task', 'N/A')}...
 """
+                        # # Dynamically retrieve related docs to help solve the error
+                        # if self.knowledge_retriever:
+                        #     try:
+                        #         error_msg = learning_dict.get('original_error', '')
+                        #         action_reasoning = learning_dict.get('original_action', {}).get('reasoning', '')
+                        #         search_query = f"{action_reasoning} {error_msg} alternative solution workaround"
+
+                        #         # Retrieve related KB items (exclude current KB item)
+                        #         related_kb_items = self.knowledge_retriever.retrieve(search_query, top_k=3)
+                        #         related_kb_items = [item for item in related_kb_items if item.knowledge_id != kb.knowledge_id]
+
+                        #         if related_kb_items:
+                        #             kb_section += f"   📚 Related Docs That Might Help ({len(related_kb_items)}):\n"
+                        #             for doc in related_kb_items[:3]:
+                        #                 kb_section += f"      • {doc.knowledge_id}: {doc.description}...\n"
+                        #                 if doc.shortcut:
+                        #                     kb_section += f"        Shortcut: {doc.shortcut}\n"
+                        #                 if doc.action_sequence:
+                        #                     kb_section += f"        Action Sequence: {', '.join(doc.action_sequence)}\n"
+                        #     except Exception as e:
+                        #         print(f"  [Warning] Could not retrieve related docs for learning: {e}")
+
                     # Check if it's a human interrupt learning
                     elif 'human_reasoning' in learning_dict:
                         kb_section += f"""
 {idx}. Human Correction:
-   - Human Said: {learning_dict.get('human_reasoning', 'N/A')[:200]}...
+   - Human Said: {learning_dict.get('human_reasoning', 'N/A')}...
    - Corrected To: {learning_dict.get('corrected_action', {}).get('tool_name', 'N/A')}
-   - Task Context: {learning_dict.get('task', 'N/A')[:100]}...
+   - Task Context: {learning_dict.get('task', 'N/A')}...
 """
 
             # Trust score warning if low

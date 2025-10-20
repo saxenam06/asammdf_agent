@@ -40,8 +40,7 @@ class WorkflowState(TypedDict):
     execution_log: Annotated[List[ExecutionResult], operator.add]
     error: Optional[str]
     completed: bool
-    retry_count: int
-    replan_count: int
+    retry_count: int  # Kept for compatibility but not used
     force_regenerate_plan: bool
 
 
@@ -53,14 +52,12 @@ class AutonomousWorkflow:
         app_name: str = "asammdf 8.6.10",
         catalog_path: str = "agent/knowledge_base/parsed_knowledge/knowledge_catalog.json",
         vector_db_path: str = "agent/knowledge_base/vector_store",
-        max_retries: int = 2,
-        max_replan_attempts: int = 3,
+        max_retries: int = 0,  # No retries - always stop on failure
         enable_hitl: bool = True,
         session_id: Optional[str] = None
     ):
         self.app_name = app_name
         self.max_retries = max_retries
-        self.max_replan_attempts = max_replan_attempts
         self.catalog_path = catalog_path
         self.vector_db_path = vector_db_path
         self.task = None
@@ -98,7 +95,7 @@ class AutonomousWorkflow:
             self._planner = WorkflowPlanner(
                 mcp_client=self.client,
                 skill_library=self._skill_library if self.enable_hitl else None,
-                memory_manager=None,  # Removed - using KB-attached learnings instead
+                knowledge_retriever=self.retriever,
                 session_id=self.session_id
             )
         return self._planner
@@ -126,7 +123,6 @@ class AutonomousWorkflow:
                     knowledge_retriever=self.retriever,
                     plan_filepath=plan_path,
                     human_observer=self._human_observer if self.enable_hitl else None,
-                    memory_manager=None,  # Removed - using KB-attached learnings instead
                     session_id=self.session_id
                 )
         return self._executor
@@ -165,6 +161,9 @@ class AutonomousWorkflow:
         print(f"\n[1/5] Retrieving knowledge for: '{state['task']}'")
         knowledge_patterns = self.retriever.retrieve(state["task"], top_k=5)
         print(f"  ✓ Retrieved {len(knowledge_patterns)} patterns")
+        if knowledge_patterns:
+            kb_ids = [kb.knowledge_id for kb in knowledge_patterns]
+            print(f"  📚 KB IDs: {', '.join(kb_ids)}")
         state["retrieved_knowledge"] = knowledge_patterns
         return state
 
@@ -227,11 +226,7 @@ class AutonomousWorkflow:
         context_actions = state["plan"].plan[:step_num]
         result = self.executor.execute_action(action, context=context_actions, step_num=step_num)
 
-        if self.executor.recovery_manager:
-            if result.success:
-                self.executor.recovery_manager.mark_step_completed(step_num, result)
-            elif result.action != "REPLAN_TRIGGERED":
-                self.executor.recovery_manager.mark_step_failed(step_num, result)
+        # Note: Learning attachment handled in _handle_failure() method of AdaptiveExecutor
 
         state["execution_log"] = [result]
         state["current_step"] += 1
@@ -251,31 +246,9 @@ class AutonomousWorkflow:
         last_result = state["execution_log"][-1] if state["execution_log"] else None
 
         if last_result and not last_result.success:
-            if last_result.action == "REPLAN_TRIGGERED":
-                print(f"\n🔄 Replanning...")
-
-                if self.executor.recovery_manager:
-                    merged_plan = self.executor.recovery_manager.plan
-                    state["plan"] = merged_plan
-
-                    import re
-                    match = re.search(r'Completed (\d+) steps', merged_plan.reasoning)
-                    completed_count = int(match.group(1)) if match else 0
-                    state["current_step"] = completed_count
-
-                    print(f"  ✓ Merged plan: {len(merged_plan.plan)} steps, resume from {completed_count + 1}")
-
-                    state["replan_count"] = state.get("replan_count", 0) + 1
-                    if state["replan_count"] > self.max_replan_attempts:
-                        state["error"] = f"Max replanning attempts reached"
-                    else:
-                        state["error"] = None
-                        state["retry_count"] = 0
-                else:
-                    state["error"] = "No recovery manager"
-            else:
-                print(f"  ✗ Failed: {last_result.error}")
-                state["error"] = last_result.error
+            # No replanning - just fail immediately
+            print(f"  ✗ Failed: {last_result.error}")
+            state["error"] = last_result.error
         else:
             print(f"  ✓ Success")
             state["error"] = None
@@ -283,16 +256,16 @@ class AutonomousWorkflow:
         return state
 
     def _handle_error_node(self, state: WorkflowState) -> WorkflowState:
+        """
+        Handle execution error - no retries, just report and stop
+
+        Learning has been attached to KB, user should rerun the task
+        """
         print(f"\n[Error] {state['error']}")
-        state["retry_count"] = state.get("retry_count", 0) + 1
+        print(f"  → Execution stopped. Learning attached to KB.")
+        print(f"  → Please rerun the task to apply learnings.")
 
-        if state["retry_count"] < self.max_retries:
-            print(f"  → Retry {state['retry_count']}/{self.max_retries}")
-            state["current_step"] = max(0, state["current_step"] - 1)
-            state["error"] = None
-        else:
-            print(f"  → Max retries reached")
-
+        # Keep the error - no retries
         return state
 
     def _final_verification_node(self, state: WorkflowState) -> WorkflowState:
@@ -307,7 +280,7 @@ class AutonomousWorkflow:
         execution_summary = {
             "steps_completed": state.get("current_step", 0),
             "human_feedbacks": 0,  # TODO: Track this in executor
-            "agent_recoveries": state.get("replan_count", 0)
+            "agent_recoveries": 0  # No longer using automatic recovery
         }
 
         # Request human verification
@@ -357,7 +330,8 @@ class AutonomousWorkflow:
         return "error" if state.get("error") else "next_step"
 
     def _route_after_error(self, state: WorkflowState) -> str:
-        return "retry" if state.get("retry_count", 0) < self.max_retries else "failed"
+        """Always fail - no retries. User must rerun task to apply learnings."""
+        return "failed"
 
     async def run(self, task: str, force_regenerate_plan: bool = False) -> dict:
         print("\n" + "="*80)
@@ -368,7 +342,7 @@ class AutonomousWorkflow:
         initial_state = WorkflowState(
             task=task, retrieved_knowledge=[], verified_skills=[], plan=None,
             current_step=0, execution_log=[], error=None, completed=False,
-            retry_count=0, replan_count=0, force_regenerate_plan=force_regenerate_plan
+            retry_count=0, force_regenerate_plan=force_regenerate_plan
         )
 
         # Start HITL observer if enabled

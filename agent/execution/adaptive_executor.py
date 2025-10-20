@@ -15,15 +15,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from agent.planning.schemas import ActionSchema, ExecutionResult, PlanSchema
 from agent.execution.mcp_client import MCPClient
-from agent.planning.plan_recovery import PlanRecoveryManager
 from agent.prompts.coordinate_resolution_prompt import get_coordinate_resolution_prompt
 from agent.utils.cost_tracker import track_api_call
 
 # HITL imports
 try:
     from agent.feedback.human_observer import HumanObserver
-    from agent.feedback.memory_manager import LearningMemoryManager
-    from agent.feedback.schemas import LearningSource, SelfExplorationLearning, ConfidenceLevel
+    from agent.feedback.schemas import LearningSource, FailureLearning, ConfidenceLevel
     HITL_AVAILABLE = True
 except ImportError:
     HITL_AVAILABLE = False
@@ -67,7 +65,6 @@ class AdaptiveExecutor:
         knowledge_retriever=None,
         plan_filepath: Optional[str] = None,
         human_observer: Optional['HumanObserver'] = None,
-        memory_manager: Optional['LearningMemoryManager'] = None,
         session_id: Optional[str] = None
     ):
         """
@@ -76,21 +73,18 @@ class AdaptiveExecutor:
         Args:
             mcp_client: MCP client for tool execution
             api_key: OpenAI API key (defaults to env var)
-            knowledge_retriever: Optional KnowledgeRetriever instance for KB queries
-            plan_filepath: Optional path to plan file for recovery tracking
+            knowledge_retriever: Optional KnowledgeRetriever instance for KB queries and enriched learning
+            plan_filepath: Optional path to plan file for task name retrieval
             human_observer: Optional HumanObserver for HITL feedback
-            memory_manager: Optional LearningMemoryManager for storing learnings
-            session_id: Optional session ID for memory tracking
+            session_id: Optional session ID for tracking
         """
         self.mcp_client = mcp_client
         self.state_cache = StateCache()
         self.knowledge_retriever = knowledge_retriever
         self.plan_filepath = plan_filepath
-        self.recovery_manager = None
 
         # HITL components
         self.human_observer = human_observer
-        self.memory_manager = memory_manager
         self.session_id = session_id or "default_session"
 
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
@@ -99,14 +93,6 @@ class AdaptiveExecutor:
 
         self.client = OpenAI(api_key=self.api_key, timeout=60.0)
         self.model = "gpt-4o-mini"  # Lightweight, fast model
-
-        # Initialize recovery manager if plan filepath provided
-        if self.plan_filepath and os.path.exists(self.plan_filepath):
-            self.recovery_manager = PlanRecoveryManager(
-                plan_filepath=self.plan_filepath,
-                knowledge_retriever=self.knowledge_retriever,
-                api_key=self.api_key
-            )
 
     def _resolve_coordinates(
         self,
@@ -365,9 +351,9 @@ class AdaptiveExecutor:
         except Exception as e:
             print(f"  ✗ Failed to resolve arguments: {e}")
 
-            # Trigger replanning if recovery manager is available
-            if self.recovery_manager and step_num is not None:
-                return self._trigger_replanning(action, step_num, str(e))
+            # Handle failure: attach learning to KB and stop
+            if HITL_AVAILABLE and step_num is not None:
+                return self._handle_failure(action, step_num, str(e))
 
             # Fallback: return failure
             return ExecutionResult(
@@ -399,28 +385,8 @@ class AdaptiveExecutor:
                         correction_action = ActionSchema(**approval_result.correction)
                         resolved_action = correction_action
 
-                        # Store learning from human correction
-                        if self.memory_manager and step_num is not None:
-                            from agent.feedback.schemas import HumanInterruptLearning
-                            # Get actual task from recovery manager if available
-                            actual_task = self.recovery_manager.original_task if self.recovery_manager else f"Step {step_num + 1}"
-                            learning = HumanInterruptLearning(
-                                task=actual_task,
-                                step_num=step_num,
-                                original_action=action.model_dump(),
-                                corrected_action=approval_result.correction,
-                                human_reasoning=approval_result.reasoning or "Human correction"
-                            )
-                            try:
-                                self.memory_manager.store_learning(
-                                    session_id=self.session_id,
-                                    source=LearningSource.HUMAN_INTERRUPT,
-                                    learning_data=learning.model_dump(),
-                                    context={}  # task and step_num already in learning_data
-                                )
-                                print(f"  [HITL] Stored human correction learning")
-                            except Exception as e:
-                                print(f"  [Warning] Failed to store learning: {e}")
+                        # TODO: Store human correction learning to KB (future enhancement)
+                        print(f"  [HITL] Human correction accepted")
                     else:
                         # Human rejected without correction - fail the action
                         return ExecutionResult(
@@ -436,22 +402,56 @@ class AdaptiveExecutor:
 
         return result
 
-    def _trigger_replanning(
+    def _create_failure_learning(
+        self,
+        failed_action: ActionSchema,
+        step_num: int,
+        error: str,
+        task: str
+    ):
+        """
+        Create failure learning (without related docs - those retrieved during planning)
+
+        Args:
+            failed_action: The action that failed
+            step_num: Step number that failed
+            error: Error message
+            task: Original task being executed
+
+        Returns:
+            FailureLearning object
+        """
+        from agent.feedback.schemas import FailureLearning
+
+        # Create learning without related docs
+        learning = FailureLearning(
+            task=task,
+            step_num=step_num,
+            original_action=failed_action.model_dump(),
+            original_error=error,
+            recovery_approach=""  # Empty until recovered on rerun
+        )
+
+        return learning
+
+    def _handle_failure(
         self,
         failed_action: ActionSchema,
         step_num: int,
         error: str
     ) -> ExecutionResult:
         """
-        Trigger replanning workflow when execution fails
+        Handle action failure by creating failure learning and stopping execution
 
         This method:
-        1. Saves a snapshot of the current plan state with timestamp
-        2. Summarizes what's completed vs what yet to be achieved
-        3. Retrieves relevant knowledge from KB for the part yet to be achieved
-        4. Generates a new plan with reasoning why it should work (includes latest UI state)
-        5. Merges completed steps with the new plan
-        6. Returns a signal to continue execution with the updated plan
+        1. Creates a FailureLearning (without related docs)
+        2. Attaches the learning to the responsible KB item (via kb_source)
+        3. Updates KB trust score
+        4. Updates KB vector metadata
+        5. Returns failure result (stops execution)
+
+        Related docs will be retrieved dynamically during next planning phase.
+        User must explicitly rerun the task to apply learnings.
 
         Args:
             failed_action: The action that failed
@@ -459,106 +459,66 @@ class AdaptiveExecutor:
             error: Error message
 
         Returns:
-            ExecutionResult indicating replanning was triggered
+            ExecutionResult indicating failure
         """
-        if not self.recovery_manager:
-            return ExecutionResult(
-                success=False,
-                action=failed_action.tool_name,
-                error=f"Replanning not available: {error}"
-            )
-
         print(f"\n{'='*80}")
-        print(f"🔄 REPLANNING TRIGGERED - Step {step_num + 1} failed")
+        print(f"⚠️  FAILURE DETECTED - Step {step_num + 1} failed")
         print(f"{'='*80}")
+        print(f"Action: {failed_action.tool_name}")
+        print(f"Error: {error}")
+
+        # Get task name from plan filepath if available
+        task = "Unknown task"
+        if self.plan_filepath and os.path.exists(self.plan_filepath):
+            try:
+                with open(self.plan_filepath, 'r', encoding='utf-8') as f:
+                    plan_data = json.load(f)
+                    task = plan_data.get("task", "Unknown task")
+            except Exception as e:
+                print(f"  ! Could not load task from plan: {e}")
 
         try:
-            # Step 0: Record the failure FIRST so summarize_progress can see it
-            failure_result = ExecutionResult(
-                success=False,
-                action=failed_action.tool_name,
-                error=error
-            )
-            self.recovery_manager.mark_step_failed(step_num, failure_result)
-            print(f"  ✓ Failure recorded: Step {step_num + 1} - {failed_action.tool_name}")
+            # Create failure learning (without related docs)
+            learning = self._create_failure_learning(failed_action, step_num, error, task)
 
-            # Step 1 & 2: Summarize progress (now includes the failed step)
-            completed, failed, remaining = self.recovery_manager.summarize_progress()
-            print(f"\n📊 EXECUTION SUMMARY:")
-            print(f"\n{completed}")
-            print(f"\n{failed}")
-            print(f"\n{remaining}")
-
-            # Get latest UI state from cache
-            latest_state = self.state_cache.get_latest_state()
-            if latest_state:
-                print(f"\n📸 Latest UI state captured (length: {len(latest_state)} chars)")
-            else:
-                print(f"\n⚠️  No UI state available in cache")
-
-            # Step 3 & 4: Generate recovery plan (includes KB retrieval, reasoning, and latest state)
-            # Get MCP tools info
-            mcp_tools = self.mcp_client.list_tools_sync()
-            tools_description = self.mcp_client.get_tools_description_sync(mcp_tools)
-            valid_tool_names = self.mcp_client.get_valid_tool_names_sync(mcp_tools)
-
-            # Pass the already-computed summaries and latest state to avoid redundant calculation
-            recovery_plan = self.recovery_manager.generate_recovery_plan(
-                mcp_tools_description=tools_description,
-                valid_tool_names=valid_tool_names,
-                completed_summary=completed,
-                failed_summary=failed,
-                remaining_goal=remaining,
-                latest_state=latest_state
-            )
-
-            # Step 6: Merge plans
-            merged_plan, new_filepath = self.recovery_manager.merge_plans(recovery_plan)
-
-            print(f"\n{'='*80}")
-            print(f"✅ REPLANNING COMPLETE - Continue with merged plan")
-            print(f"  New plan file: {os.path.basename(new_filepath)}")
-            print(f"{'='*80}\n")
-
-            # Store self-recovery learning and attach to KB item
-            if HITL_AVAILABLE:
-                from agent.feedback.schemas import SelfExplorationLearning
-                learning = SelfExplorationLearning(
-                    task=self.recovery_manager.original_task,  # Use actual task, not "Recovery from..."
-                    step_num=step_num,
-                    original_action=failed_action.model_dump(),
-                    original_error=error,
-                    recovery_approach=recovery_plan.reasoning
+            # Attach learning to KB item if kb_source is set
+            if failed_action.kb_source:
+                self._attach_learning_to_kb(
+                    kb_id=failed_action.kb_source,
+                    learning=learning
                 )
-                try:
-                    # Attach learning to KB item if kb_source is set
-                    if failed_action.kb_source:
-                        self._attach_learning_to_kb(
-                            kb_id=failed_action.kb_source,
-                            learning=learning
-                        )
-                        print(f"  [KB Learning] Attached to KB item: {failed_action.kb_source}")
-                    else:
-                        print(f"  [KB Learning] No KB source - action was not from KB")
-                except Exception as e:
-                    print(f"  [Warning] Failed to attach learning to KB: {e}")
+                print(f"  [KB Learning] Attached to KB item: {failed_action.kb_source}")
 
-            # Return a special result that signals replanning occurred
-            # The LangGraph workflow will detect this and restart execution with the merged plan
-            return ExecutionResult(
-                success=False,
-                action="REPLAN_TRIGGERED",
-                error="Replanning triggered - restart execution with merged plan",
-                evidence=f"New plan: {new_filepath}"
-            )
+                # Update vector metadata for this KB item (reloads from catalog)
+                if self.knowledge_retriever:
+                    try:
+                        self.knowledge_retriever.update_vector_metadata(
+                            kb_id=failed_action.kb_source
+                        )
+                        print(f"  [KB Vector] Updated metadata from catalog for: {failed_action.kb_source}")
+                    except Exception as e:
+                        print(f"  [Warning] Could not update vector metadata: {e}")
+            else:
+                print(f"  [KB Learning] No KB source - action was not from KB")
+                print(f"  [KB Learning] Learning created but not attached")
 
         except Exception as e:
-            print(f"\n✗ Replanning failed: {e}")
-            return ExecutionResult(
-                success=False,
-                action=failed_action.tool_name,
-                error=f"Replanning failed: {e}"
-            )
+            print(f"  [Warning] Failed to create/attach learning: {e}")
+            import traceback
+            traceback.print_exc()
+
+        print(f"\n{'='*80}")
+        print(f"🛑 EXECUTION STOPPED")
+        print(f"{'='*80}")
+        print(f"Learning attached to KB. Please rerun the task to apply learnings.")
+        print(f"{'='*80}\n")
+
+        # Return failure result (stops execution)
+        return ExecutionResult(
+            success=False,
+            action=failed_action.tool_name,
+            error=error
+        )
 
     def _attach_learning_to_kb(
         self,
@@ -570,7 +530,7 @@ class AdaptiveExecutor:
 
         Args:
             kb_id: Knowledge base item ID to attach learning to
-            learning: SelfExplorationLearning or HumanInterruptLearning object
+            learning: FailureLearning or HumanInterruptLearning object
         """
         catalog_path = "agent/knowledge_base/parsed_knowledge/knowledge_catalog.json"
 
