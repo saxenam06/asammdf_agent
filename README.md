@@ -1,20 +1,19 @@
 # asammdf Agent
 
-**Autonomous GUI Automation Agent** - Natural language → GUI control with self-healing and human-in-the-loop learning.
+**Autonomous GUI Automation Agent** - Natural language → GUI control with KB-attached learning and iterative improvement.
 
 ---
 
 ## 🚀 Quick Start
 
 ```python
-from agent.workflows.autonomous_workflow import AutonomousWorkflow
+from agent.workflows.autonomous_workflow import execute_autonomous_task
 
-# HITL enabled by default
-workflow = AutonomousWorkflow()
-result = workflow.run_sync("Concatenate all MF4 files in C:\\data and save as output.mf4")
+result = execute_autonomous_task("Concatenate all MF4 files in C:\\data and save as output.mf4")
+print(f"Success: {result['success']}")
 ```
 
-**Interactive:** Press Ctrl+I anytime to interrupt and provide corrections.
+**On failure:** Agent attaches learning to KB, user reruns for improved plan.
 
 ---
 
@@ -23,32 +22,39 @@ result = workflow.run_sync("Concatenate all MF4 files in C:\\data and save as ou
 - [System Architecture](#system-architecture)
 - [Core Tech Stack](#core-tech-stack)
 - [Key Features](#key-features)
-- [Folder Structure](#folder-structure)
 - [How It Works](#how-it-works)
-- [HITL Features](#hitl-features)
+- [Folder Structure](#folder-structure)
 - [Setup](#setup)
 - [Usage Examples](#usage-examples)
 - [Performance](#performance)
-- [Dependencies](#dependencies)
-- [Contributing](#contributing)
 
 ---
 
 ## 🏗️ System Architecture
 
-### 5-Phase Autonomous Pipeline
+### KB-Attached Learning with Iterative Rerun
 
 ```
-Natural Language Task → RAG Retrieval → AI Planning → Adaptive Execution → Auto-Recovery
-                              ↓              ↓              ↓              ↓
-                         ChromaDB       GPT-5-mini     GPT-4o-mini    Replanning
+Natural Language Task
+    ↓
+RAG Retrieval (ChromaDB) → KB items with past learnings
+    ↓
+AI Planning (GPT-4o) → Plan with kb_source attribution
+    ↓
+Adaptive Execution (GPT-4o-mini) → Resolve UI elements
+    ↓
+On Failure: Attach learning → Stop → User reruns with improved context
+    ↓
+On Success: Trust scores intact, learnings reused for similar tasks
 ```
 
-**1. RAG Retrieval** - ChromaDB semantic search over documentation (<1s)
-**2. AI Planning** - GPT-5-mini generates MCP tool sequences (2-5s)
-**3. Adaptive Execution** - GPT-4o-mini resolves UI elements dynamically (~500ms/element)
-**4. Auto-Recovery** - Detects failures, replans with KB context (3-8s)
-**5. Orchestration** - LangGraph state machine with bounded retry/replan
+### Core Principles
+
+1. **KB-Attached Learning**: Learnings stored WITH the KB items they correct
+2. **Iterative Rerun**: Execution stops on failure, user explicitly reruns
+3. **Dynamic Enrichment**: Related docs retrieved fresh during each planning
+4. **Vector Consistency**: Catalog is single source of truth
+5. **Learning Prioritization**: Learnings trump documentation (even 1 learning > 10 docs)
 
 ---
 
@@ -56,35 +62,178 @@ Natural Language Task → RAG Retrieval → AI Planning → Adaptive Execution �
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
-| **Knowledge Base** | ChromaDB + sentence-transformers | Semantic doc search |
-| **Planning** | GPT-5-mini (OpenAI) | MCP tool sequence generation |
-| **Execution** | GPT-4o-mini (OpenAI) | Dynamic UI resolution |
-| **Recovery** | Plan tracking + replanning | KB-augmented recovery |
-| **Orchestration** | LangGraph | State machine (retry/replan) |
+| **Knowledge Base** | ChromaDB + sentence-transformers | Semantic doc search with metadata |
+| **Planning** | GPT-4o (OpenAI) | Generate tool sequences with kb_source attribution |
+| **Execution** | GPT-4o-mini (OpenAI) | Dynamic UI element resolution |
+| **Learning Storage** | JSON catalog + ChromaDB metadata | KB-attached learnings with trust scores |
+| **Orchestration** | LangGraph | State machine (no automatic replanning) |
 | **MCP Tools** | Windows-MCP server | 13+ GUI automation tools |
-| **HITL Learning** | Mem0 + JSON | Multi-source learning storage |
-| **Skill Library** | TF-IDF matching | Verified workflow reuse |
+
+**Note**: System designed to work WITHOUT external memory stores (Mem0 code exists but disabled).
 
 ---
 
 ## ✨ Key Features
 
-### Autonomous System
-✅ **Documentation-driven** - No hardcoded actions (GPT extracts from docs)
-✅ **Adaptive** - Resolves UI elements dynamically, finds alternatives
-✅ **Self-healing** - Auto-replans on failures (3 attempts max)
-✅ **State-aware** - Caches UI state for coordinate resolution
-✅ **Versioned plans** - Incremental merge (`Plan_0`, `Plan_1`, ...)
+### KB-Attached Learning System
+✅ **Learnings live with KB items** - Errors attached to the KB patterns that caused them
+✅ **Trust score tracking** - KB items decay by 0.95 per failure (min 0.5)
+✅ **kb_source attribution** - LLM sets which KB item inspired each action
+✅ **Dynamic doc retrieval** - Related docs retrieved fresh during planning (not stored)
+✅ **Vector metadata sync** - Catalog is single source of truth, metadata reloaded automatically
+
+### Iterative Rerun Architecture
+✅ **No automatic replanning** - Execution stops on failure, user controls reruns
+✅ **Progressive improvement** - Each rerun sees more learnings, generates better plans
+✅ **Deterministic flow** - Simple, predictable, debuggable
+✅ **User control** - Explicit reruns, clear feedback
+
+### Planning & Execution
+✅ **Documentation-driven** - GPT extracts knowledge from docs (no hardcoding)
+✅ **Adaptive resolution** - Resolves UI elements dynamically
+✅ **Learning prioritization** - 1 failure learning overrides 10 KB docs
+✅ **Prompt history** - Every planning prompt saved for debugging
 ✅ **Cost tracking** - Real-time API monitoring by component/model
 
-### HITL System (Optional, enabled by default)
-✅ **Skill library** - Reuses verified workflows (skip planning)
-✅ **Memory retrieval** - Learns from human corrections + self-recovery
-✅ **Confidence-based approval** - Requests approval for low confidence (<0.5)
-✅ **Procedural guidance** - Teach multi-step workflows with context
-✅ **Human interrupts** - Press Ctrl+I anytime for corrections
-✅ **Progressive autonomy** - Less intervention needed over time
-✅ **Audit trail** - Complete communication logs
+---
+
+## 🔄 How It Works
+
+### Example: "Concatenate MF4 files"
+
+#### First Run (Failure)
+
+**1. RAG Retrieval** (<1s)
+```
+Query: "Concatenate MF4 files"
+Retrieved 5 KB items: concatenate_files, open_files, save_file, ...
+  • open_files (trust: 1.0, learnings: 0)
+```
+
+**2. Planning** (2-5s)
+```
+LLM generates plan with kb_source attribution:
+Step 5: Click "Add Files" button
+  - kb_source: "open_files"  ← LLM sets this
+  - reasoning: "Open files using Add Files button"
+```
+
+**3. Execution** (~500ms/step)
+```
+Step 1-4: ✓ Success
+Step 5: ✗ FAILURE - "Button 'Add Files' not found"
+```
+
+**4. Failure Handling**
+```
+Create FailureLearning:
+  - task: "Concatenate MF4 files"
+  - step_num: 5
+  - original_action: {"tool_name": "Click-Tool", ...}
+  - original_error: "Button 'Add Files' not found"
+  - recovery_approach: ""  (empty until success)
+
+Attach to KB item "open_files":
+  - kb_learnings: [<learning>]
+  - trust_score: 0.95  (decreased from 1.0)
+
+Update vector metadata:
+  - has_learnings: true
+  - learning_count: 1
+
+STOP EXECUTION
+Message: "Learning attached to KB. Please rerun the task."
+```
+
+**Catalog After First Run:**
+```json
+{
+  "knowledge_id": "open_files",
+  "kb_learnings": [
+    {
+      "task": "Concatenate MF4 files",
+      "original_error": "Button 'Add Files' not found",
+      "recovery_approach": ""
+    }
+  ],
+  "trust_score": 0.95
+}
+```
+
+#### First Rerun (Success)
+
+**1. RAG Retrieval** (<1s)
+```
+Retrieved KB "open_files" WITH learning:
+  • trust: 0.95
+  • learnings: 1 (Button 'Add Files' failed)
+```
+
+**2. Planning with Learning Context** (2-5s)
+```
+_format_kb_with_learnings() formats:
+
+---
+KB ID: open_files
+Description: Open files in asammdf
+Action Sequence: click_menu('File'), select_option('Open')
+---
+
+⚠️ PAST LEARNINGS (1 correction):
+
+1. Past Failure:
+   - Failed Action: Click-Tool
+   - Error: Button 'Add Files' not found
+   - Successful Approach: (Not yet resolved - see related docs below)
+
+   📚 Related Docs (2):  ← Retrieved dynamically
+      • KB ID: file_menu_open
+        Open files using File → Open menu
+        Shortcut: Ctrl+O
+        Actions: click_menu('File'), select_option('Open')
+
+      • KB ID: keyboard_shortcuts
+        Use keyboard shortcuts for faster navigation
+        Actions: press_keys('Ctrl+O')
+
+⚠️ CAUTION: Trust score 0.95 (has 1 known issue)
+---
+
+CRITICAL RULE in system prompt:
+"DO NOT repeat failed actions even if multiple KB items suggest them.
+Learnings trump documentation."
+```
+
+**3. Planning Result**
+```
+LLM sees:
+  ✗ Learning: "Add Files" button failed
+  ✓ Related docs: Use Ctrl+O or File → Open menu
+  ✓ Critical rule: Don't repeat failures
+
+Generated plan:
+Step 5: Press Ctrl+O to open file dialog  ← Changed!
+  - kb_source: "keyboard_shortcuts"
+  - reasoning: "Use shortcut instead of button (learning shows button failed)"
+```
+
+**4. Execution** (~500ms/step)
+```
+Step 1-5: ✓ All success (including fixed step 5)
+Step 6-10: ✓ All success
+
+EXECUTION COMPLETE ✓
+```
+
+#### Next Similar Task
+
+```
+User runs: "Concatenate MF4 files in D:\folder"
+
+RAG retrieves "open_files" with learning → LLM sees failure context
+→ Generates correct plan immediately (uses Ctrl+O)
+→ Success on first try
+```
 
 ---
 
@@ -93,155 +242,30 @@ Natural Language Task → RAG Retrieval → AI Planning → Adaptive Execution �
 ```
 agent/
 ├── workflows/
-│   └── autonomous_workflow.py      # LangGraph orchestrator (6 nodes)
+│   └── autonomous_workflow.py      # LangGraph orchestrator (no replanning)
 ├── knowledge_base/                 # RAG System
 │   ├── doc_parser.py               # Parse documentation with GPT
 │   ├── indexer.py                  # Index into ChromaDB
-│   ├── retriever.py                # Semantic search
-│   ├── parsed_knowledge/           # Extracted knowledge (JSON)
-│   └── vector_store/               # ChromaDB vector database
+│   ├── retriever.py                # Semantic search + metadata updates
+│   ├── parsed_knowledge/
+│   │   └── knowledge_catalog.json  # SOURCE OF TRUTH (learnings stored here)
+│   └── vector_store/               # ChromaDB (metadata synced from catalog)
 ├── planning/                       # Planning System
-│   ├── workflow_planner.py         # GPT-5-mini planning
-│   ├── plan_recovery.py            # KB-augmented replanning
-│   ├── schemas.py                  # Pydantic models
-│   └── plans/                      # Cached plans
+│   ├── workflow_planner.py         # GPT-4o planning with learning formatting
+│   ├── schemas.py                  # KnowledgeSchema, ActionSchema, FailureLearning
+│   └── plans/                      # Cached plans (Plan_0, Plan_1, ...)
 ├── execution/                      # Execution System
 │   ├── mcp_client.py               # MCP protocol (async)
-│   └── adaptive_executor.py        # GPT-4o-mini UI resolution
-├── feedback/                       # HITL System
-│   ├── communication_protocol.py   # A2A-inspired messaging
-│   ├── schemas.py                  # Learning types
-│   ├── memory_manager.py           # Mem0-powered storage
-│   └── human_observer.py           # Interactive CLI
-├── learning/
-│   └── skill_library.py            # Verified skill matching
+│   └── adaptive_executor.py        # GPT-4o-mini resolution + failure handling
+├── feedback/                       # Learning System
+│   └── schemas.py                  # FailureLearning, HumanInterruptLearning
 ├── prompts/                        # Centralized LLM prompts
-│   ├── planning_prompt.py
-│   ├── recovery_prompt.py
+│   ├── planning_prompt.py          # System/user prompts + history saving
 │   ├── coordinate_resolution_prompt.py
-│   └── doc_parsing_prompt.py
+│   └── planning_history/           # Saved prompts (Plan_0.md, Plan_1.md, ...)
 └── utils/
     └── cost_tracker.py             # API cost monitoring
 ```
-
----
-
-## 🔄 How It Works
-
-### Example: "Concatenate MF4 files in C:\data"
-
-#### Phase 1: RAG Retrieval (<1s)
-```
-Query → ChromaDB → Top-5 patterns: concatenate_files, open_folder, save_file
-```
-
-#### Phase 2: HITL Planning (2-5s or instant)
-```
-Check SkillLibrary → Found verified skill (similarity: 0.85)?
-  YES → Use skill's plan (instant, skip LLM)
-  NO  → Retrieve learnings → Generate plan with GPT-5-mini
-```
-
-#### Phase 3: Adaptive Execution (~500ms/element)
-```
-State-Tool → Cache UI
-Click-Tool {"loc": ["last_state:menu:File"]} → GPT resolves → [120, 30] → Click
-... execution continues ...
-Step 15: Low confidence (0.4) → Request human approval
-```
-
-#### Phase 4: Auto-Recovery (if failure, 3-8s)
-```
-Failure detected → Save snapshot → Summarize progress
-→ KB query: "concatenate button" → 3 patterns
-→ GPT generates recovery plan (10 steps)
-→ Merge: 14 completed + 10 new = 24 total
-→ Resume execution
-```
-
-#### Phase 5: Final Verification (HITL)
-```
-All steps completed → Request human verification
-Human approves → Create verified skill in library
-Next time: Instant execution with verified skill!
-```
-
----
-
-## 🤝 HITL Features
-
-### Confidence-Based Approval
-
-When agent confidence is low (<0.5), you get 5 options:
-
-```
-==================================================================
-  HUMAN APPROVAL NEEDED (Step 8)
-==================================================================
-Agent Confidence: 0.35 (LOW)
-
-Proposed Action:
-  Tool: Click-Tool
-  Arguments: {"loc": [500, 300]}
-  Reasoning: Looking for 'Add Files' button
-
-------------------------------------------------------------------
-Options:
-  [1] Approve - Execute as proposed
-  [2] Reject - Provide quick correction
-  [3] Skip - Skip this step
-  [4] Guidance - Provide general guidance
-  [5] Detailed Procedure - Provide step-by-step instructions
-------------------------------------------------------------------
-
-Your choice [1-5]:
-```
-
-### Procedural Guidance (Option 5)
-
-Teach the agent complete multi-step workflows:
-
-```
-What is the goal of this procedure?
-Goal: Add MF4 files to concatenate list
-
-Provide step-by-step instructions (one per line).
-Type 'DONE' when finished.
-
-Step 1: Click on File menu in menu bar
-Step 2: Click Open option
-Step 3: Navigate to folder containing MF4 files
-Step 4: Click on any MF4 file
-Step 5: Press Ctrl+A to select all files
-Step 6: Press Enter to load all files
-Step 7: DONE
-
-Any key points to remember?
-Key points: Ctrl+A selects all files, Files must be in same folder
-
-Common mistakes to avoid?
-Mistakes: Don't look for 'Add Files' button - it doesn't exist
-
-Alternative ways to achieve the same goal?
-Alternatives: Can drag and drop from File Explorer
-```
-
-**Benefits:**
-- ✅ Teach complex procedures once, reused forever
-- ✅ Document institutional knowledge automatically
-- ✅ Prevent repeated mistakes
-- ✅ Provide multiple alternative approaches
-
-### Progressive Autonomy
-
-| Run | Human Interventions | Success Rate | Time | Notes |
-|-----|-------------------|--------------|------|-------|
-| 1st | 3-5 corrections | 70-80% | 5-10 min | Learning phase |
-| 2nd-3rd | 1-2 corrections | 85-90% | 3-5 min | Improvement phase |
-| 4th+ | 0 corrections | 95-98% | <1 min | Uses verified skill |
-
-**First run:** No skills → Plan from scratch → Human corrections → Verify → Create skill
-**Subsequent runs:** Found skill (0.7+ similarity) → Use verified plan → Fast execution
 
 ---
 
@@ -270,13 +294,13 @@ cp .env.example .env
 # Edit .env: OPENAI_API_KEY=sk-...
 ```
 
-### 3. Extract Knowledge (one-time)
+### 3. Build Knowledge Base (one-time)
 
 ```bash
 # Parse documentation
 python agent/knowledge_base/doc_parser.py
 
-# Build index
+# Build vector index
 python agent/knowledge_base/indexer.py --rebuild
 ```
 
@@ -295,31 +319,37 @@ python agent/workflows/autonomous_workflow.py "Your task here"
 ```python
 from agent.workflows.autonomous_workflow import execute_autonomous_task
 
-# HITL enabled by default
 result = execute_autonomous_task("Open sample.mf4 and plot first signal")
 print(f"Success: {result['success']}")
 ```
 
-### Without HITL (Fully Autonomous)
+### Handling Failures (Iterative Rerun)
 
 ```python
-from agent.workflows.autonomous_workflow import AutonomousWorkflow
+from agent.workflows.autonomous_workflow import execute_autonomous_task
 
-workflow = AutonomousWorkflow(enable_hitl=False)
-result = workflow.run_sync("Your task")
+# First attempt - may fail
+result = execute_autonomous_task("Concatenate all MF4 files")
+
+if not result['success']:
+    print("Failure detected. Learning attached to KB.")
+    print("Rerunning with improved context...")
+
+    # Rerun - agent sees learning + related docs
+    result = execute_autonomous_task("Concatenate all MF4 files")
+    print(f"Second attempt: {result['success']}")
 ```
 
 ### Custom Configuration
 
 ```python
+from agent.workflows.autonomous_workflow import AutonomousWorkflow
+
 workflow = AutonomousWorkflow(
     app_name="asammdf 8.6.10",
     catalog_path="agent/knowledge_base/parsed_knowledge/knowledge_catalog.json",
     vector_db_path="agent/knowledge_base/vector_store",
-    max_retries=2,
-    max_replan_attempts=3,
-    enable_hitl=True,
-    session_id="user_john_001"  # Track learnings per user
+    max_retries=0  # No automatic retries (user-controlled reruns)
 )
 result = workflow.run_sync("Your task")
 ```
@@ -334,144 +364,260 @@ tracker.print_summary()  # Component/model breakdown
 tracker.save_to_file()   # Export to cost_reports/
 ```
 
-### Inspect Learnings
-
-```python
-from agent.feedback.memory_manager import LearningMemoryManager
-
-memory = LearningMemoryManager()
-learnings = memory.retrieve_all_learnings_for_task(
-    task="Concatenate MF4 files",
-    session_id="your_session"
-)
-print(f"Human guidance: {len(learnings['human_proactive'])}")
-print(f"Corrections: {len(learnings['human_interrupt'])}")
-print(f"Self-recovery: {len(learnings['agent_self_exploration'])}")
-```
-
-### Inspect Verified Skills
-
-```python
-from agent.learning.skill_library import SkillLibrary
-
-library = SkillLibrary()
-for skill_id, skill in library.skills.items():
-    print(f"Task: {skill.original_task}")
-    print(f"Success: {skill.success_rate:.1%}")
-    print(f"Used: {skill.usage_count} times")
-```
-
-### Knowledge Base Operations
+### Inspect KB Learnings
 
 ```python
 from agent.knowledge_base import KnowledgeRetriever
 
-# Semantic search
 retriever = KnowledgeRetriever()
-results = retriever.retrieve("concatenate MF4 files", top_k=5)
 
-for pattern in results:
-    print(f"{pattern.knowledge_id}: {pattern.description}")
+# Get specific KB item
+kb_item = retriever.get_by_id("open_files")
+print(f"Trust score: {kb_item.trust_score}")
+print(f"Learnings: {len(kb_item.kb_learnings)}")
+
+for learning in kb_item.kb_learnings:
+    print(f"Error: {learning['original_error']}")
+    print(f"Recovery: {learning['recovery_approach']}")
+```
+
+### Inspect Prompt History
+
+```bash
+# View planning prompts
+ls agent/prompts/planning_history/
+
+# Example files:
+Concatenate_files_Plan_0.md  # First attempt (no learnings)
+Concatenate_files_Plan_1.md  # First rerun (with learnings + related docs)
+Concatenate_files_Plan_2.md  # Second rerun (with more learnings)
+```
+
+### Rebuild KB Index After Manual Edits
+
+```python
+from agent.knowledge_base.indexer import rebuild_index
+
+# Rebuild entire index from catalog
+rebuild_index(catalog_path="agent/knowledge_base/parsed_knowledge/knowledge_catalog.json")
 ```
 
 ---
 
 ## ⚡ Performance
 
-### Without HITL
+### Typical Task (First Run - No Learnings)
 - Knowledge retrieval: <1s
 - Plan generation: 2-5s
-- Element resolution: ~500ms
-- Total: 10-60s (task-dependent)
+- Execution: 10-60s (task-dependent)
 - Success rate: 70-80%
 
-### With HITL (First Run)
-- Planning: 2-5s (or instant if skill found)
-- Human interactions: 3-5 approvals
-- Total: 5-10 min
-- Success rate: 95% (with corrections)
+### After Learning (Rerun with Context)
+- Knowledge retrieval: <1s (includes learnings)
+- Plan generation: 2-5s (improved with learning context)
+- Execution: 10-60s
+- Success rate: 85-95%
 
-### With HITL (Subsequent Runs)
-- Planning: <1s (skill reuse)
-- Human interactions: 0-1 approvals
-- Total: <1 min
-- Success rate: 98%
+### Subsequent Similar Tasks
+- Uses existing learnings from first encounter
+- Success rate: 95%+
 
 ---
 
-## 📦 Dependencies
+## 📊 Data Storage
 
-### Core
-```bash
-pip install chromadb sentence-transformers  # RAG
-pip install openai                          # LLM
-pip install langgraph langchain             # Orchestration
-pip install pydantic                        # Type safety
-pip install nest-asyncio                    # Async handling
-pip install requests beautifulsoup4 lxml   # Doc parsing
+### Knowledge Base Catalog (Single Source of Truth)
+```
+agent/knowledge_base/parsed_knowledge/
+└── knowledge_catalog.json     # All KB items + learnings + trust scores
 ```
 
-### HITL (Optional but recommended)
-```bash
-pip install mem0ai          # Learning memory
-pip install scikit-learn    # Skill matching
+### Vector Store (Synced Metadata)
+```
+agent/knowledge_base/vector_store/
+└── ChromaDB files              # Full KnowledgeSchema + convenience fields
+                                # (has_learnings, learning_count, trust_score)
 ```
 
-### Windows MCP Tools
-```bash
-cd tools/Windows-MCP
-pip install -e .
+### Cached Plans
+```
+agent/planning/plans/
+├── Concatenate_files_Plan_0.json
+├── Concatenate_files_Plan_1.json  # Incremental plan after first rerun
+└── Open_plot_data_Plan_0.json
+```
+
+### Prompt History (Debugging)
+```
+agent/prompts/planning_history/
+├── Concatenate_files_Plan_0.md    # Full system + user prompts
+└── Concatenate_files_Plan_1.md    # Shows learnings + related docs
 ```
 
 ---
 
 ## 🎯 What Makes This Special
 
-### Technical Innovations
-1. **Documentation-Driven** - GPT extracts all knowledge from docs (no hardcoding)
-2. **Adaptive Resolution** - GPT interprets intent, finds UI alternatives dynamically
-3. **Self-Healing** - Auto-replans with KB context on failures
-4. **Progressive Autonomy** - Learns from corrections, builds skill library
-5. **Incremental Planning** - Merges completed work with recovery plans
+### 1. KB-Attached Learning
+- **Errors live with patterns**: Learning attached to the KB item that caused the failure
+- **Automatic attribution**: LLM sets `kb_source` field, system tracks which patterns fail
+- **Trust scores**: KB items decay with failures (0.95 per failure, min 0.5)
+- **Contextual retrieval**: Low-trust KB items appear with warning labels
 
-### HITL Innovations
-6. **Multi-Source Learning** - Human proactive + interrupts + agent self-recovery
-7. **Skill Reuse** - Fuzzy matching (70%+ similarity) skips planning entirely
-8. **Confidence-Based** - Only asks for approval when uncertain
-9. **Procedural Guidance** - Teach complete workflows with context
-10. **Mem0 Integration** - Semantic search with JSON fallback (works offline)
-11. **A2A-Inspired Protocol** - Structured communication with audit trail
+### 2. Dynamic Doc Enrichment
+- **Fresh retrieval**: Related docs retrieved during each planning phase (not stored statically)
+- **Adapts to changes**: If KB improves, related docs reflect latest state
+- **Minimal storage**: Learnings store only error + recovery (not 3 related docs)
+
+### 3. Iterative Rerun (Not Automatic Replanning)
+- **User control**: Explicit reruns, no hidden retry loops
+- **Deterministic**: Predictable flow, easy to debug
+- **Progressive**: Each rerun builds on previous learnings
+- **Simple code**: ~155 lines removed vs. automatic replanning
+
+### 4. Learning Prioritization
+- **Explicit rule**: "Learnings trump documentation"
+- **Prevents circular failures**: Won't repeat failed action even if 10 KB docs suggest it
+- **Real-world evidence**: 1 failure learning > N docs (learnings show actual execution results)
+
+### 5. Vector Metadata Consistency
+- **Catalog as source of truth**: Vector metadata reloaded from catalog on every update
+- **No drift**: Impossible for metadata to become stale
+- **Simple API**: `update_vector_metadata(kb_id)` - everything else automatic
+
+### 6. Prompt History
+- **Full debugging visibility**: Every planning prompt saved with KB items + learnings
+- **Compare iterations**: Plan_0 (no learnings) vs Plan_1 (with learnings)
+- **Reproducibility**: See exact LLM input for any planning phase
 
 ---
 
-## 📊 Data Storage
+## 🏗️ Architecture Diagrams
 
-### HITL Memory (Mem0 + JSON Fallback)
+### KB-Attached Learning Flow
+
 ```
-agent/feedback/memory/
-├── sessions/              # JSON backup (always)
-│   └── session_xyz.json
-└── qdrant_db/             # Mem0 vector store (if OpenAI key available)
+┌─────────────────────────────────────────────────────────────┐
+│  knowledge_catalog.json (SOURCE OF TRUTH)                   │
+│  {                                                           │
+│    "knowledge_id": "open_files",                            │
+│    "kb_learnings": [                                        │
+│      {                                                       │
+│        "original_error": "Button not found",                │
+│        "recovery_approach": "Use Ctrl+O"                    │
+│      }                                                       │
+│    ],                                                        │
+│    "trust_score": 0.95                                      │
+│  }                                                           │
+└─────────────────────────────────────────────────────────────┘
+                    ↓ (synced on update)
+┌─────────────────────────────────────────────────────────────┐
+│  ChromaDB Vector Metadata                                   │
+│  {                                                           │
+│    "full_knowledge": "{...entire KnowledgeSchema JSON...}", │
+│    "knowledge_id": "open_files",                            │
+│    "has_learnings": true,                                   │
+│    "learning_count": 1,                                     │
+│    "trust_score": 0.95                                      │
+│  }                                                           │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Verified Skills
+### Iterative Rerun Flow
+
 ```
-agent/learning/
-└── skill_library.json     # Fuzzy-matched verified workflows
+First Run:
+  Retrieve KB → Plan → Execute → FAILURE
+                                    ↓
+                          Create FailureLearning
+                                    ↓
+                          Attach to KB item (via kb_source)
+                                    ↓
+                          Update trust_score (0.95)
+                                    ↓
+                          Update vector metadata
+                                    ↓
+                          STOP EXECUTION
+                          "Please rerun the task"
+
+First Rerun:
+  Retrieve KB (with learning) → Format with learning context
+                                    ↓
+                          Dynamically retrieve related docs
+                                    ↓
+                          Plan with learning + docs + CRITICAL rule
+                                    ↓
+                          Execute → SUCCESS
 ```
 
-### Cached Plans
-```
-agent/planning/plans/
-├── Task1_hash_Plan_0.json
-├── Task1_hash_Plan_1.json
-└── Task2_hash_Plan_0.json
+---
+
+## 🔧 Key Configuration Options
+
+### Workflow Configuration
+
+```python
+workflow = AutonomousWorkflow(
+    app_name="asammdf 8.6.10",              # Target app
+    catalog_path="...",                      # KB catalog location
+    vector_db_path="...",                    # ChromaDB location
+    max_retries=0,                           # No automatic retries (user reruns)
+    enable_hitl=False,                       # HITL disabled by default in current version
+    session_id="user_123"                    # Session tracking (optional)
+)
 ```
 
-### Audit Trail
+### Planning Configuration
+
+- **Model**: GPT-4o (`gpt-4o-2024-11-20`)
+- **Temperature**: Default (0.7)
+- **Max tokens**: 120,000
+- **Timeout**: 600s
+
+### Execution Configuration
+
+- **Model**: GPT-4o-mini
+- **Temperature**: Default (0.7)
+- **Timeout**: 60s
+
+---
+
+## 📝 Schemas Reference
+
+### KnowledgeSchema
+
+```python
+class KnowledgeSchema(BaseModel):
+    knowledge_id: str                    # Unique identifier
+    description: str                     # What this KB item does
+    ui_location: str                     # Where to find it in UI
+    action_sequence: List[str]           # Step-by-step actions
+    shortcut: Optional[str] = None       # Keyboard shortcut
+    kb_learnings: List[Dict] = []        # Attached learnings
+    trust_score: float = 1.0             # Reliability score
 ```
-agent/feedback/message_logs/
-└── session_xyz_messages.json  # Complete communication history
+
+### ActionSchema
+
+```python
+class ActionSchema(BaseModel):
+    tool_name: str                       # MCP tool to use
+    tool_arguments: Dict[str, Any]       # Tool arguments
+    reasoning: str                       # Why this action
+    kb_source: Optional[str] = None      # Which KB item inspired this (LLM sets)
+```
+
+### FailureLearning
+
+```python
+class FailureLearning(BaseModel):
+    task: str                            # Task being executed
+    step_num: int                        # Which step failed
+    original_action: Dict[str, Any]      # Action that failed
+    original_error: str                  # Error message
+    recovery_approach: str = ""          # How it was fixed (empty until success)
+    timestamp: str                       # When failure occurred
+    # NO related_docs field (retrieved dynamically)
 ```
 
 ---
@@ -479,83 +625,57 @@ agent/feedback/message_logs/
 ## ⚠️ Limitations
 
 - **Platform:** Windows-only (Windows UI Automation)
-- **Scope:** Single application (designed for asammdf, extensible)
-- **Vision:** Text-based UI state (can add GPT-4o vision)
+- **Scope:** Single application (designed for asammdf)
+- **Vision:** Text-based UI state (no GPT-4o vision currently)
 - **Execution:** Sequential (no parallel actions)
+- **Learning:** User must explicitly rerun to apply learnings
 
 ---
 
-## 🎓 Interactive Commands (HITL)
+## 🚧 What's NOT Included (Removed/Deprecated)
 
-**Press Ctrl+I** - Interrupt execution anytime
-- Provide corrections
-- Skip steps
-- Stop execution
-
-**Low Confidence Actions** - Auto-prompted
-- Agent asks for approval before uncertain actions (<0.5 confidence)
-- You can approve, correct, skip, provide guidance, or teach procedures
-
-**Final Verification** - After completion
-- Verify task success
-- Provide feedback
-- Creates verified skill if approved
+- ❌ **Mem0 integration** - Code exists but disabled (JSON storage only)
+- ❌ **Automatic replanning** - Removed in favor of user-controlled reruns
+- ❌ **PlanRecoveryManager** - Deprecated
+- ❌ **max_replan_attempts** - Removed (user reruns instead)
+- ❌ **Multi-attempt retries** - Disabled (max_retries=0)
+- ❌ **HITL components** - Code exists but not active in current version
+- ❌ **Skill library** - Code exists but not active in current version
 
 ---
 
 ## 🤝 Contributing
 
-See inline documentation and module-level docstrings. Key design principles:
+Key design principles:
 
-1. **Centralized prompts** - Easy A/B testing (all in `agent/prompts/`)
-2. **Type safety** - Pydantic everywhere for data validation
-3. **Graceful degradation** - Fallbacks for all external dependencies
-4. **Complete audit trail** - All interactions logged
-5. **Progressive autonomy** - Less human input over time
-6. **Modular architecture** - Each component has single responsibility
+1. **Catalog is truth** - All learnings in `knowledge_catalog.json`
+2. **User-controlled reruns** - No automatic replanning
+3. **Dynamic retrieval** - Related docs fetched fresh, never stored
+4. **Type safety** - Pydantic everywhere
+5. **Centralized prompts** - All in `agent/prompts/` for easy A/B testing
+6. **Prompt history** - Save every planning prompt for debugging
 
 ---
 
 ## 📈 Status
 
-**Core System:** ✅ Production-ready
-- Complete agentic loop (learn → plan → execute → recover)
-- Documentation-driven (no hardcoding)
-- Self-healing (KB-augmented replanning)
-- Production error handling
+**Current Version:** KB-Attached Learning with Iterative Rerun
 
-**HITL System:** ✅ Complete (10/10 components)
-- Bidirectional feedback
-- Multi-source learning
-- Verified skill library
-- Procedural guidance
-- Progressive autonomy
-- Full audit trail
+✅ **Complete:**
+- KB-attached learning system
+- Iterative rerun architecture (no automatic replanning)
+- Dynamic doc enrichment (related docs retrieved during planning)
+- Vector metadata consistency (catalog as source of truth)
+- Learning prioritization (learnings trump docs)
+- Prompt history saving (debugging visibility)
+- Trust score tracking
+- Cost monitoring
 
-**Knowledge Base:** ✅ Reorganized
-- Separated parsing, indexing, and retrieval
-- Clean module structure with CLI tools
-- Model-agnostic naming
-
-**Result:** Natural language → GUI automation with self-healing, human collaboration, and continuous learning.
-
----
-
-## 🚧 Future Enhancements
-
-**Phase 1 (Complete):**
-- ✅ Multi-source learning system
-- ✅ Verified skill library
-- ✅ Interactive human feedback
-- ✅ Procedural guidance feature
-- ✅ Knowledge base reorganization
-
-**Phase 2 (Optional):**
+🚧 **Future Enhancements:**
+- Re-enable HITL components (human observer, skill library)
 - Multi-app workflows
 - GPT-4o vision integration
 - Parallel execution
-- Team collaboration (Langfuse)
-- Safety guidelines (Parlant)
 
 ---
 
@@ -565,15 +685,9 @@ See inline documentation and module-level docstrings. Key design principles:
 
 ---
 
-## 📧 Contact
-
-[Specify contact information here]
-
----
-
 **Happy Automating! 🚀**
 
-For questions or issues, please refer to:
+For questions or issues:
 - Code documentation (inline comments and docstrings)
-- Component READMEs in respective folders
-- GitHub issues (if applicable)
+- Prompt history (`agent/prompts/planning_history/`)
+- KB catalog (`agent/knowledge_base/parsed_knowledge/knowledge_catalog.json`)

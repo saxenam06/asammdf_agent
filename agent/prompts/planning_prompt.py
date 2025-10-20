@@ -32,38 +32,32 @@ CORE RULES:
 6. Windows paths: Use single backslash (\) only - e.g., C:\Users\ADMIN\file.mf4
 
 KB SOURCE ATTRIBUTION (CRITICAL):
-For EACH action in your plan, you MUST set the "kb_source" field:
-- If the action is derived from a knowledge base (KB) item, set kb_source to that KB item's knowledge_id
-- If the action is from your own reasoning (not from any KB item), set kb_source to null
-- This helps track which KB items led to failures so we can improve them
+For EACH action in your plan, MUST set the "kb_source" field:
+- If action derived from a KB item, set kb_source to that item's KB ID
+- If action from your own reasoning, set kb_source to null
+- This tracks which KB items led to failures for improvement
 
-Example with kb_source:
+Example:
 {{
   "tool_name": "Click-Tool",
   "tool_arguments": {{"loc": ["last_state:menu:File"], "button": "left"}},
-  "reasoning": "Open File menu to access Open command (from KB: open_files)",
+  "reasoning": "Open File menu (from KB: open_files)",
   "kb_source": "open_files"
 }}
 
 LEARNING-BASED PLANNING:
-You will receive past learnings from previous task executions. These learnings show:
-- How plans derived from knowledge base FAILED in practice(original errors)
-- How the agent successfully RECOVERED from those failures (recovery approaches)
-- Human corrections when the agent asked for help (human interrupt/proactive)
-
-Each learning includes:
-- SOURCE: "agent_self_exploration" (agent recovered on its own), "human_interrupt" (human corrected the agent), or "human_proactive" (agent asked, human answered)
-- ORIGINAL ERROR: What went wrong when following knowledge patterns
-- RECOVERY APPROACH: What actually worked to accomplish the task
+Past learnings show:
+- How KB patterns FAILED in practice (errors encountered)
+- How failures were RESOLVED (recovery approaches)
+- Human corrections when agent needed help
 
 Use learnings to:
-1. AVOID actions/patterns that previously failed (check original_error)
-2. ADOPT recovery approaches that succeeded (check recovery_approach)
-3. **CRITICAL**: DO NOT repeat the same failed action just because other KB items (without learnings) suggest it.
-   - If a learning shows that clicking button X failed, DO NOT click button X again
-   - Even if 5 other KB documents suggest clicking button X, prioritize the failure learning
-   - Learnings trump documentation - they show real-world execution results
-   - Always check if any learning contradicts a KB pattern before using it
+1. AVOID actions that previously failed
+2. ADOPT recovery approaches that succeeded
+3. **CRITICAL**: DO NOT repeat failed actions even if multiple KB items suggest them
+   - Learnings trump documentation - they show real execution results
+   - If learning shows action X failed, do NOT use action X again
+   - Always check if learnings contradict a KB pattern before using it
 
 
 WORKFLOW:
@@ -109,63 +103,45 @@ def get_planning_user_prompt(
     task: str,
     knowledge_json: str,
     context: str = "",
-    latest_state: str = "",
-    learnings_context: str = ""
+    latest_state: str = ""
 ) -> str:
     """User prompt for plan generation
 
     Args:
         task: User's task description
-        knowledge_json: JSON-formatted knowledge patterns from documentation
+        knowledge_json: Formatted KB patterns with learnings attached
         context: Optional additional context
         latest_state: Optional current UI state
-        learnings_context: Optional past learnings from previous task executions
 
     Returns:
         User prompt string
     """
     context_str = f"\n\nAdditional context: {context}" if context else ""
 
-    learnings_section = ""
-    if learnings_context:
-        learnings_section = f"""
-
-PAST LEARNINGS FROM PREVIOUS EXECUTIONS:
-{learnings_context}
-
-HOW TO USE THESE LEARNINGS:
-- SOURCE shows who/what provided the learning: "agent_self_exploration" (agent recovered), "human_interrupt" (human corrected), "human_proactive" (agent asked human)
-- ORIGINAL ERROR shows what failed when following knowledge base patterns
-- RECOVERY APPROACH shows what actually worked in practice
-"""
-
     state_context = ""
     if latest_state:
         state_context = f"""
 
-CURRENT UI STATE (for reference when planning element interactions):
+CURRENT UI STATE:
 ```
 {latest_state}
 ```
-
-Use this state to understand what UI elements are currently available and the format of State-Tool output.
 """
 
     return f"""User task: "{task}"{context_str}
 
-Available knowledge patterns from documentation:
+Knowledge patterns with learnings:
 {knowledge_json}
-{learnings_section}
-Generate a complete execution plan using knowledge patterns and past learnings.
+
+Generate a complete execution plan.
 
 Consider:
-- What prerequisite steps are needed (e.g., opening files before processing)
-- The correct order of operations
-- What arguments each action needs
-- Past learnings about what worked/failed in similar tasks
-- Expected GUI state after each action
+- Prerequisite steps needed
+- Correct operation order
+- Tool arguments required
+- Past learnings showing what worked/failed
 {state_context}
-Return ONLY valid JSON matching the schema. No explanatory text outside JSON."""
+Return ONLY valid JSON. No explanatory text outside JSON."""
 
 
 def save_prompt_to_markdown(
@@ -191,11 +167,10 @@ def save_prompt_to_markdown(
         # Create output directory
         os.makedirs(output_dir, exist_ok=True)
 
-        # Create filename from task and timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Create filename from task (no timestamp to avoid clutter)
         task_slug = "".join(c if c.isalnum() or c in (' ', '_') else '' for c in task)
         task_slug = "_".join(task_slug.split())[:50]  # Limit length
-        filename = f"{task_slug}_Plan_{plan_number}_{timestamp}.md"
+        filename = f"{task_slug}_Plan_{plan_number}.md"
         filepath = os.path.join(output_dir, filename)
 
         # Format markdown content
