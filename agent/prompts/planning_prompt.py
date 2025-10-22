@@ -20,7 +20,7 @@ AVAILABLE MCP TOOLS:
 {tools_description}
 
 CORE RULES:
-1. Follow provided knowledge patterns as reference - they contain proven workflows
+1. Follow provided knowledge patterns as reference - they contain knowledge as extracted from the asammdf documentation.
 2. Use ONLY listed tool names with exact argument schemas
 3. ALWAYS call State-Tool before interacting with UI elements
 4. Start with Switch-Tool to activate asammdf: {{"name": "asammdf"}}
@@ -55,9 +55,7 @@ Use learnings to:
 1. AVOID actions that previously failed
 2. ADOPT recovery approaches that succeeded
 3. **CRITICAL**: DO NOT repeat failed actions even if multiple KB items suggest them
-   - Learnings trump documentation - they show real execution results
-   - If learning shows action X failed, do NOT use action X again
-   - Always check if learnings contradict a KB pattern before using it
+   - Learnings show real execution results. If learning shows action X failed, do NOT use action X again under the same conditiions.
 
 
 WORKFLOW:
