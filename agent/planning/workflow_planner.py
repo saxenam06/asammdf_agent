@@ -105,10 +105,15 @@ def save_plan(
     filename = _get_plan_filename(task, plan_number)
     filepath = os.path.join(PLANS_DIR, filename)
 
+    # Add step numbers (1-indexed) to each action for human readability
+    plan_dict = plan.model_dump()
+    for idx, action in enumerate(plan_dict["plan"], 1):
+        action["step_num"] = idx
+
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump({
             "task": task,
-            "plan": plan.model_dump(),
+            "plan": plan_dict,
             "metadata": metadata or {}
         }, f, indent=2)
 

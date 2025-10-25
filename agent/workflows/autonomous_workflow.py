@@ -188,7 +188,7 @@ class AutonomousWorkflow:
 
             print(f"  ✓ Generated {len(plan.plan)} steps")
             state["plan"] = plan
-            state["current_step"] = 0
+            state["current_step"] = 0  # Start at step 0 (0-indexed internally)
 
             if self._executor is None:
                 _ = self.executor
@@ -216,15 +216,17 @@ class AutonomousWorkflow:
         return state
 
     def _execute_step_node(self, state: WorkflowState) -> WorkflowState:
-        step_num = state["current_step"]
+        step_num = state["current_step"]  # 0-indexed internally
         total_steps = len(state["plan"].plan) if state["plan"] else 0
         action = state["plan"].plan[step_num]
 
-        print(f"\n[4/5] Executing step {step_num + 1}/{total_steps}: {action.tool_name}")
+        step_display = step_num + 1  # Convert to 1-indexed for display
+
+        print(f"\n[4/5] Executing step {step_display}/{total_steps}: {action.tool_name}")
         sys.stdout.flush()
 
         context_actions = state["plan"].plan[:step_num]
-        result = self.executor.execute_action(action, context=context_actions, step_num=step_num)
+        result = self.executor.execute_action(action, context=context_actions, step_num=step_display)
 
         # Note: Learning attachment handled in _handle_failure() method of AdaptiveExecutor
 
@@ -358,11 +360,11 @@ class AutonomousWorkflow:
             failed_step_num = failure_info["failed_step_num"]
             failed_action = failure_info["learning"]["original_action"]
 
-            print(f"\n  Processing failure from KB item '{kb_id}' (step {failed_step_num + 1})...")
+            print(f"\n  Processing failure from KB item '{kb_id}' (step {failed_step_num})...")
 
             # Analyze how we recovered
             recovery_approach = self.executor.analyze_recovery(
-                failed_step_num=failed_step_num,
+                failed_step_num=failed_step_num,  # Already 1-indexed from KB
                 failed_action=failed_action,
                 successful_plan_actions=successful_plan_actions
             )

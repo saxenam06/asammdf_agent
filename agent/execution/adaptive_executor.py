@@ -315,7 +315,7 @@ class AdaptiveExecutor:
         Args:
             action: High-level action to execute
             context: Previous actions for context
-            step_num: Optional step number from the plan (used for state caching)
+            step_num: Optional step number (1-indexed for display, KB storage, and logs)
 
         Returns:
             Execution result
@@ -405,7 +405,7 @@ class AdaptiveExecutor:
     def _create_failure_learning(
         self,
         failed_action: ActionSchema,
-        step_num: int,
+        step_display: int,
         error: str,
         task: str
     ):
@@ -414,7 +414,7 @@ class AdaptiveExecutor:
 
         Args:
             failed_action: The action that failed
-            step_num: Step number that failed
+            step_display: Step number that failed (1-indexed for human readability)
             error: Error message
             task: Original task being executed
 
@@ -423,10 +423,10 @@ class AdaptiveExecutor:
         """
         from agent.feedback.schemas import FailureLearning
 
-        # Create learning without related docs
+        # Create learning with 1-indexed step number
         learning = FailureLearning(
             task=task,
-            step_num=step_num,
+            step_num=step_display,  # Store 1-indexed for human consistency
             original_action=failed_action.model_dump(),
             original_error=error,
             recovery_approach=""  # Empty until recovered on rerun
@@ -437,14 +437,14 @@ class AdaptiveExecutor:
     def _handle_failure(
         self,
         failed_action: ActionSchema,
-        step_num: int,
+        step_display: int,
         error: str
     ) -> ExecutionResult:
         """
         Handle action failure by creating failure learning and stopping execution
 
         This method:
-        1. Creates a FailureLearning (without related docs)
+        1. Creates a FailureLearning (with 1-indexed step number)
         2. Attaches the learning to the responsible KB item (via kb_source)
         3. Updates KB trust score
         4. Updates KB vector metadata
@@ -455,14 +455,14 @@ class AdaptiveExecutor:
 
         Args:
             failed_action: The action that failed
-            step_num: Step number that failed
+            step_display: Step number that failed (1-indexed for display)
             error: Error message
 
         Returns:
             ExecutionResult indicating failure
         """
         print(f"\n{'='*80}")
-        print(f"⚠️  FAILURE DETECTED - Step {step_num + 1} failed")
+        print(f"⚠️  FAILURE DETECTED - Step {step_display} failed")
         print(f"{'='*80}")
         print(f"Action: {failed_action.tool_name}")
         print(f"Error: {error}")
@@ -478,8 +478,8 @@ class AdaptiveExecutor:
                 print(f"  ! Could not load task from plan: {e}")
 
         try:
-            # Create failure learning (without related docs)
-            learning = self._create_failure_learning(failed_action, step_num, error, task)
+            # Create failure learning (with 1-indexed step number)
+            learning = self._create_failure_learning(failed_action, step_display, error, task)
 
             # Attach learning to KB item if kb_source is set
             if failed_action.kb_source:
@@ -573,9 +573,9 @@ class AdaptiveExecutor:
         Analyze how the agent recovered by comparing failed action with successful plan
 
         Args:
-            failed_step_num: Step number where failure occurred in previous run
+            failed_step_num: Step number where failure occurred (1-indexed from KB)
             failed_action: The action that failed (as dict)
-            successful_plan_actions: Actions from the current successful plan
+            successful_plan_actions: Actions from the current successful plan (0-indexed list)
 
         Returns:
             Human-readable description of the recovery approach
@@ -584,19 +584,35 @@ class AdaptiveExecutor:
 
         # Get the failed action details
         failed_tool = failed_action.get("tool_name", "unknown")
+        failed_args = failed_action.get("tool_arguments", {})
         failed_kb_source = failed_action.get("kb_source")
 
-        # Look at what happened at and around the failed step in the successful plan
-        if failed_step_num < len(successful_plan_actions):
+        # Convert 1-indexed step_num to 0-indexed array access
+        step_index = failed_step_num - 1
+
+        # Look at what happened at the failed step in the successful plan
+        if 0 <= step_index < len(successful_plan_actions):
             # Check the action at the same step number
-            current_action = successful_plan_actions[failed_step_num]
+            current_action = successful_plan_actions[step_index]
             current_tool = current_action.tool_name
+            current_args = current_action.tool_arguments
             current_kb_source = current_action.kb_source
 
-            # Compare tool names
-            if failed_tool != current_tool:
+            # Compare tool names AND arguments
+            tool_changed = failed_tool != current_tool
+            args_changed = failed_args != current_args
+
+            if tool_changed and args_changed:
                 recovery_parts.append(
-                    f"Changed tool from {failed_tool} to {current_tool} at step {failed_step_num + 1}"
+                    f"Changed from {failed_tool}{failed_args} to {current_tool}{current_args} at step {failed_step_num}"
+                )
+            elif tool_changed:
+                recovery_parts.append(
+                    f"Changed tool from {failed_tool} to {current_tool} at step {failed_step_num}"
+                )
+            elif args_changed:
+                recovery_parts.append(
+                    f"Changed arguments for {failed_tool} at step {failed_step_num}"
                 )
 
             # Compare KB sources
@@ -627,7 +643,7 @@ class AdaptiveExecutor:
         # If no specific changes detected
         if not recovery_parts:
             recovery_parts.append(
-                f"Regenerated plan succeeded with alternative approach at step {failed_step_num + 1}"
+                f"Regenerated plan succeeded with alternative approach at step {failed_step_num}"
             )
 
         return "; ".join(recovery_parts)
