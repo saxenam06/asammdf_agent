@@ -468,7 +468,10 @@ class AutonomousWorkflow:
 
         # Start HITL observer if enabled
         if self.enable_hitl and HITL_AVAILABLE:
-            self._human_observer = HumanObserver(session_id=self.session_id)
+            self._human_observer = HumanObserver(
+                session_id=self.session_id,
+                knowledge_retriever=self.retriever
+            )
             self._human_observer.start()
             print("[HITL] Observer started")
 

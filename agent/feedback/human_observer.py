@@ -47,7 +47,8 @@ class HumanObserver:
     def __init__(
         self,
         session_id: str,
-        protocol: Optional[CommunicationProtocol] = None
+        protocol: Optional[CommunicationProtocol] = None,
+        knowledge_retriever: Optional[Any] = None
     ):
         """
         Initialize human observer
@@ -55,9 +56,11 @@ class HumanObserver:
         Args:
             session_id: Session identifier
             protocol: Communication protocol instance
+            knowledge_retriever: Knowledge retriever instance for updating vector metadata
         """
         self.session_id = session_id
         self.protocol = protocol or CommunicationProtocol()
+        self.knowledge_retriever = knowledge_retriever
 
         # State
         self.running = False
@@ -636,6 +639,14 @@ class HumanObserver:
                 json.dump(catalog_data, f, indent=2, ensure_ascii=False)
 
             print(f"  [KB] Catalog updated with human feedback")
+
+            # Update vector metadata for this KB item (reloads from catalog)
+            if self.knowledge_retriever:
+                try:
+                    self.knowledge_retriever.update_vector_metadata(kb_id=kb_id)
+                    print(f"  [KB Vector] Updated metadata from catalog for: {kb_id}")
+                except Exception as e:
+                    print(f"  [Warning] Could not update vector metadata: {e}")
 
         except Exception as e:
             print(f"  [Error] Failed to attach feedback to KB: {e}")
