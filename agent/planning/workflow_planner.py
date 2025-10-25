@@ -397,21 +397,25 @@ Action Sequence:
 
             # Add learnings if they exist
             if kb.kb_learnings and len(kb.kb_learnings) > 0:
-                kb_section += f"\n\n⚠️ PAST LEARNINGS ({len(kb.kb_learnings)} correction(s)):\n"
+                kb_section += f"\n\n⚠️ PAST FAILURES ({len(kb.kb_learnings)} failure(s)):\n"
 
                 for idx, learning_dict in enumerate(kb.kb_learnings[:3], 1):  # Top 3
-                    # Check if it's a failure learning
-                    if 'recovery_approach' in learning_dict:
+                    # Check if it's a failure learning (has original_error field)
+                    if 'original_error' in learning_dict:
+                        failed_tool = learning_dict.get('original_action', {}).get('tool_name', 'N/A')
+                        failed_args = learning_dict.get('original_action', {}).get('tool_arguments', {})
+                        error_msg = learning_dict.get('original_error', 'N/A')
+                        step_num = learning_dict.get('step_num', 'N/A')
+
                         kb_section += f"""
-{idx}. Past Failure:
-   - Failed Action: {learning_dict.get('original_action', {}).get('tool_name', 'N/A')}
-   - Error: {learning_dict.get('original_error', 'N/A')}
-   - Successful Approach: {learning_dict.get('recovery_approach', 'N/A') if learning_dict.get('recovery_approach') else '(Not yet resolved - see related docs below)'}
+{idx}. Failure at Step {step_num}:
+   - Failed Action: {failed_tool} with args {failed_args}
+   - Error: {error_msg}
+   - Consider: Try alternative approach, different KB item, or use related docs below
 """
                         # Dynamically retrieve related docs to help solve the error
                         if self.knowledge_retriever:
                             try:
-                                error_msg = learning_dict.get('original_error', '')
                                 action_reasoning = learning_dict.get('original_action', {}).get('reasoning', '')
                                 search_query = f"{action_reasoning} {error_msg} alternative solution"
 
@@ -420,7 +424,7 @@ Action Sequence:
                                 related_kb_items = [item for item in related_kb_items if item.knowledge_id != kb.knowledge_id]
 
                                 if related_kb_items:
-                                    kb_section += f"   📚 Related Docs ({len(related_kb_items)}):\n"
+                                    kb_section += f"   📚 Alternative Approaches ({len(related_kb_items)}):\n"
                                     for doc in related_kb_items[:2]:  # Limit to 2 for brevity
                                         kb_section += f"      • KB ID: {doc.knowledge_id}\n"
                                         kb_section += f"        {doc.description[:100]}\n"
