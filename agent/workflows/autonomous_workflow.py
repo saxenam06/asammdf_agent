@@ -68,6 +68,8 @@ class AutonomousWorkflow:
         self._client = None
         self._executor = None
         self.interactive_mode = interactive_mode
+        self._feedback_requested = False  # Flag set when ESC is pressed
+        self._keyboard_listener = None
 
         # HITL components
         self.enable_hitl = enable_hitl and HITL_AVAILABLE
@@ -83,7 +85,7 @@ class AutonomousWorkflow:
             print("[HITL] Disabled")
 
         if self.interactive_mode:
-            print(f"[Interactive Mode] ENABLED - Will pause after each step for feedback")
+            print(f"[Interactive Mode] ENABLED - Press ESC anytime to provide feedback")
 
     @property
     def retriever(self):
@@ -260,12 +262,14 @@ class AutonomousWorkflow:
             print(f"  ✓ Success")
             state["error"] = None
 
-            # Interactive mode: Pause after successful step for feedback
-            if self.interactive_mode:
+            # Interactive mode: Check if feedback was requested (ESC pressed)
+            if self.interactive_mode and self._feedback_requested:
                 if self._human_observer:
                     self._prompt_for_step_feedback(state)
+                    self._feedback_requested = False  # Reset flag
                 else:
                     print(f"[Debug] Interactive mode enabled but observer not available")
+                    self._feedback_requested = False
 
         return state
 
@@ -311,6 +315,32 @@ class AutonomousWorkflow:
         self._switch_to_asammdf()
 
         print("-"*80 + "\n")
+
+    def _start_keyboard_listener(self):
+        """Start keyboard listener for ESC key to request feedback"""
+        try:
+            from pynput import keyboard
+
+            def on_press(key):
+                if key == keyboard.Key.esc:
+                    self._feedback_requested = True
+                    print("\n[ESC pressed] Feedback will be requested after current step completes...")
+
+            self._keyboard_listener = keyboard.Listener(on_press=on_press)
+            self._keyboard_listener.start()
+            print("[Keyboard Listener] Started - Press ESC anytime to provide feedback")
+
+        except ImportError:
+            print("[Warning] pynput not installed - ESC key feedback disabled")
+            print("          Install with: pip install pynput")
+        except Exception as e:
+            print(f"[Warning] Could not start keyboard listener: {e}")
+
+    def _stop_keyboard_listener(self):
+        """Stop keyboard listener"""
+        if self._keyboard_listener:
+            self._keyboard_listener.stop()
+            self._keyboard_listener = None
 
     def _switch_to_asammdf(self):
         """
@@ -440,7 +470,11 @@ class AutonomousWorkflow:
         if self.enable_hitl and HITL_AVAILABLE:
             self._human_observer = HumanObserver(session_id=self.session_id)
             self._human_observer.start()
-            print("[HITL] Observer started (press Ctrl+I to interrupt)")
+            print("[HITL] Observer started")
+
+        # Start keyboard listener for interactive mode
+        if self.interactive_mode:
+            self._start_keyboard_listener()
 
         async with MCPClient() as client:
             self._client = client
@@ -473,6 +507,10 @@ class AutonomousWorkflow:
                 return {"success": False, "task": task, "error": str(e)}
 
             finally:
+                # Stop keyboard listener
+                if self.interactive_mode:
+                    self._stop_keyboard_listener()
+
                 # Stop HITL observer
                 if self.enable_hitl and self._human_observer:
                     self._human_observer.stop()
