@@ -54,6 +54,7 @@ class AutonomousWorkflow:
         vector_db_path: str = "agent/knowledge_base/vector_store",
         max_retries: int = 0,  # No retries - always stop on failure
         enable_hitl: bool = True,
+        interactive_mode: bool = True,  # Pause after each step for feedback (default: ON)
         session_id: Optional[str] = None
     ):
         self.app_name = app_name
@@ -66,6 +67,7 @@ class AutonomousWorkflow:
         self._graph = None
         self._client = None
         self._executor = None
+        self.interactive_mode = interactive_mode
 
         # HITL components
         self.enable_hitl = enable_hitl and HITL_AVAILABLE
@@ -79,6 +81,9 @@ class AutonomousWorkflow:
             # Observer will be started in run() method
         else:
             print("[HITL] Disabled")
+
+        if self.interactive_mode:
+            print(f"[Interactive Mode] ENABLED - Will pause after each step for feedback")
 
     @property
     def retriever(self):
@@ -255,7 +260,91 @@ class AutonomousWorkflow:
             print(f"  ✓ Success")
             state["error"] = None
 
+            # Interactive mode: Pause after successful step for feedback
+            if self.interactive_mode:
+                if self._human_observer:
+                    self._prompt_for_step_feedback(state)
+                else:
+                    print(f"[Debug] Interactive mode enabled but observer not available")
+
         return state
+
+    def _prompt_for_step_feedback(self, state: WorkflowState):
+        """
+        Prompt user for feedback after a step completes in interactive mode
+
+        Args:
+            state: Current workflow state
+        """
+        # current_step is 0-indexed internally and already incremented after execution
+        # So state["current_step"] = 1 means step 1 just completed (array index 0)
+        # Display as 1-indexed for human
+        completed_step_num = state["current_step"]  # Already 1-indexed for display
+
+        print("\n" + "-"*80)
+        print(f"[Interactive] Step {completed_step_num} completed")
+        feedback_prompt = input("Provide feedback for this step? [y/N/stop]: ").strip().lower()
+
+        if feedback_prompt == 'stop':
+            print("[Stopped] Execution stopped by user")
+            state["error"] = "User requested stop"
+            state["completed"] = False
+            return
+
+        if feedback_prompt == 'y':
+            from agent.planning.workflow_planner import get_latest_plan_filepath
+            plan_filepath = get_latest_plan_filepath(state["task"])
+
+            if plan_filepath:
+                feedback_result = self._human_observer.provide_step_feedback(
+                    task=state["task"],
+                    plan_filepath=plan_filepath
+                )
+
+                if feedback_result:
+                    print(f"✓ Feedback recorded for step {feedback_result['step_num']}")
+            else:
+                print("[Error] Could not find plan file for feedback")
+
+        # IMPORTANT: Switch focus back to asammdf after feedback
+        # Terminal interaction causes focus to shift to VS Code/terminal
+        self._switch_to_asammdf()
+
+        print("-"*80 + "\n")
+
+    def _switch_to_asammdf(self):
+        """
+        Switch active window to asammdf application using MCP Switch-Tool
+
+        After interactive feedback, the terminal/VS Code becomes active,
+        which breaks State-Tool coordinate capture. This ensures asammdf is active.
+        """
+        try:
+            print(f"\n[Switching focus] Activating {self.app_name}...")
+
+            # Use MCP Switch-Tool to activate window
+            from agent.planning.schemas import ActionSchema
+
+            switch_action = ActionSchema(
+                tool_name="Switch-Tool",
+                tool_arguments={"name": "asammdf"},  # Use "name" parameter, not "window_title"
+                reasoning="Switch focus back to asammdf after interactive feedback"
+            )
+
+            result = self.client.execute_action_sync(switch_action)
+
+            if result.success:
+                print(f"  ✓ {self.app_name} is now active")
+            else:
+                print(f"  ⚠️  Warning: Could not switch to {self.app_name}")
+                print(f"     Error: {result.error}")
+                print(f"     Please manually click on {self.app_name} window")
+                input("     Press Enter when ready...")
+
+        except Exception as e:
+            print(f"  ⚠️  Warning: Could not switch to {self.app_name}: {e}")
+            print(f"     Please manually click on {self.app_name} window")
+            input("     Press Enter when ready...")
 
     def _handle_error_node(self, state: WorkflowState) -> WorkflowState:
         """
@@ -408,6 +497,7 @@ def execute_autonomous_task(
     app_name: str = "asammdf 8.6.10",
     catalog_path: str = "agent/knowledge_base/parsed_knowledge/knowledge_catalog.json",
     vector_db_path: str = "agent/knowledge_base/vector_store",
+    interactive_mode: bool = True  # Default: ON
 ) -> dict:
     """
     Convenience function to execute a task autonomously
@@ -416,6 +506,7 @@ def execute_autonomous_task(
         task: Natural language task description
         app_name: Application window name
         catalog_path: Path to knowledge catalog
+        interactive_mode: If True, pause after each step for feedback
 
     Returns:
         Execution results
@@ -423,7 +514,8 @@ def execute_autonomous_task(
     workflow = AutonomousWorkflow(
         app_name=app_name,
         catalog_path=catalog_path,
-        vector_db_path=vector_db_path
+        vector_db_path=vector_db_path,
+        interactive_mode=interactive_mode
     )
 
     return workflow.run_sync(task)
@@ -446,6 +538,12 @@ if __name__ == "__main__":
         "--gui-instructions",
         default=None,
         help="Optional GUI-specific instructions"
+    )
+    parser.add_argument(
+        "--interactive",
+        type=lambda x: x.lower() == 'true',
+        default=True,
+        help="Interactive mode - pause after each step for feedback (default: True)"
     )
     args = parser.parse_args()
 
@@ -477,7 +575,12 @@ if __name__ == "__main__":
     else:
         full_task = task
 
-    results = execute_autonomous_task(task=full_task, catalog_path="agent/knowledge_base/parsed_knowledge/knowledge_catalog.json", vector_db_path="agent/knowledge_base/vector_store")
+    results = execute_autonomous_task(
+        task=full_task,
+        catalog_path="agent/knowledge_base/parsed_knowledge/knowledge_catalog.json",
+        vector_db_path="agent/knowledge_base/vector_store",
+        interactive_mode=args.interactive
+    )
 
     print(f"\n\nFinal Results:")
     print(f"  Success: {results['success']}")

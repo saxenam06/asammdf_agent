@@ -113,8 +113,45 @@
     "output_state": "mode_batch_processing",
     "doc_citation": "GUI#Mode",
     "parameters": {},
-    "kb_learnings": [],
-    "trust_score": 1.0
+    "kb_learnings": [
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 4,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:menu:Batch processing"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Select 'Batch processing' to enable batch operations for multiple files",
+          "kb_source": "set_mode_batch_processing"
+        },
+        "original_error": "Could not resolve any of 1 alternative(s): No element named 'Batch processing' is present in the current UI state. | Suggestion: Consider checking the 'File', 'Mode', or 'Managers' menu items for batch processing options.",
+        "timestamp": "2025-10-25T16:06:51.470701"
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 13,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:menu:Batch processing"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Select Batch processing mode so multiple files can be arranged and batch operations (concatenate) run (from KB: set_mode_batch_processing)",
+          "kb_source": "set_mode_batch_processing"
+        },
+        "original_error": "Could not resolve any of 1 alternative(s): No element matching 'Batch processing' found in the current UI state. | Suggestion: Consider looking for similar elements like 'Mode' or 'File' menu that might lead to batch processing options.",
+        "timestamp": "2025-10-25T16:09:47.042439"
+      }
+    ],
+    "trust_score": 0.8145062499999999
   },
   {
     "knowledge_id": "set_mode_comparison",
@@ -1575,8 +1612,27 @@
     "output_state": "concatenated_file_created",
     "doc_citation": "GUI#Batch-processing",
     "parameters": {},
-    "kb_learnings": [],
-    "trust_score": 0.9025
+    "kb_learnings": [
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 7,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Add files"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Open the file selection dialog to add multiple .MF4 files for concatenation (from KB: batch_concatenate_files)",
+          "kb_source": "batch_concatenate_files"
+        },
+        "original_error": "Could not resolve any of 1 alternative(s): No button labeled 'Add files' is present in the current UI state. | Suggestion: Consider using the 'File' menu or other buttons related to file operations.",
+        "timestamp": "2025-10-25T16:03:54.715371"
+      }
+    ],
+    "trust_score": 0.8573749999999999
   },
   {
     "knowledge_id": "batch_stack_files",
