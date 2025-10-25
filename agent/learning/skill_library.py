@@ -251,6 +251,9 @@ class SkillLibrary:
 
     def save(self):
         """Save skill library to JSON"""
+        # Ensure directory exists before saving
+        os.makedirs(os.path.dirname(self.library_path), exist_ok=True)
+
         data = {
             "version": "1.0",
             "updated_at": datetime.now().isoformat(),
@@ -260,6 +263,8 @@ class SkillLibrary:
 
         with open(self.library_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2)
+
+        print(f"[SkillLibrary] Saved {len(self.skills)} skills to {self.library_path}")
 
     def load(self):
         """Load skill library from JSON"""

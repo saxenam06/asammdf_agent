@@ -76,10 +76,10 @@ class AutonomousWorkflow:
         self.session_id = "session_fe2424ebd"
         self._human_observer = None
         self._skill_library = None
+        # Skill library will be initialized when task is set (in run method)
 
         if self.enable_hitl:
             print(f"[HITL] Enabled (session: {self.session_id})")
-            self._skill_library = SkillLibrary()
             # Observer will be started in run() method
         else:
             print("[HITL] Disabled")
@@ -416,18 +416,22 @@ class AutonomousWorkflow:
             # Create verified skill if requested
             if verification.create_skill and self._skill_library and state.get("plan"):
                 try:
-                    skill_id = self._skill_library.add_skill(
-                        task=state["task"],
-                        plan=state["plan"].model_dump(),
-                        success_rate=1.0,
-                        metadata={
-                            "session_id": self.session_id,
-                            "human_verified": True,
-                            "verification_reasoning": verification.reasoning,
-                            "steps_completed": state.get("current_step", 0)
-                        }
+                    # Get execution summary for tracking human feedbacks
+                    human_feedbacks_count = execution_summary.get("human_feedbacks", 0)
+                    agent_recoveries_count = execution_summary.get("agent_recoveries", 0)
+
+                    # Extract action plan from PlanSchema
+                    action_plan = state["plan"].plan  # PlanSchema has 'plan' attribute with List[ActionSchema]
+
+                    skill = self._skill_library.add_skill(
+                        task_description=state["task"],
+                        action_plan=action_plan,
+                        session_id=self.session_id,
+                        human_feedbacks_count=human_feedbacks_count,
+                        agent_recoveries_count=agent_recoveries_count,
+                        tags=["human_verified"]
                     )
-                    print(f"  [HITL] Created verified skill: {skill_id}")
+                    print(f"  [HITL] Created verified skill: {skill.skill_id}")
                 except Exception as e:
                     print(f"  [Warning] Failed to create skill: {e}")
 
@@ -454,6 +458,29 @@ class AutonomousWorkflow:
         """Always fail - no retries. User must rerun task to apply learnings."""
         return "failed"
 
+    def _get_skill_library_path(self, task: str) -> str:
+        """
+        Generate skill library path based on task name
+
+        Args:
+            task: Task description
+
+        Returns:
+            Path to skill library JSON file for this task
+        """
+        import re
+
+        # Clean task name: remove special chars, limit length, convert to snake_case
+        task_clean = re.sub(r'[^\w\s-]', '', task.lower())
+        task_clean = re.sub(r'[-\s]+', '_', task_clean)
+        task_clean = task_clean[:50]  # Limit to 50 chars
+        task_clean = task_clean.strip('_')
+
+        if not task_clean:
+            task_clean = "default_task"
+
+        return f"agent/learning/verified_skills/{task_clean}_skills.json"
+
     async def run(self, task: str, force_regenerate_plan: bool = False) -> dict:
         print("\n" + "="*80)
         print(f"Task: {task}")
@@ -465,6 +492,12 @@ class AutonomousWorkflow:
             current_step=0, execution_log=[], error=None, completed=False,
             retry_count=0, force_regenerate_plan=force_regenerate_plan
         )
+
+        # Initialize skill library with task-specific path
+        if self.enable_hitl and HITL_AVAILABLE:
+            skill_library_path = self._get_skill_library_path(task)
+            self._skill_library = SkillLibrary(library_path=skill_library_path)
+            print(f"[SkillLibrary] Using: {skill_library_path}")
 
         # Start HITL observer if enabled
         if self.enable_hitl and HITL_AVAILABLE:
