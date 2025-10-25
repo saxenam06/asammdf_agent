@@ -243,10 +243,6 @@ class AutonomousWorkflow:
             print(f"  ✓ All {total_steps} steps completed!")
             state["completed"] = True
             state["error"] = None
-
-            # Check and update recoveries after successful completion
-            self._check_and_update_recoveries(state)
-
             return state
 
         last_result = state["execution_log"][-1] if state["execution_log"] else None
@@ -326,63 +322,6 @@ class AutonomousWorkflow:
                 state["error"] = f"Human verification: {verification.reasoning}"
 
         return state
-
-    def _check_and_update_recoveries(self, state: WorkflowState):
-        """
-        Check for unresolved failures and update recovery approaches after successful completion
-
-        Args:
-            state: Current workflow state with completed plan
-        """
-        if not self.executor or not state.get("plan"):
-            return
-
-        print(f"\n{'='*80}")
-        print(f"🔍 RECOVERY TRACKING: Checking for unresolved failures")
-        print(f"{'='*80}")
-
-        # Get all unresolved failures for this task
-        unresolved_failures = self.executor.get_all_unresolved_failures_for_task(state["task"])
-
-        if not unresolved_failures:
-            print(f"  ✓ No unresolved failures found")
-            return
-
-        print(f"  Found {len(unresolved_failures)} unresolved failure(s)")
-
-        # Analyze recovery for each failure
-        successful_plan_actions = state["plan"].plan
-        recoveries_updated = 0
-
-        for failure_info in unresolved_failures:
-            kb_id = failure_info["kb_id"]
-            learning_index = failure_info["learning_index"]
-            failed_step_num = failure_info["failed_step_num"]
-            failed_action = failure_info["learning"]["original_action"]
-
-            print(f"\n  Processing failure from KB item '{kb_id}' (step {failed_step_num})...")
-
-            # Analyze how we recovered
-            recovery_approach = self.executor.analyze_recovery(
-                failed_step_num=failed_step_num,  # Already 1-indexed from KB
-                failed_action=failed_action,
-                successful_plan_actions=successful_plan_actions
-            )
-
-            print(f"    Recovery: {recovery_approach}")
-
-            # Update the KB item with recovery approach
-            self.executor.update_recovery_in_kb(
-                kb_id=kb_id,
-                learning_index=learning_index,
-                recovery_approach=recovery_approach
-            )
-
-            recoveries_updated += 1
-
-        print(f"\n{'='*80}")
-        print(f"✅ RECOVERY COMPLETE: Updated {recoveries_updated} KB item(s) with recovery approaches")
-        print(f"{'='*80}\n")
 
     def _route_after_validation(self, state: WorkflowState) -> str:
         return "error" if state.get("error") else "execute"

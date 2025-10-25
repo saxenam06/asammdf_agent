@@ -233,13 +233,13 @@ class FailureLearning(BaseModel):
     Learning from execution failure
 
     Captures failure context. Related docs are retrieved dynamically during planning,
-    not stored with the learning.
+    not stored with the learning. The LLM planner will use failure history to determine
+    alternative approaches - we don't try to track recovery at step level.
     """
     task: str = Field(..., description="Task being executed when failure occurred")
-    step_num: int = Field(..., description="Step number where error occurred")
+    step_num: int = Field(..., description="Step number where error occurred (1-indexed)")
     original_action: Dict[str, Any] = Field(..., description="Action that failed")
     original_error: str = Field(..., description="Error message from the failure")
-    recovery_approach: str = Field("", description="Successful approach after rerun (empty until success)")
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
 
     class Config:
@@ -248,8 +248,7 @@ class FailureLearning(BaseModel):
                 "task": "Concatenate MF4 files",
                 "step_num": 10,
                 "original_action": {"tool_name": "Click-Tool", "loc": [500, 400]},
-                "original_error": "Element 'Add Files' button not found",
-                "recovery_approach": ""
+                "original_error": "Element 'Add Files' button not found"
             }
         }
 
