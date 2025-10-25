@@ -1,6 +1,6 @@
 # asammdf Agent
 
-**Autonomous GUI Automation Agent** - Natural language → GUI control with KB-attached learning and iterative improvement.
+**Autonomous GUI Automation Agent with Human-in-the-Loop** - Natural language → GUI control with KB-attached learning, verified skills, and iterative improvement.
 
 ---
 
@@ -9,11 +9,18 @@
 ```python
 from agent.workflows.autonomous_workflow import execute_autonomous_task
 
-result = execute_autonomous_task("Concatenate all MF4 files in C:\\data and save as output.mf4")
+# With interactive mode (default) - Press ESC anytime during execution for feedback
+result = execute_autonomous_task(
+    "Concatenate all MF4 files in C:\\data and save as output.mf4",
+    interactive_mode=True  # HITL enabled by default
+)
 print(f"Success: {result['success']}")
 ```
 
+**💡 Interactive Mode**: Press **ESC anytime** during execution to provide feedback on the current/completed step.
+
 **On failure:** Agent attaches learning to KB, user reruns for improved plan.
+**On success:** Human can verify and save as reusable skill.
 
 ---
 
@@ -32,29 +39,35 @@ print(f"Success: {result['success']}")
 
 ## 🏗️ System Architecture
 
-### KB-Attached Learning with Iterative Rerun
+### KB-Attached Learning with HITL and Iterative Rerun
 
 ```
 Natural Language Task
     ↓
-RAG Retrieval (ChromaDB) → KB items with past learnings
+Skill Matching (HITL) → Check verified skills library (fuzzy matching)
+    ↓ (if no match)
+RAG Retrieval (ChromaDB) → KB items with past learnings & trust scores
     ↓
-AI Planning (GPT-4o) → Plan with kb_source attribution
+AI Planning (GPT-5-mini) → Plan with kb_source attribution
     ↓
 Adaptive Execution (GPT-4o-mini) → Resolve UI elements
+    ├─ Low Confidence → Request Human Approval (HITL)
+    ├─ [ANYTIME] Press ESC → Provide Feedback on Current/Completed Step (HITL) ⌨️
     ↓
 On Failure: Attach learning → Stop → User reruns with improved context
-    ↓
-On Success: Trust scores intact, learnings reused for similar tasks
+On Success: Human Verification → Save as Verified Skill (HITL)
 ```
+
+**Key HITL Feature**: The **ESC key works anytime during execution** - press it while the agent is working, and feedback will be requested as soon as the current step completes. Non-blocking and seamless.
 
 ### Core Principles
 
 1. **KB-Attached Learning**: Learnings stored WITH the KB items they correct
-2. **Iterative Rerun**: Execution stops on failure, user explicitly reruns
-3. **Dynamic Enrichment**: Related docs retrieved fresh during each planning
-4. **Vector Consistency**: Catalog is single source of truth
-5. **Learning Prioritization**: Learnings trump documentation (even 1 learning > 10 docs)
+2. **Human-in-the-Loop**: Skills library, action approval, interactive feedback, task verification
+3. **Iterative Rerun**: Execution stops on failure, user explicitly reruns
+4. **Dynamic Enrichment**: Related docs retrieved fresh during each planning
+5. **Vector Consistency**: Catalog is single source of truth
+6. **Learning Prioritization**: Verified skills > Learnings > Documentation
 
 ---
 
@@ -63,17 +76,27 @@ On Success: Trust scores intact, learnings reused for similar tasks
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
 | **Knowledge Base** | ChromaDB + sentence-transformers | Semantic doc search with metadata |
-| **Planning** | GPT-4o (OpenAI) | Generate tool sequences with kb_source attribution |
+| **Planning** | GPT-5-mini (OpenAI) | Generate tool sequences with kb_source attribution |
 | **Execution** | GPT-4o-mini (OpenAI) | Dynamic UI element resolution |
 | **Learning Storage** | JSON catalog + ChromaDB metadata | KB-attached learnings with trust scores |
-| **Orchestration** | LangGraph | State machine (no automatic replanning) |
+| **Skills Library** | JSON per task | Human-verified workflows with fuzzy matching |
+| **HITL Observer** | Background thread | Non-blocking human approvals/feedback |
+| **Orchestration** | LangGraph | 6-node state machine (no automatic replanning) |
 | **MCP Tools** | Windows-MCP server | 13+ GUI automation tools |
+| **Keyboard Listener** | pynput | ESC key for interactive feedback |
 
-**Note**: System designed to work WITHOUT external memory stores (Mem0 code exists but disabled).
+**Note**: Fully self-contained system using JSON storage (no external databases required).
 
 ---
 
 ## ✨ Key Features
+
+### Human-in-the-Loop (HITL) System
+✅ **Verified Skills Library** - Save successful workflows, reuse with fuzzy matching (≥70% similarity)
+✅ **Interactive Mode** - Press ESC anytime during execution for step feedback
+✅ **Low-Confidence Approval** - System requests human approval for uncertain actions (<50% confidence)
+✅ **Task Verification** - Human verifies completion and optionally saves as skill
+✅ **Focus Management** - Auto-switches back to target app after terminal interaction
 
 ### KB-Attached Learning System
 ✅ **Learnings live with KB items** - Errors attached to the KB patterns that caused them
@@ -90,10 +113,11 @@ On Success: Trust scores intact, learnings reused for similar tasks
 
 ### Planning & Execution
 ✅ **Documentation-driven** - GPT extracts knowledge from docs (no hardcoding)
-✅ **Adaptive resolution** - Resolves UI elements dynamically
-✅ **Learning prioritization** - 1 failure learning overrides 10 KB docs
+✅ **Adaptive resolution** - Resolves UI elements dynamically with GPT-4o-mini
+✅ **Learning prioritization** - Verified skills > Learnings > Documentation
 ✅ **Prompt history** - Every planning prompt saved for debugging
 ✅ **Cost tracking** - Real-time API monitoring by component/model
+✅ **State caching** - Reuses UI state across actions in same step
 
 ---
 
@@ -242,7 +266,7 @@ RAG retrieves "open_files" with learning → LLM sees failure context
 ```
 agent/
 ├── workflows/
-│   └── autonomous_workflow.py      # LangGraph orchestrator (no replanning)
+│   └── autonomous_workflow.py      # LangGraph orchestrator (6-node + HITL)
 ├── knowledge_base/                 # RAG System
 │   ├── doc_parser.py               # Parse documentation with GPT
 │   ├── indexer.py                  # Index into ChromaDB
@@ -251,14 +275,19 @@ agent/
 │   │   └── knowledge_catalog.json  # SOURCE OF TRUTH (learnings stored here)
 │   └── vector_store/               # ChromaDB (metadata synced from catalog)
 ├── planning/                       # Planning System
-│   ├── workflow_planner.py         # GPT-4o planning with learning formatting
+│   ├── workflow_planner.py         # GPT-5-mini planning with learning formatting
 │   ├── schemas.py                  # KnowledgeSchema, ActionSchema, FailureLearning
 │   └── plans/                      # Cached plans (Plan_0, Plan_1, ...)
 ├── execution/                      # Execution System
 │   ├── mcp_client.py               # MCP protocol (async)
 │   └── adaptive_executor.py        # GPT-4o-mini resolution + failure handling
-├── feedback/                       # Learning System
-│   └── schemas.py                  # FailureLearning, HumanInterruptLearning
+├── feedback/                       # HITL System
+│   ├── human_observer.py           # Background thread for approvals/feedback
+│   ├── communication_protocol.py   # Message passing protocol
+│   └── schemas.py                  # FailureLearning, HumanFeedback, Verification
+├── learning/                       # Skills Library
+│   ├── skill_library.py            # Verified workflows storage & matching
+│   └── verified_skills/            # Task-specific skill JSON files
 ├── prompts/                        # Centralized LLM prompts
 │   ├── planning_prompt.py          # System/user prompts + history saving
 │   ├── coordinate_resolution_prompt.py
@@ -456,6 +485,100 @@ agent/prompts/planning_history/
 
 ---
 
+## 🤝 Human-in-the-Loop (HITL) Features
+
+The system provides **four levels of human involvement**:
+
+### 1. Verified Skills Library (Highest Priority)
+
+**What**: Reuse proven workflows for similar tasks
+**When**: Before planning phase
+**How**:
+```python
+# After successful task completion
+workflow = AutonomousWorkflow(enable_hitl=True)
+result = workflow.run_sync("Concatenate MF4 files in folder X")
+
+# Human verifies → System prompts to save as skill
+# Next similar task: "Concatenate MF4 files in folder Y"
+# → Skill matched (75%+ similarity) → Reuses proven plan
+```
+
+**Benefits**:
+- Skip planning entirely for known tasks
+- Fuzzy matching finds similar tasks (≥70% similarity threshold)
+- Tracks success rate, times used
+- Each task type has its own skills file (e.g., `concatenate_mf4_files_skills.json`)
+
+### 2. Low-Confidence Action Approval
+
+**What**: Human approval for uncertain actions
+**When**: Before executing action with confidence < 50%
+**How**:
+```
+[Confidence: 0.45] About to: Click button at [450, 300]
+Approve? [y/n/correct]:
+  y → Execute as planned
+  n → Skip action
+  correct → Provide corrected action
+```
+
+**Confidence factors**:
+- Tool type (State-Tool: low risk, Click-Tool: high risk)
+- Has symbolic references (e.g., `['last_state:button:Save']`)
+- Number of recent failures
+- KB item trust score
+
+### 3. Interactive Mode (ESC Key Feedback) ⌨️
+
+**What**: Press ESC **anytime during execution** to provide feedback on current/completed step
+**When**: Works at any moment - while agent is planning, executing, or between steps
+**How**:
+```bash
+python agent/workflows/autonomous_workflow.py "Your task" --interactive true
+
+# During execution - Press ESC ANYTIME:
+[Step 3/10] Executing...
+[ESC pressed] ← You press ESC while step is running
+[ESC pressed] Feedback will be requested after current step completes...
+[Step 3/10] ✓ Success
+[Step 4/10] ✓ Success
+
+[Interactive] Step 4 completed
+Provide feedback for this step? [y/N/stop]: y
+  1. Was the action correct? [y/n]: n
+  2. What should have been done? (describe): Use Ctrl+S instead of clicking Save
+  3. Why? (reasoning): Save button location changes in different views
+✓ Feedback recorded
+```
+
+**Benefits**:
+- **Anytime interrupt** - Press ESC whenever you notice something wrong
+- **Non-blocking** - Doesn't interrupt current action, waits for safe completion point
+- **Keyboard listener** - Monitors ESC key continuously in background
+- **Focus auto-switched** - Returns to target app after feedback
+- **KB learning** - Creates learning entry attached to KB item
+
+### 4. Final Task Verification
+
+**What**: Human verifies task completed successfully
+**When**: After all steps complete
+**How**:
+```
+[HITL] Final Verification
+Task completed all 10 steps. Did it succeed? [y/n/partial]: y
+Want to save as verified skill? [y/n]: y
+  Tags (comma-separated, optional): mf4,concatenate,file_operations
+✓ Created verified skill: skill_001_20250126_143000
+```
+
+**Benefits**:
+- Ensures task actually succeeded (not just "no errors")
+- Creates reusable verified skill
+- Tracks human feedbacks & agent recoveries in metadata
+
+---
+
 ## 🎯 What Makes This Special
 
 ### 1. KB-Attached Learning
@@ -632,15 +755,25 @@ class FailureLearning(BaseModel):
 
 ---
 
-## 🚧 What's NOT Included (Removed/Deprecated)
+## 🚧 Design Decisions & Trade-offs
 
-- ❌ **Mem0 integration** - Code exists but disabled (JSON storage only)
-- ❌ **Automatic replanning** - Removed in favor of user-controlled reruns
-- ❌ **PlanRecoveryManager** - Deprecated
-- ❌ **max_replan_attempts** - Removed (user reruns instead)
-- ❌ **Multi-attempt retries** - Disabled (max_retries=0)
-- ❌ **HITL components** - Code exists but not active in current version
-- ❌ **Skill library** - Code exists but not active in current version
+### ✅ What's Included
+
+1. **HITL System** - Fully integrated (skills library, approvals, interactive mode, verification)
+2. **KB-Attached Learning** - Learnings stored with KB items (not separate memory)
+3. **Iterative Rerun** - User-controlled reruns (no automatic replanning)
+4. **JSON Storage** - Self-contained, no external databases
+5. **Two-Model Approach** - GPT-5-mini for planning, GPT-4o-mini for resolution
+6. **Task-Specific Skills** - Each task type has its own skills file
+
+### ❌ What's Excluded
+
+- ❌ **Mem0 integration** - Code scaffolding exists but disabled (using JSON only)
+- ❌ **Automatic replanning** - Removed in favor of explicit user reruns
+- ❌ **Multi-attempt retries** - Disabled (max_retries=0, user reruns instead)
+- ❌ **Vision-based state** - Text-only UI state (no GPT-4o vision yet)
+- ❌ **Parallel execution** - Sequential only (one action at a time)
+- ❌ **Multi-app workflows** - Single application focus
 
 ---
 
@@ -659,23 +792,27 @@ Key design principles:
 
 ## 📈 Status
 
-**Current Version:** KB-Attached Learning with Iterative Rerun
+**Current Version:** KB-Attached Learning with Full HITL Integration
 
 ✅ **Complete:**
-- KB-attached learning system
-- Iterative rerun architecture (no automatic replanning)
-- Dynamic doc enrichment (related docs retrieved during planning)
-- Vector metadata consistency (catalog as source of truth)
-- Learning prioritization (learnings trump docs)
-- Prompt history saving (debugging visibility)
-- Trust score tracking
-- Cost monitoring
+- ✅ HITL System (skills library, action approval, interactive mode, task verification)
+- ✅ KB-attached learning system
+- ✅ Iterative rerun architecture (no automatic replanning)
+- ✅ Dynamic doc enrichment (related docs retrieved during planning)
+- ✅ Vector metadata consistency (catalog as source of truth)
+- ✅ Learning prioritization (skills > learnings > docs)
+- ✅ Prompt history saving (debugging visibility)
+- ✅ Trust score tracking
+- ✅ Cost monitoring
+- ✅ Task-specific skill files
+- ✅ Focus management after feedback
+- ✅ Keyboard listener (ESC key)
 
 🚧 **Future Enhancements:**
-- Re-enable HITL components (human observer, skill library)
 - Multi-app workflows
-- GPT-4o vision integration
-- Parallel execution
+- GPT-4o vision integration for state capture
+- Parallel action execution
+- Automatic skill discovery from execution patterns
 
 ---
 

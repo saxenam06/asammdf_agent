@@ -488,16 +488,6 @@ class AdaptiveExecutor:
                     learning=learning
                 )
                 print(f"  [KB Learning] Attached to KB item: {failed_action.kb_source}")
-
-                # Update vector metadata for this KB item (reloads from catalog)
-                if self.knowledge_retriever:
-                    try:
-                        self.knowledge_retriever.update_vector_metadata(
-                            kb_id=failed_action.kb_source
-                        )
-                        print(f"  [KB Vector] Updated metadata from catalog for: {failed_action.kb_source}")
-                    except Exception as e:
-                        print(f"  [Warning] Could not update vector metadata: {e}")
             else:
                 print(f"  [KB Learning] No KB source - action was not from KB")
                 print(f"  [KB Learning] Learning created but not attached")
@@ -567,6 +557,14 @@ class AdaptiveExecutor:
                 json.dump(catalog_data, f, indent=2, ensure_ascii=False)
 
             print(f"  [KB] Catalog updated successfully")
+
+            # Update vector metadata for this KB item (reloads from catalog)
+            if self.knowledge_retriever:
+                try:
+                    self.knowledge_retriever.update_vector_metadata(kb_id=kb_id)
+                    print(f"  [KB Vector] Updated metadata from catalog for: {kb_id}")
+                except Exception as e:
+                    print(f"  [Warning] Could not update vector metadata: {e}")
 
         except Exception as e:
             print(f"  [Error] Failed to attach learning to KB: {e}")

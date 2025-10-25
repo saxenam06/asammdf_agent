@@ -40,7 +40,6 @@ class WorkflowState(TypedDict):
     execution_log: Annotated[List[ExecutionResult], operator.add]
     error: Optional[str]
     completed: bool
-    retry_count: int  # Kept for compatibility but not used
     force_regenerate_plan: bool
 
 
@@ -52,13 +51,11 @@ class AutonomousWorkflow:
         app_name: str = "asammdf 8.6.10",
         catalog_path: str = "agent/knowledge_base/parsed_knowledge/knowledge_catalog.json",
         vector_db_path: str = "agent/knowledge_base/vector_store",
-        max_retries: int = 0,  # No retries - always stop on failure
         enable_hitl: bool = True,
         interactive_mode: bool = True,  # Pause after each step for feedback (default: ON)
         session_id: Optional[str] = None
     ):
         self.app_name = app_name
-        self.max_retries = max_retries
         self.catalog_path = catalog_path
         self.vector_db_path = vector_db_path
         self.task = None
@@ -488,9 +485,14 @@ class AutonomousWorkflow:
 
         self.task = task
         initial_state = WorkflowState(
-            task=task, retrieved_knowledge=[], verified_skills=[], plan=None,
-            current_step=0, execution_log=[], error=None, completed=False,
-            retry_count=0, force_regenerate_plan=force_regenerate_plan
+            task=task,
+            retrieved_knowledge=[],
+            plan=None,
+            current_step=0,
+            execution_log=[],
+            error=None,
+            completed=False,
+            force_regenerate_plan=force_regenerate_plan
         )
 
         # Initialize skill library with task-specific path

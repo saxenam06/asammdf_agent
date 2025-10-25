@@ -2,17 +2,14 @@
 Human Observer for Interactive HITL Workflows
 
 Provides:
-- Non-blocking observer thread for human interrupts
 - Interactive CLI for approval/correction/guidance
 - Task verification at completion
+- Step feedback collection
 - Integration with communication protocol
 """
 
-import threading
-import queue
 import sys
 from typing import Dict, Any, Optional
-from datetime import datetime
 import json
 
 sys.path.insert(0, "D:\\Work\\asammdf_agent")
@@ -20,14 +17,12 @@ sys.path.insert(0, "D:\\Work\\asammdf_agent")
 from agent.feedback.communication_protocol import (
     CommunicationProtocol,
     RequestMessage,
-    ResponseMessage,
-    NotificationMessage
+    ResponseMessage
 )
 from agent.feedback.schemas import (
     HumanFeedback,
     TaskVerification,
     VerificationStatus,
-    ConfidenceLevel,
     ProceduralGuidance
 )
 from agent.planning.schemas import ActionSchema
@@ -64,74 +59,21 @@ class HumanObserver:
 
         # State
         self.running = False
-        self.paused = False
-        self.current_action: Optional[ActionSchema] = None
-        self.current_step: int = 0
-
-        # Interrupt queue
-        self.interrupt_queue: queue.Queue = queue.Queue()
-
-        # Observer thread
-        self.observer_thread: Optional[threading.Thread] = None
 
         print(f"[Observer] Initialized for session: {session_id}")
 
     def start(self):
-        """Start non-blocking observer thread"""
+        """Start observer (placeholder for future background tasks)"""
         if self.running:
             print("[Observer] Already running")
             return
-
         self.running = True
-        self.observer_thread = threading.Thread(
-            target=self._observe_loop,
-            daemon=True
-        )
-        self.observer_thread.start()
-        print("[Observer] Started (Press Ctrl+C during execution to interrupt)")
+        print("[Observer] Started")
 
     def stop(self):
-        """Stop observer thread"""
+        """Stop observer"""
         self.running = False
-        if self.observer_thread:
-            self.observer_thread.join(timeout=1.0)
         print("[Observer] Stopped")
-
-    def _observe_loop(self):
-        """Background observation loop (runs in separate thread)"""
-        # Note: Keyboard interrupts are handled by main thread
-        # This thread just manages state and queue
-        while self.running:
-            threading.Event().wait(0.1)  # Small sleep to avoid busy loop
-
-    def set_current_action(self, action: ActionSchema, step_num: int):
-        """
-        Update current action being executed
-
-        Args:
-            action: Current action
-            step_num: Step number
-        """
-        self.current_action = action
-        self.current_step = step_num
-
-    def has_interrupt(self) -> bool:
-        """
-        Check if human has interrupted
-
-        Returns:
-            True if interrupt pending
-        """
-        return not self.interrupt_queue.empty()
-
-    def get_interrupt(self) -> NotificationMessage:
-        """
-        Get interrupt notification (blocking if none available)
-
-        Returns:
-            Interrupt notification
-        """
-        return self.interrupt_queue.get()
 
     def request_approval(
         self,
@@ -465,12 +407,6 @@ class HumanObserver:
         print("="*70 + "\n")
 
         return verification
-
-    def notify_interrupt_available(self):
-        """Notify user that they can interrupt (called before each step)"""
-        # This is just informational - actual interrupt happens via Ctrl+C
-        pass
-
 
     def provide_step_feedback(
         self,
