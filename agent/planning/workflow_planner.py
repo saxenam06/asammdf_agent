@@ -399,7 +399,7 @@ Action Sequence:
             if kb.kb_learnings and len(kb.kb_learnings) > 0:
                 kb_section += f"\n\n⚠️ PAST FAILURES ({len(kb.kb_learnings)} failure(s)):\n"
 
-                for idx, learning_dict in enumerate(kb.kb_learnings[:3], 1):  # Top 3
+                for idx, learning_dict in enumerate(kb.kb_learnings, 1):  # Top 3
                     # Check if it's a failure learning (has original_error field)
                     if 'original_error' in learning_dict:
                         failed_tool = learning_dict.get('original_action', {}).get('tool_name', 'N/A')
@@ -414,26 +414,26 @@ Action Sequence:
    - Consider: Try alternative approach, different KB item, or use related docs below
 """
                         # Dynamically retrieve related docs to help solve the error
-                        if self.knowledge_retriever:
-                            try:
-                                action_reasoning = learning_dict.get('original_action', {}).get('reasoning', '')
-                                search_query = f"{action_reasoning} {error_msg} alternative solution"
+                        # if self.knowledge_retriever:
+                            # try:
+                                # action_reasoning = learning_dict.get('original_action', {}).get('reasoning', '')
+                                # search_query = f"{action_reasoning} {error_msg} alternative solution"
 
                                 # Retrieve related KB items (exclude current KB item)
-                                related_kb_items = self.knowledge_retriever.retrieve(search_query, top_k=3)
-                                related_kb_items = [item for item in related_kb_items if item.knowledge_id != kb.knowledge_id]
+                                # related_kb_items = self.knowledge_retriever.retrieve(search_query, top_k=3)
+                                # related_kb_items = [item for item in related_kb_items if item.knowledge_id != kb.knowledge_id]
 
-                                if related_kb_items:
-                                    kb_section += f"   📚 Alternative Approaches ({len(related_kb_items)}):\n"
-                                    for doc in related_kb_items[:2]:  # Limit to 2 for brevity
-                                        kb_section += f"      • KB ID: {doc.knowledge_id}\n"
-                                        kb_section += f"        {doc.description[:100]}\n"
-                                        if doc.shortcut:
-                                            kb_section += f"        Shortcut: {doc.shortcut}\n"
-                                        if doc.action_sequence:
-                                            kb_section += f"        Actions: {', '.join(doc.action_sequence[:3])}\n"
-                            except Exception as e:
-                                print(f"  [Warning] Could not retrieve related docs: {e}")
+                                # if related_kb_items:
+                                #     kb_section += f"   📚 Alternative Approaches ({len(related_kb_items)}):\n"
+                                #     for doc in related_kb_items[:2]:  # Limit to 2 for brevity
+                                #         kb_section += f"      • KB ID: {doc.knowledge_id}\n"
+                                #         kb_section += f"        {doc.description[:100]}\n"
+                                #         if doc.shortcut:
+                                #             kb_section += f"        Shortcut: {doc.shortcut}\n"
+                                #         if doc.action_sequence:
+                                #             kb_section += f"        Actions: {', '.join(doc.action_sequence)}\n"
+                            # except Exception as e:
+                                # print(f"  [Warning] Could not retrieve related docs: {e}")
 
                     # Check if it's a human interrupt learning
                     elif 'human_reasoning' in learning_dict:

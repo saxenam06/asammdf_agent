@@ -34,7 +34,6 @@ except ImportError:
 class WorkflowState(TypedDict):
     task: str
     retrieved_knowledge: List[KnowledgeSchema]
-    verified_skills: List[VerifiedSkillSchema]
     plan: Optional[PlanSchema]
     current_step: int
     execution_log: Annotated[List[ExecutionResult], operator.add]

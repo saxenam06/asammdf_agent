@@ -52,9 +52,84 @@
         },
         "original_error": "The MF4 files were not selected. | Suggestion: Go to File  Open, then enter the path of the desired folder, select any .MF4 file, press Ctrl + A to highlight all files in the folder, and then press Enter to load them all.",
         "timestamp": "2025-10-25T23:55:17.303145"
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 14,
+        "original_action": {
+          "tool_name": "Shortcut-Tool",
+          "tool_arguments": {
+            "shortcut": [
+              "ctrl",
+              "a"
+            ]
+          },
+          "reasoning": "Select all files in the folder (KB recommendation: select any .MF4 then Ctrl+A to highlight all .MF4 files to load them into Batch mode)",
+          "kb_source": "open_files",
+          "step_num": 14
+        },
+        "original_error": "No file was selected before Clicking CTRL+A | Suggestion: You must select a File before Pressing CTRL+A to select all the files on the display in the folder",
+        "timestamp": "2025-10-26T12:53:53.428930"
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 16,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Open"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Load the selected .MF4 files into Batch processing (from KB: open_files)",
+          "kb_source": "open_files",
+          "step_num": 16
+        },
+        "original_error": "The intent was to click the Open Button. But you were wrongly Clicking the drop downs of File Name or All Files tabs. | Suggestion: Click the Open Button which is on the lower and is only one Open Button On the Select Measurement File Dialog",
+        "timestamp": "2025-10-26T12:58:52.665435"
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 15,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Open"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Confirm and open all selected .MF4 files into the Batch processing file list (from KB: open_files)",
+          "kb_source": "open_files",
+          "step_num": 15
+        },
+        "original_error": "You were not clicking the Open Button. PLease click the Open Button thatis on the bottom most though I see only one",
+        "timestamp": "2025-10-26T15:43:07.034387"
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 17,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Open"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Click Open to load all selected MF4 files into the Batch processing list (KB: open_files)",
+          "kb_source": "open_files",
+          "step_num": 17
+        },
+        "original_error": "You are not able to click the correct Open Button due to some underlying reasons. Prefer Just typing enter key after the files are selected to When you want to Open the files instead of the Clicking Open Button | Suggestion: Type Enter Key after the files are selected when you want instead of clickung the Open Button.",
+        "timestamp": "2025-10-26T15:50:29.511911"
       }
     ],
-    "trust_score": 0.8573749999999999
+    "trust_score": 0.6983372960937497
   },
   {
     "knowledge_id": "open_folder",
@@ -150,8 +225,28 @@
     "output_state": "mode_batch_processing",
     "doc_citation": "GUI#Mode",
     "parameters": {},
-    "kb_learnings": [],
-    "trust_score": 0.7737809374999999
+    "kb_learnings": [
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 4,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:menu:Batch processing"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Select Batch processing mode to enable concatenation of multiple files (per KB: set_mode_batch_processing)",
+          "kb_source": "set_mode_batch_processing",
+          "step_num": 4
+        },
+        "original_error": "Batch Processing coordinates could not be resolved or was not found in the UI State. | Suggestion: You must use the State-Tool to get the coordinates of Batch Processing as its You must use the State-Tool to capture the coordinates of Batch Processing, as it appears in a sub-window that opens after clicking Mode. Therefore, you need to run the State-Tool again after clicking Mode to obtain the coordinates required to click Batch Processing.",
+        "timestamp": "2025-10-26T11:41:38.951817"
+      }
+    ],
+    "trust_score": 0.7350918906249998
   },
   {
     "knowledge_id": "set_mode_comparison",
@@ -1668,9 +1763,81 @@
         },
         "original_error": "There is no button with Start after the concatenated filename is mentioned. | Suggestion: Correct button is Save. Click Save to finally start the concatenation process.",
         "timestamp": "2025-10-26T00:55:03.089416"
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 7,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Add files"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Open file selection dialog to add multiple MF4 files for batch operations (KB: batch_concatenate_files)",
+          "kb_source": "batch_concatenate_files"
+        },
+        "original_error": "Could not resolve any of 1 alternative(s): No button labeled 'Add files' is present in the current UI state. | Suggestion: Consider using the 'File' menu to add files or check for other buttons related to file operations.",
+        "timestamp": "2025-10-26T12:46:14.746967"
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 7,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Add files"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Open file dialog to add multiple MF4 files for batch concatenation (from KB: batch_concatenate_files)",
+          "kb_source": "batch_concatenate_files"
+        },
+        "original_error": "Could not resolve any of 1 alternative(s): No button labeled 'Add files' is present in the current UI state. | Suggestion: Consider using the 'Concatenate' button or check the 'File' menu for options to add files.",
+        "timestamp": "2025-10-26T12:48:26.012489"
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 23,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Save"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Click the Save button to start the concatenation and write the combined MF4 to the specified file (learning: the correct final action is Save, not Start).",
+          "kb_source": "batch_concatenate_files"
+        },
+        "original_error": "Could not resolve any of 1 alternative(s): No Save button found in the current UI state | Suggestion: Consider looking for buttons related to saving or finalizing actions, such as 'Concatenate' or 'Export'.",
+        "timestamp": "2025-10-26T15:39:01.734156"
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 20,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:edit:File name"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Focus the output filename edit field so the filename can be entered (from KB: batch_concatenate_files)",
+          "kb_source": "batch_concatenate_files"
+        },
+        "original_error": "Could not resolve any of 1 alternative(s): No edit field for 'File name' is present in the current UI state. | Suggestion: Consider checking for other input fields or buttons related to file output.",
+        "timestamp": "2025-10-26T16:03:09.059428"
       }
     ],
-    "trust_score": 0.6302494097246091
+    "trust_score": 0.5133420832795047
   },
   {
     "knowledge_id": "batch_stack_files",
