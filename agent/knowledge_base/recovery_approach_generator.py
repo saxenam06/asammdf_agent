@@ -41,12 +41,12 @@ class RecoveryApproachGenerator:
         Returns:
             List of dicts with knowledge_id, original_error, and recovery_approach
         """
-        # Filter KB items that have original_error
+        # Filter KB items that have original_error but NO recovery_approach yet
         kb_items_with_errors = []
         for item in knowledge_catalog:
             kb_learnings = item.get("kb_learnings", [])
             for learning in kb_learnings:
-                if learning.get("original_error"):
+                if learning.get("original_error") and not learning.get("recovery_approach"):
                     kb_items_with_errors.append({
                         "knowledge_id": item.get("knowledge_id"),
                         "description": item.get("description"),
@@ -56,10 +56,10 @@ class RecoveryApproachGenerator:
                     })
 
         if not kb_items_with_errors:
-            print("[Recovery Generator] No KB items with original_error found")
+            print("[Recovery Generator] No KB items needing recovery approaches (all errors already have recovery approaches or no errors found)")
             return []
 
-        print(f"[Recovery Generator] Processing {len(kb_items_with_errors)} KB items with errors")
+        print(f"[Recovery Generator] Processing {len(kb_items_with_errors)} KB items with errors needing recovery approaches")
 
         # Prepare the prompt
         prompt = KB_RECOVERY_APPROACH_PROMPT.format(
