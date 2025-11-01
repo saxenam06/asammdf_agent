@@ -19,6 +19,7 @@ from agent.planning.workflow_planner import WorkflowPlanner
 from agent.execution.mcp_client import MCPClient
 from agent.execution.adaptive_executor import AdaptiveExecutor
 from agent.utils.cost_tracker import get_global_tracker
+from agent.knowledge_base.recovery_approach_generator import RecoveryApproachGenerator
 
 # HITL imports
 try:
@@ -410,6 +411,7 @@ class AutonomousWorkflow:
             print(f"  ✓ Human verified task completion")
 
             # Create verified skill if requested
+            skill_path = None
             if verification.create_skill and self._skill_library and state.get("plan"):
                 try:
                     # Get execution summary for tracking human feedbacks
@@ -428,6 +430,13 @@ class AutonomousWorkflow:
                         tags=["human_verified"]
                     )
                     print(f"  [HITL] Created verified skill: {skill.skill_id}")
+
+                    # Get skill library path for KB update
+                    skill_path = self._get_skill_library_path(state["task"])
+
+                    # Ask if knowledge catalog should be updated with recovery approaches
+                    self._prompt_kb_update(skill_path)
+
                 except Exception as e:
                     print(f"  [Warning] Failed to create skill: {e}")
 
@@ -441,6 +450,69 @@ class AutonomousWorkflow:
                 state["error"] = f"Human verification: {verification.reasoning}"
 
         return state
+
+    def _prompt_kb_update(self, skill_path: str):
+        """
+        Prompt user to update knowledge catalog with recovery approaches from verified skill
+
+        Args:
+            skill_path: Path to the verified skill JSON file
+        """
+        print("\n" + "="*80)
+        print("[KB Update] Would you like to update the knowledge catalog with")
+        print("            recovery approaches from this verified skill?")
+        print("            This will analyze errors in KB items and add learnings")
+        print("            based on how the verified skill solved them.")
+        print("="*80)
+
+        response = input("Update knowledge catalog? [y/N]: ").strip().lower()
+
+        if response == 'y':
+            print("\n[KB Update] Generating recovery approaches using LLM...")
+            try:
+                import json
+
+                # Load verified skill
+                with open(skill_path, 'r', encoding='utf-8') as f:
+                    skill_library = json.load(f)
+                    # Get the most recent skill (last in list)
+                    if skill_library:
+                        verified_skill = skill_library[-1]
+                    else:
+                        print("[KB Update] No verified skill found")
+                        return
+
+                # Load catalog
+                with open(self.catalog_path, 'r', encoding='utf-8') as f:
+                    catalog = json.load(f)
+
+                # Generate recovery approaches
+                generator = RecoveryApproachGenerator()
+                recovery_approaches = generator.generate_recovery_approaches(
+                    verified_skill=verified_skill,
+                    knowledge_catalog=catalog
+                )
+
+                if recovery_approaches:
+                    # Update catalog
+                    success = generator.update_knowledge_catalog(
+                        catalog_path=self.catalog_path,
+                        recovery_approaches=recovery_approaches
+                    )
+
+                    if success:
+                        print(f"  ✓ Knowledge catalog updated successfully!")
+                    else:
+                        print(f"  ✗ Failed to update knowledge catalog")
+                else:
+                    print("  [Info] No recovery approaches generated")
+
+            except Exception as e:
+                print(f"  [Error] KB update failed: {e}")
+                import traceback
+                traceback.print_exc()
+        else:
+            print("[KB Update] Skipped")
 
     def _route_after_validation(self, state: WorkflowState) -> str:
         return "error" if state.get("error") else "execute"
