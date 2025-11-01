@@ -11,7 +11,7 @@ from agent.knowledge_base.recovery_approach_generator import RecoveryApproachGen
 def test_recovery_approach_generation():
     """Test recovery approach generation with sample data"""
 
-    # Sample verified skill (simplified)
+    # Sample verified skill (matching the actual structure from SkillLibrary)
     verified_skill = {
         "skill_id": "test_skill_001",
         "task_description": "Concatenate all .MF4 files in a folder",

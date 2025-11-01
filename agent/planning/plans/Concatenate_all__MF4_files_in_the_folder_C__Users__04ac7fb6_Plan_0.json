@@ -7,7 +7,7 @@
         "tool_arguments": {
           "name": "asammdf"
         },
-        "reasoning": "Activate the asammdf application so subsequent UI interactions target the correct window",
+        "reasoning": "Activate the asammdf application window so subsequent UI actions target it.",
         "kb_source": null,
         "step_num": 1
       },
@@ -16,7 +16,7 @@
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Capture current UI elements (must always call State-Tool before interacting) to find Menu and other controls",
+        "reasoning": "Capture current UI elements and coordinates before interacting (required by workflow).",
         "kb_source": null,
         "step_num": 2
       },
@@ -29,7 +29,7 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Open the Mode menu to switch to Batch processing (from KB: set_mode_batch_processing)",
+        "reasoning": "Open the Mode menu to switch to Batch processing (KB: set_mode_batch_processing).",
         "kb_source": "set_mode_batch_processing",
         "step_num": 3
       },
@@ -38,7 +38,7 @@
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "After opening Mode menu, capture updated UI to locate the Batch processing option (learning: must re-run State after opening Mode)",
+        "reasoning": "After opening Mode menu, capture sub-menu elements so we can reliably click Batch processing (learning: must refresh state after clicking Mode).",
         "kb_source": null,
         "step_num": 4
       },
@@ -51,7 +51,7 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Select Batch processing mode so we can operate on multiple files (from KB: set_mode_batch_processing)",
+        "reasoning": "Select Batch processing mode so batch operations (concatenate) are available (KB: set_mode_batch_processing).",
         "kb_source": "set_mode_batch_processing",
         "step_num": 5
       },
@@ -60,7 +60,7 @@
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Capture the Batch processing view UI elements (Add/Open buttons, operations list) before adding files",
+        "reasoning": "Capture the Batch processing view elements (file list area, operations, buttons) before performing file-add/open operations.",
         "kb_source": null,
         "step_num": 6
       },
@@ -73,7 +73,7 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Open File menu to use Open dialog in Batch mode (alternate to missing 'Add files' button) (from KB: open_files; learning: Add files sometimes not present so use File->Open)",
+        "reasoning": "Open the File menu to use Open dialog; using File->Open is more reliable than relying on an 'Add files' button that has failed in past attempts (KB: open_files).",
         "kb_source": "open_files",
         "step_num": 7
       },
@@ -82,7 +82,7 @@
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Capture the File menu options to find the Open command",
+        "reasoning": "Capture File menu options so we can click Open reliably (rule: always capture state before interacting).",
         "kb_source": null,
         "step_num": 8
       },
@@ -95,16 +95,16 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Open the file selection dialog to choose the MF4 files (from KB: open_files)",
+        "reasoning": "Open the file selection dialog to add multiple .MF4 files for batch operations (KB: open_files).",
         "kb_source": "open_files",
         "step_num": 9
       },
       {
         "tool_name": "State-Tool",
         "tool_arguments": {
-          "use_vision": true
+          "use_vision": false
         },
-        "reasoning": "Capture the file-open dialog elements (address/file name field, file list, Open button). Use vision to ensure the dialog contents are visible for subsequent clicks.",
+        "reasoning": "Capture the file-open dialog UI (filename box, file list) so we can navigate to the target folder and select files. Always refresh state when dialogs open.",
         "kb_source": null,
         "step_num": 10
       },
@@ -117,7 +117,7 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Focus the File name / address field in the Open dialog so we can navigate to the target folder (from KB: open_files)",
+        "reasoning": "Focus the File name / path edit field so we can navigate directly to the target folder. This follows the open_files guidance to enter the folder path first.",
         "kb_source": "open_files",
         "step_num": 11
       },
@@ -128,7 +128,7 @@
           "clear": true,
           "press_enter": true
         },
-        "reasoning": "Enter the exact folder path specified by the user and press Enter to navigate there (learning: use exact folder path and press Enter)",
+        "reasoning": "Enter the exact folder path and press Enter to navigate to it in the dialog. Use the precise path from the task to avoid earlier failures caused by incorrect paths (KB: open_files).",
         "kb_source": "open_files",
         "step_num": 12
       },
@@ -137,16 +137,16 @@
         "tool_arguments": {
           "duration": 1
         },
-        "reasoning": "Give the file dialog a short moment to navigate to the folder and populate the file list",
+        "reasoning": "Allow the file dialog to navigate to the folder and refresh the file list.",
         "kb_source": null,
         "step_num": 13
       },
       {
         "tool_name": "State-Tool",
         "tool_arguments": {
-          "use_vision": true
+          "use_vision": false
         },
-        "reasoning": "Refresh the dialog state to capture the file list items in the target folder (needed to select a file before Ctrl+A)",
+        "reasoning": "Refresh state to obtain the file list items now that the dialog is in the target folder (required before selecting a file).",
         "kb_source": null,
         "step_num": 14
       },
@@ -159,7 +159,7 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Select one visible .MF4 file in the folder so that a subsequent Ctrl+A will select all .MF4 files (learning: must select a file first before Ctrl+A) (from KB: open_files)",
+        "reasoning": "Select one .MF4 file in the folder so we can use Ctrl+A to select all files (learning: must select a file before Ctrl+A).",
         "kb_source": "open_files",
         "step_num": 15
       },
@@ -171,7 +171,7 @@
             "a"
           ]
         },
-        "reasoning": "Select all files in the dialog (Ctrl+A) after one file is focused to ensure all .MF4 files in the folder are highlighted (from KB: open_files; learning: select a file first)",
+        "reasoning": "Select all .MF4 files in the folder (recommended approach from learnings: select one file then Ctrl+A).",
         "kb_source": "open_files",
         "step_num": 16
       },
@@ -180,7 +180,7 @@
         "tool_arguments": {
           "key": "enter"
         },
-        "reasoning": "Confirm and open the selected files into Batch processing (press Enter as an alternative to clicking the Open button when mouse-targeting is unreliable) (from KB: open_files; learning: pressing Enter can be more reliable than clicking Open)",
+        "reasoning": "Confirm the selection and open all selected files into the Batch processing list (pressing Enter is more reliable than clicking the Open button in some failure cases).",
         "kb_source": "open_files",
         "step_num": 17
       },
@@ -189,7 +189,7 @@
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Capture the Batch processing window now that files are loaded so we can choose the Concatenate operation and set output filename",
+        "reasoning": "After loading the files, refresh the application state so batch operation controls and the file list are visible and addressable.",
         "kb_source": null,
         "step_num": 18
       },
@@ -197,12 +197,12 @@
         "tool_name": "Click-Tool",
         "tool_arguments": {
           "loc": [
-            "last_state:menu:Concatenate"
+            "last_state:button:Concatenate"
           ],
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Select the Concatenate operation for the loaded files (from KB: batch_concatenate_files). Note: choose the Concatenate control associated with batch operations (learning: if multiple 'Concatenate' controls exist, use the one in the lower/batch area).",
+        "reasoning": "Choose the Concatenate operation for the loaded files. (KB: batch_concatenate_files) \u2014 be aware of prior ambiguity; use the Concatenate button that appears in the Batch processing view (state refresh above helps disambiguate).",
         "kb_source": "batch_concatenate_files",
         "step_num": 19
       },
@@ -211,7 +211,7 @@
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Refresh the UI to reveal the output filename input and any options (like 'Sync using measurement timestamps') before entering the filename",
+        "reasoning": "After selecting Concatenate, capture the UI elements for entering the output filename and finalizing the operation.",
         "kb_source": null,
         "step_num": 20
       },
@@ -224,7 +224,7 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Focus the output filename field in the Batch/Concatenate UI so we can type the desired output path (from KB: batch_concatenate_files)",
+        "reasoning": "Focus the output filename edit field so we can enter the desired output path/name for the concatenated file (KB: batch_concatenate_files).",
         "kb_source": "batch_concatenate_files",
         "step_num": 21
       },
@@ -235,18 +235,9 @@
           "clear": true,
           "press_enter": false
         },
-        "reasoning": "Enter the exact output filename and path as requested by the user (from KB: batch_concatenate_files)",
+        "reasoning": "Enter the full output path and filename exactly as specified in the task so the concatenated file is saved in the same folder (KB: batch_concatenate_files).",
         "kb_source": "batch_concatenate_files",
         "step_num": 22
-      },
-      {
-        "tool_name": "State-Tool",
-        "tool_arguments": {
-          "use_vision": false
-        },
-        "reasoning": "Ensure the Save/Start control is visible and enabled before triggering the operation",
-        "kb_source": null,
-        "step_num": 23
       },
       {
         "tool_name": "Click-Tool",
@@ -257,31 +248,22 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Start the concatenation by clicking the Save button (learning: the correct final action is Save, not Start) (from KB: batch_concatenate_files)",
+        "reasoning": "Start the concatenation/save operation. Past failures showed a 'Start' button was sometimes incorrect \u2014 the correct final action is Save in this workflow (KB: batch_concatenate_files).",
         "kb_source": "batch_concatenate_files",
-        "step_num": 24
-      },
-      {
-        "tool_name": "Wait-Tool",
-        "tool_arguments": {
-          "duration": 60
-        },
-        "reasoning": "Wait for the concatenation process to complete (duration depends on file sizes; adjust if large). This pause gives the application time to finish writing the output file.",
-        "kb_source": null,
-        "step_num": 25
+        "step_num": 23
       },
       {
         "tool_name": "State-Tool",
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Final capture of UI state to verify the operation completed and the UI returned to an idle state (or to detect any completion dialogs/errors)",
+        "reasoning": "Verify the operation started or capture any confirmation/status messages after clicking Save.",
         "kb_source": null,
-        "step_num": 26
+        "step_num": 24
       }
     ],
-    "reasoning": "Overall strategy: switch asammdf to Batch processing mode, open the File Open dialog (preferred when the 'Add files' button is missing), navigate to the exact folder, select one .MF4 file then Ctrl+A to select all files, load them into the batch view, choose the Concatenate operation, provide the exact output filename (in the same folder) and click Save to start concatenation. State-Tool calls are used before interacting with menus/dialogs (important per rules and past learnings). Actions that come directly from knowledge base patterns reference the appropriate KB IDs; UI recovery learnings (select a file before Ctrl+A, press Enter if Open click is unreliable, re-run State after opening Mode) are applied.",
-    "estimated_duration": 120
+    "reasoning": "Overall strategy: switch asammdf to Batch processing mode, open the File->Open dialog to load all .MF4 files from the exact target folder (select one file then Ctrl+A to ensure all files are selected), choose Concatenate in the Batch processing view, enter the exact output filename in the same folder, and click Save to run the concatenation. This plan follows KB procedures for mode switching, file opening, and concatenation while incorporating learnings: refresh state after mode/menu changes, prefer File->Open when 'Add files' is unreliable, select a file before Ctrl+A, and use Save (not Start) to finalize the operation.",
+    "estimated_duration": 90
   },
   "metadata": {
     "retrieved_kb_ids": [

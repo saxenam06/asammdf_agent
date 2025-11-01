@@ -27,23 +27,26 @@ Instructions:
 Output format:
 Return a JSON array with this structure for each KB item that has original_error:
 [
-  {
+  {{
     "knowledge_id": "string",
-    "recovery_approach": "string or null"
-  },
+    "original_error": "string (the error that occurred)",
+    "recovery_approach": "string or null (how to fix/avoid this error)"
+  }},
   ...
 ]
 
 Example output:
 [
-  {
+  {{
     "knowledge_id": "open_files",
+    "original_error": "Used wildcard path C:\\\\folder\\\\*.MF4 instead of exact folder. Suggestion: Use exact folder path, select one file, press Ctrl+A to select all.",
     "recovery_approach": "Always use the exact folder path from the task. Navigate to the specific folder first, then select one .MF4 file, press Ctrl+A to select all files of that type, and click Open. This ensures all files in the correct directory are loaded."
-  },
-  {
+  }},
+  {{
     "knowledge_id": "save_concatenated",
-    "recovery_approach": null
-  }
+    "original_error": "Wrong Path name used as compared to that given in the task",
+    "recovery_approach": "Used same Path as given in the task"
+  }}
 ]
 
 Verified Skill:

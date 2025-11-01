@@ -475,9 +475,9 @@ class AutonomousWorkflow:
                 # Load verified skill
                 with open(skill_path, 'r', encoding='utf-8') as f:
                     skill_library = json.load(f)
-                    # Get the most recent skill (last in list)
-                    if skill_library:
-                        verified_skill = skill_library[-1]
+                    # Get the most recent skill (last in the 'skills' list)
+                    if skill_library and 'skills' in skill_library and skill_library['skills']:
+                        verified_skill = skill_library['skills'][-1]
                     else:
                         print("[KB Update] No verified skill found")
                         return

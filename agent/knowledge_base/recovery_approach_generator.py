@@ -30,7 +30,7 @@ class RecoveryApproachGenerator:
         self,
         verified_skill: Dict[str, Any],
         knowledge_catalog: List[Dict[str, Any]]
-    ) -> Dict[str, str]:
+    ) -> List[Dict[str, str]]:
         """
         Generate recovery approaches for KB items with original_error
 
@@ -39,7 +39,7 @@ class RecoveryApproachGenerator:
             knowledge_catalog: Full knowledge catalog
 
         Returns:
-            Dictionary mapping knowledge_id to recovery_approach
+            List of dicts with knowledge_id, original_error, and recovery_approach
         """
         # Filter KB items that have original_error
         kb_items_with_errors = []
@@ -50,13 +50,14 @@ class RecoveryApproachGenerator:
                     kb_items_with_errors.append({
                         "knowledge_id": item.get("knowledge_id"),
                         "description": item.get("description"),
+                        "action_sequence": item.get("action_sequence"),
                         "original_error": learning.get("original_error"),
                         "original_action": learning.get("original_action")
                     })
 
         if not kb_items_with_errors:
             print("[Recovery Generator] No KB items with original_error found")
-            return {}
+            return []
 
         print(f"[Recovery Generator] Processing {len(kb_items_with_errors)} KB items with errors")
 
@@ -109,41 +110,47 @@ class RecoveryApproachGenerator:
 
                 if not isinstance(result, list):
                     print(f"[Recovery Generator] Unexpected response format: {type(result)}")
-                    return {}
+                    return []
 
             except json.JSONDecodeError as e:
                 print(f"[Recovery Generator] Failed to parse LLM response: {e}")
                 print(f"Response: {result_text}")
-                return {}
+                return []
 
-            # Convert to dictionary
-            recovery_approaches = {}
+            # Convert to list of recovery approach items
+            # Each item has: knowledge_id, original_error, recovery_approach
+            recovery_approaches = []
             for item in result:
                 if isinstance(item, dict):
                     knowledge_id = item.get("knowledge_id")
+                    original_error = item.get("original_error")
                     recovery_approach = item.get("recovery_approach")
 
-                    if knowledge_id and recovery_approach:
-                        recovery_approaches[knowledge_id] = recovery_approach
+                    if knowledge_id and original_error and recovery_approach:
+                        recovery_approaches.append({
+                            "knowledge_id": knowledge_id,
+                            "original_error": original_error,
+                            "recovery_approach": recovery_approach
+                        })
 
             print(f"[Recovery Generator] Generated {len(recovery_approaches)} recovery approaches")
             return recovery_approaches
 
         except Exception as e:
             print(f"[Recovery Generator] Error calling LLM: {e}")
-            return {}
+            return []
 
     def update_knowledge_catalog(
         self,
         catalog_path: str,
-        recovery_approaches: Dict[str, str]
+        recovery_approaches: List[Dict[str, str]]
     ) -> bool:
         """
         Update knowledge catalog with recovery approaches
 
         Args:
             catalog_path: Path to knowledge catalog JSON file
-            recovery_approaches: Dictionary mapping knowledge_id to recovery_approach
+            recovery_approaches: List of dicts with knowledge_id, original_error, recovery_approach
 
         Returns:
             True if successful, False otherwise
@@ -155,16 +162,25 @@ class RecoveryApproachGenerator:
 
             updated_count = 0
 
-            # Update items
-            for item in catalog:
-                knowledge_id = item.get("knowledge_id")
-                if knowledge_id in recovery_approaches:
-                    # Add recovery_approach to kb_learnings that have original_error
-                    kb_learnings = item.get("kb_learnings", [])
-                    for learning in kb_learnings:
-                        if learning.get("original_error") and not learning.get("recovery_approach"):
-                            learning["recovery_approach"] = recovery_approaches[knowledge_id]
-                            updated_count += 1
+            # Update items by matching both knowledge_id and original_error
+            for recovery_item in recovery_approaches:
+                target_kb_id = recovery_item["knowledge_id"]
+                target_error = recovery_item["original_error"]
+                recovery_approach = recovery_item["recovery_approach"]
+
+                # Find matching KB item
+                for item in catalog:
+                    if item.get("knowledge_id") == target_kb_id:
+                        # Find matching learning entry
+                        kb_learnings = item.get("kb_learnings", [])
+                        for learning in kb_learnings:
+                            # Match by original_error and only update if no recovery_approach exists
+                            if (learning.get("original_error") == target_error and
+                                not learning.get("recovery_approach")):
+                                learning["recovery_approach"] = recovery_approach
+                                updated_count += 1
+                                print(f"  [Updated] {target_kb_id}: Added recovery approach")
+                                break
 
             # Save updated catalog
             with open(catalog_path, 'w', encoding='utf-8') as f:

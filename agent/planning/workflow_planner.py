@@ -406,43 +406,18 @@ Action Sequence:
                         failed_args = learning_dict.get('original_action', {}).get('tool_arguments', {})
                         error_msg = learning_dict.get('original_error', 'N/A')
                         step_num = learning_dict.get('step_num', 'N/A')
+                        recovery_approach = learning_dict.get('recovery_approach')
 
                         kb_section += f"""
 {idx}. Failure at Step {step_num}:
    - Failed Action: {failed_tool} with args {failed_args}
-   - Error: {error_msg}
-   - Consider: Try alternative approach, different KB item, or use related docs below
-"""
-                        # Dynamically retrieve related docs to help solve the error
-                        # if self.knowledge_retriever:
-                            # try:
-                                # action_reasoning = learning_dict.get('original_action', {}).get('reasoning', '')
-                                # search_query = f"{action_reasoning} {error_msg} alternative solution"
+   - Error: {error_msg}"""
 
-                                # Retrieve related KB items (exclude current KB item)
-                                # related_kb_items = self.knowledge_retriever.retrieve(search_query, top_k=3)
-                                # related_kb_items = [item for item in related_kb_items if item.knowledge_id != kb.knowledge_id]
-
-                                # if related_kb_items:
-                                #     kb_section += f"   📚 Alternative Approaches ({len(related_kb_items)}):\n"
-                                #     for doc in related_kb_items[:2]:  # Limit to 2 for brevity
-                                #         kb_section += f"      • KB ID: {doc.knowledge_id}\n"
-                                #         kb_section += f"        {doc.description[:100]}\n"
-                                #         if doc.shortcut:
-                                #             kb_section += f"        Shortcut: {doc.shortcut}\n"
-                                #         if doc.action_sequence:
-                                #             kb_section += f"        Actions: {', '.join(doc.action_sequence)}\n"
-                            # except Exception as e:
-                                # print(f"  [Warning] Could not retrieve related docs: {e}")
-
-                    # Check if it's a human interrupt learning
-                    elif 'human_reasoning' in learning_dict:
-                        kb_section += f"""
-{idx}. Human Correction:
-   - Human Said: {learning_dict.get('human_reasoning', 'N/A')}...
-   - Corrected To: {learning_dict.get('corrected_action', {}).get('tool_name', 'N/A')}
-   - Task Context: {learning_dict.get('task', 'N/A')}...
-"""
+                        # Add recovery approach if available, otherwise generic suggestion
+                        if recovery_approach:
+                            kb_section += f"\n   ✓ Recovery Approach: {recovery_approach}\n"
+                        else:
+                            kb_section += "\n   - Consider: Try alternative approach, different KB item, or use related docs below\n"
 
             # Trust score warning if low
             if kb.trust_score < 0.9:
