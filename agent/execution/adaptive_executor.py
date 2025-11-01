@@ -21,7 +21,7 @@ from agent.utils.cost_tracker import track_api_call
 # HITL imports
 try:
     from agent.feedback.human_observer import HumanObserver
-    from agent.feedback.schemas import LearningSource, FailureLearning, ConfidenceLevel
+    from agent.feedback.schemas import FailureLearning
     HITL_AVAILABLE = True
 except ImportError:
     HITL_AVAILABLE = False
@@ -231,78 +231,6 @@ class AdaptiveExecutor:
 
         return resolved_args
 
-    def _calculate_confidence(
-        self,
-        action: ActionSchema,
-        resolved_args: Dict[str, Any],
-        context: List[ActionSchema]
-    ) -> Tuple[float, str]:
-        """
-        Calculate confidence score for an action execution
-
-        Args:
-            action: The action to execute
-            resolved_args: Resolved arguments
-            context: Previous actions for context
-
-        Returns:
-            Tuple of (confidence_score 0-1, reasoning_string)
-        """
-        confidence = 1.0
-        reasons = []
-
-        # Factor 1: State availability (required for coordinate resolution)
-        if 'loc' in resolved_args and not self.state_cache.get_latest_state():
-            confidence *= 0.3
-            reasons.append("No cached state for coordinate resolution")
-
-        # Factor 2: Coordinate resolution success
-        if 'loc' in action.tool_arguments:
-            original_loc = action.tool_arguments['loc']
-            resolved_loc = resolved_args.get('loc')
-
-            # If loc is a list of strings, it required resolution
-            if isinstance(original_loc, list) and all(isinstance(x, str) for x in original_loc):
-                if resolved_loc:
-                    # Resolution succeeded
-                    if len(original_loc) > 1:
-                        confidence *= 0.8  # Had multiple alternatives, moderate confidence
-                        reasons.append(f"Resolved from {len(original_loc)} alternatives")
-                    else:
-                        confidence *= 0.9  # Single reference resolved
-                        reasons.append("Coordinate resolved")
-                else:
-                    confidence *= 0.2  # Resolution failed
-                    reasons.append("Coordinate resolution failed")
-
-        # Factor 3: Action reasoning quality
-        if action.reasoning:
-            if len(action.reasoning) < 20:
-                confidence *= 0.85
-                reasons.append("Brief reasoning")
-            elif "uncertain" in action.reasoning.lower() or "might" in action.reasoning.lower():
-                confidence *= 0.7
-                reasons.append("Uncertain reasoning")
-        else:
-            confidence *= 0.8
-            reasons.append("No reasoning provided")
-
-        # Factor 4: Context alignment
-        if context and len(context) > 0:
-            # Check if this action logically follows previous ones
-            last_action = context[-1]
-            if action.tool_name == "State-Tool":
-                confidence *= 1.0  # State checks are always good
-            elif last_action.tool_name == "State-Tool":
-                confidence *= 1.1  # Acting after state check is good (cap at 1.0 later)
-                reasons.append("Following state verification")
-
-        # Cap confidence at 1.0
-        confidence = min(1.0, confidence)
-
-        reasoning = "; ".join(reasons) if reasons else "High confidence"
-        return confidence, reasoning
-
     def execute_action(
         self,
         action: ActionSchema,
@@ -361,41 +289,6 @@ class AdaptiveExecutor:
                 action=action.tool_name,
                 error=f"Failed to resolve arguments: {e}"
             )
-
-        # Step 2.5: Calculate confidence and request human approval if needed
-        if HITL_AVAILABLE and self.human_observer:
-            confidence, conf_reasoning = self._calculate_confidence(action, resolved_args, context or [])
-            print(f"  → Confidence: {confidence:.2f} ({conf_reasoning})")
-
-            # Request approval for low-confidence actions (< 0.5)
-            if confidence < 0.5:
-                print(f"  ⚠️  Low confidence detected - requesting human approval")
-                approval_result = self.human_observer.request_approval(
-                    action=action,
-                    confidence=confidence,
-                    reason=conf_reasoning
-                )
-
-                if not approval_result.approved:
-                    print(f"  ✗ Human rejected action: {approval_result.reasoning}")
-
-                    # If human provided correction, use it
-                    if approval_result.correction:
-                        print(f"  → Using human correction")
-                        correction_action = ActionSchema(**approval_result.correction)
-                        resolved_action = correction_action
-
-                        # TODO: Store human correction learning to KB (future enhancement)
-                        print(f"  [HITL] Human correction accepted")
-                    else:
-                        # Human rejected without correction - fail the action
-                        return ExecutionResult(
-                            success=False,
-                            action=action.tool_name,
-                            error=f"Human rejected: {approval_result.reasoning}"
-                        )
-                else:
-                    print(f"  ✓ Human approved action")
 
         # Step 3: Execute the resolved action
         result = self.mcp_client.execute_action_sync(resolved_action)
