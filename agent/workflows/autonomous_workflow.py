@@ -763,11 +763,13 @@ Examples:
         parser.error("--operation and --parameters must be provided together")
     else:
         # Use default task
-        operation = "Concatenate all .MF4 files in the input_folder and save in the output_folder with specified output_filename."
+        operation = " DBC Decode the concatenated MF4 file and Extract the bus signals. Export the decoded MF4 file to csv with single time base and time as date settings applied."
         parameters = {
-            "input_folder": r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\LOG\2F6913DB\00001026",
-            "output_folder": r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\LOG\2F6913DB\00001026",
-            "output_filename": "Kia_EV_6_2F6913DB.mf4"
+            "input_folder": r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\LOG\2F6913DB\00001045",
+            "output_folder": r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\LOG\2F6913DB\00001045",
+            "input_concatenated_filename": "Kia_EV_6_2F6913DB_00001045.MF4",
+            "output_decoded_filename": "Kia_EV_6_2F6913DB_00001045_decoded.mf4",
+            "output_csv_filename": "Kia_EV_6_2F6913DB_00001045.csv"
         }
         print(f"\n[Using Default Task]")
 
