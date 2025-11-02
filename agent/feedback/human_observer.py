@@ -8,7 +8,7 @@ Provides:
 """
 
 import sys
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import json
 
 sys.path.insert(0, "D:\\Work\\asammdf_agent")
@@ -150,6 +150,58 @@ class HumanObserver:
         print("="*70 + "\n")
 
         return verification
+
+    def review_plan(
+        self,
+        plan,
+        task: str,
+        plan_filepath: str
+    ) -> List[Dict[str, Any]]:
+        """
+        Review plan and collect feedback on multiple steps before execution
+
+        Args:
+            plan: PlanSchema with plan.plan (List[ActionSchema])
+            task: Current task description
+            plan_filepath: Path to the plan file
+
+        Returns:
+            List of feedback dicts from provide_step_feedback()
+        """
+        print("\n" + "="*80)
+        print("  PLAN REVIEW")
+        print("="*80)
+        print(f"Task: {task}")
+        print(f"Total Steps: {len(plan.plan)}\n")
+
+        # Display all steps
+        for idx, action in enumerate(plan.plan, 1):
+            print(f"Step {idx}: {action.tool_name}")
+            print(f"  Arguments: {action.tool_arguments}")
+            print(f"  Reasoning: {action.reasoning}")
+            print(f"  KB Source: {action.kb_source or 'None'}")
+            print()
+
+        print("="*80)
+
+        # Collect feedback
+        feedbacks = []
+        while True:
+            response = input("\nWould you like to provide feedback on any step? [y/n]: ").strip().lower()
+
+            if response != 'y':
+                break
+
+            # Reuse existing provide_step_feedback method
+            feedback = self.provide_step_feedback(task, plan_filepath)
+
+            if feedback:
+                feedbacks.append(feedback)
+            else:
+                # User cancelled, ask if they want to try another step
+                continue
+
+        return feedbacks
 
     def provide_step_feedback(
         self,

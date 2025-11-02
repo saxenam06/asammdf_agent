@@ -221,6 +221,25 @@ class AutonomousWorkflow:
 
         if not is_valid:
             state["error"] = error_msg
+            return state
+
+        # Plan review phase (only if HITL enabled and plan is valid)
+        if self.enable_hitl and HITL_AVAILABLE and self._human_observer:
+            from agent.planning.workflow_planner import get_latest_plan_filepath
+
+            plan_filepath = get_latest_plan_filepath(state["task"])
+            if plan_filepath:
+                feedbacks = self._human_observer.review_plan(
+                    plan=state["plan"],
+                    task=state["task"],
+                    plan_filepath=plan_filepath
+                )
+
+                if feedbacks:
+                    print(f"\n[Plan Review] Collected {len(feedbacks)} feedback(s)")
+                    print("[Plan Review] Feedback stored for future plans")
+                else:
+                    print("\n[Plan Review] No feedback provided")
 
         return state
 
