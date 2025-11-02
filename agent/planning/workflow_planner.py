@@ -226,17 +226,21 @@ class WorkflowPlanner:
         available_knowledge: List[KnowledgeSchema],
         context: Optional[str] = None,
         force_regenerate: bool = False,
-        latest_state: Optional[str] = None
+        latest_state: Optional[str] = None,
+        operation: Optional[str] = None,
+        parameters: Optional[Dict[str, str]] = None
     ) -> PlanSchema:
         """
         Generate an execution plan for a task
 
         Args:
-            task: Natural language task description
+            task: Natural language task description (full string for legacy mode)
             available_knowledge: Knowledge patterns retrieved from documentation
             context: Optional additional context
             force_regenerate: If True, regenerate even if cached plan exists
             latest_state: Optional current UI state from State-Tool to help with planning
+            operation: Core operation without paths (for parameterized mode)
+            parameters: Path parameters dict (for parameterized mode)
 
         Returns:
             Validated execution plan
@@ -244,7 +248,11 @@ class WorkflowPlanner:
         # Step 1: Check SkillLibrary for verified skill (highest priority)
         if HITL_AVAILABLE and self.skill_library and not force_regenerate:
             print("  [HITL] Checking for verified skills...")
-            matched_skill = self.skill_library.find_matching_skill(task, similarity_threshold=0.7)
+            matched_skill = self.skill_library.find_matching_skill(
+                task=task,
+                operation=operation,
+                similarity_threshold=0.7
+            )
             if matched_skill:
                 print(f"  ✓ [HITL] Found verified skill: '{matched_skill.task_description}' "
                       f"(success rate: {matched_skill.metadata.success_rate:.1%})")
@@ -352,10 +360,17 @@ class WorkflowPlanner:
             # Validate with Pydantic
             plan = PlanSchema(**plan_data)
 
+            # Add parameters to plan if this is a parameterized task
+            if parameters:
+                plan.parameters = parameters
+                print(f"  [Parameterized] Plan includes {len(parameters)} parameter(s)")
+
             # Save the generated plan to cache as Plan_0 with KB metadata
             plan_metadata = {
                 "retrieved_kb_ids": [kb.knowledge_id for kb in available_knowledge],
-                "kb_count": len(available_knowledge)
+                "kb_count": len(available_knowledge),
+                "operation": operation,  # Store operation for future reference
+                "parameters": parameters  # Store parameter keys (not values, for privacy)
             }
             saved_path = save_plan(task, plan, plan_number=0, metadata=plan_metadata)
             print(f"  ✓ Plan saved to: {os.path.basename(saved_path)}")

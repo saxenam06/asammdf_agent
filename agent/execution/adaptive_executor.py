@@ -65,7 +65,8 @@ class AdaptiveExecutor:
         knowledge_retriever=None,
         plan_filepath: Optional[str] = None,
         human_observer: Optional['HumanObserver'] = None,
-        session_id: Optional[str] = None
+        session_id: Optional[str] = None,
+        parameters: Optional[Dict[str, str]] = None
     ):
         """
         Initialize adaptive executor
@@ -77,11 +78,13 @@ class AdaptiveExecutor:
             plan_filepath: Optional path to plan file for task name retrieval
             human_observer: Optional HumanObserver for HITL feedback
             session_id: Optional session ID for tracking
+            parameters: Optional path parameters for parameterized tasks
         """
         self.mcp_client = mcp_client
         self.state_cache = StateCache()
         self.knowledge_retriever = knowledge_retriever
         self.plan_filepath = plan_filepath
+        self.parameters = parameters or {}  # Path parameters for substitution
 
         # HITL components
         self.human_observer = human_observer
@@ -248,13 +251,30 @@ class AdaptiveExecutor:
         Returns:
             Execution result
         """
+        from agent.utils.parameter_substitution import substitute_in_action
+
         context = context or []
 
         print(f"\n[Adaptive Executor] {action.tool_name}")
         print(f"  Arguments: {action.tool_arguments}")
         print(f"  Reasoning: {action.reasoning}")
 
-        # Step 1: Check if this is a State-Tool call
+        # Step 1: Substitute parameters if this is a parameterized task
+        if self.parameters:
+            try:
+                action_dict = action.model_dump()
+                substituted_action_dict = substitute_in_action(
+                    action_dict,
+                    self.parameters,
+                    strict=False  # Don't fail if some placeholders aren't in parameters
+                )
+                action = ActionSchema(**substituted_action_dict)
+                print(f"  [Parameterized] Substituted {len(self.parameters)} parameter(s)")
+            except Exception as e:
+                print(f"  [Warning] Parameter substitution failed: {e}")
+                # Continue with original action if substitution fails
+
+        # Step 2: Check if this is a State-Tool call
         if action.tool_name == 'State-Tool':
             result = self.mcp_client.execute_action_sync(action)
 
@@ -265,7 +285,7 @@ class AdaptiveExecutor:
 
             return result
 
-        # Step 2: Resolve symbolic references in arguments
+        # Step 3: Resolve symbolic references in arguments
         try:
             resolved_args = self._resolve_action_arguments(action)
             resolved_action = ActionSchema(

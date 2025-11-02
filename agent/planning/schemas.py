@@ -52,6 +52,35 @@ class KnowledgeSchema(BaseModel):
         }
 
 
+class TaskInput(BaseModel):
+    """Schema for parameterized task input"""
+    operation: str = Field(..., description="Core task operation without specific file/folder paths")
+    parameters: Dict[str, str] = Field(
+        default_factory=dict,
+        description="Path parameters as key-value pairs (e.g., {'input_folder': 'C:\\\\Users\\\\...', 'output_file': '...'})"
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "operation": "Concatenate all .MF4 files and save with specified name",
+                "parameters": {
+                    "input_folder": "C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026",
+                    "output_file": "C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\Kia_EV_6_2F6913DB.mf4"
+                }
+            }
+        }
+
+    def to_full_task_string(self) -> str:
+        """Convert to legacy full task string format (for backward compatibility)"""
+        if not self.parameters:
+            return self.operation
+
+        # Build task string with parameters embedded
+        params_str = ", ".join([f"{k}={v}" for k, v in self.parameters.items()])
+        return f"{self.operation} (Parameters: {params_str})"
+
+
 class ActionSchema(BaseModel):
     """Schema for a single MCP tool action in a plan"""
     tool_name: str = Field(..., description="MCP tool name to execute (e.g., 'Click-Tool', 'Type-Tool', 'State-Tool')")
@@ -78,6 +107,10 @@ class PlanSchema(BaseModel):
     plan: List[ActionSchema] = Field(..., description="Sequence of actions to execute")
     reasoning: str = Field(..., description="Why this plan achieves the task")
     estimated_duration: Optional[int] = Field(None, description="Estimated execution time in seconds")
+    parameters: Optional[Dict[str, str]] = Field(
+        None,
+        description="Path parameters used in this plan (for parameterized tasks). Null for legacy non-parameterized plans."
+    )
 
     class Config:
         json_schema_extra = {
@@ -148,8 +181,16 @@ class PlanExecutionState(BaseModel):
 
 class VerifiedSkillSchema(BaseModel):
     """Schema for human-verified, proven workflow skills"""
-    task_description: str = Field(..., description="What task this verified skill accomplishes")
+    task_description: str = Field(..., description="What task this verified skill accomplishes (legacy format with paths)")
+    operation: Optional[str] = Field(
+        None,
+        description="Core operation without paths (for parameterized skills). Null for legacy skills."
+    )
     action_plan: List[ActionSchema] = Field(..., description="Sequence of proven MCP tool actions that execute this skill")
+    parameters: Optional[Dict[str, str]] = Field(
+        None,
+        description="Required parameters for this skill (for parameterized skills). Null for legacy skills."
+    )
     verification_metadata: Dict[str, Any] = Field(default_factory=dict, description="Human verification info (verified_by, date, test_cases)")
     success_rate: float = Field(1.0, description="Historical success rate (0.0 to 1.0)")
 

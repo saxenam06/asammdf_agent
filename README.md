@@ -313,3 +313,155 @@ timestamp: str
 ---
 
 **Happy Automating! 🚀**
+
+
+@ -0,0 +1,149 @@
+# Parameterized Tasks - Usage Guide
+
+## Overview
+
+The autonomous workflow now uses **parameterized tasks only**. All file/folder paths are separated from the core operation logic, making plans and verified skills reusable across different folders.
+
+---
+
+## Format
+
+**Required:**
+- `operation`: Core task description without paths
+- `parameters`: JSON object with path parameters
+
+**Standard Parameters:**
+- `input_folder`: Folder containing input files
+- `output_folder`: Folder for output files
+- `output_filename`: Name of output file
+
+---
+
+## Usage
+
+### 1. Run with Default Task
+
+```bash
+python agent/workflows/autonomous_workflow.py
+```
+
+**Default operation:** "Concatenate all .MF4 files and save with specified name"
+
+**Default parameters:**
+```json
+{
+  "input_folder": "C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\...\\Kia EV6\\LOG\\2F6913DB\\00001026",
+  "output_folder": "C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\...\\Kia EV6\\LOG\\2F6913DB",
+  "output_filename": "Kia_EV_6_2F6913DB.mf4"
+}
+```
+
+### 2. Run with Custom Task
+
+```bash
+python agent/workflows/autonomous_workflow.py \
+  --operation "Concatenate all .MF4 files and save with specified name" \
+  --parameters '{"input_folder": "C:\\data\\Tesla_Model_3\\LOG\\00000001", "output_folder": "C:\\output", "output_filename": "Tesla_Model_3.mf4"}'
+```
+
+**Note:** On Windows, escape backslashes in JSON: `\\` becomes `\\\\`
+
+### 3. Python API
+
+```python
+from agent.workflows.autonomous_workflow import execute_autonomous_task
+
+results = execute_autonomous_task(
+    operation="Concatenate all .MF4 files and save with specified name",
+    parameters={
+        "input_folder": r"C:\data\Tesla_Model_3\LOG\00000001",
+        "output_folder": r"C:\output",
+        "output_filename": "Tesla_Model_3.mf4"
+    },
+    interactive_mode=True
+)
+
+print(f"Success: {results['success']}")
+print(f"Steps: {results['steps_completed']}")
+```
+
+---
+
+## How It Works
+
+### 1. Task Parsing
+System converts operation + parameters to internal format:
+```
+"Concatenate all .MF4 files and save with specified name (Parameters: input_folder=C:\data\Tesla, output_folder=C:\output, output_filename=Tesla.mf4)"
+```
+
+### 2. Planning
+GPT generates plan with placeholders:
+```json
+{
+  "tool_name": "Type-Tool",
+  "tool_arguments": {
+    "text": "{input_folder}",
+    "clear": true,
+    "press_enter": true
+  },
+  "reasoning": "Enter input folder path from parameters"
+}
+```
+
+### 3. Execution
+AdaptiveExecutor substitutes placeholders before execution:
+- `{input_folder}` → `C:\data\Tesla`
+- `{output_folder}` → `C:\output`
+- `{output_filename}` → `Tesla.mf4`
+
+### 4. Skill Matching
+- **Operation-based**: Matches on core operation only, ignoring paths
+- **Reusable**: Same skill works for different folders
+- **Example**: Skill for "Concatenate all .MF4 files" matches any folder
+
+---
+
+## Benefits
+
+✅ **Reusability**: Plans/skills work across different folders
+✅ **Clarity**: Separate logic from data
+✅ **Privacy**: Don't embed specific paths in skills
+✅ **Flexibility**: Change paths without regenerating plans
+✅ **Consistency**: Single standardized format
+
+---
+
+## Example: Reusing Verified Skills
+
+**First run** (Kia EV6):
+```bash
+python agent/workflows/autonomous_workflow.py \
+  --operation "Concatenate all .MF4 files and save with specified name" \
+  --parameters '{"input_folder": "C:\\data\\Kia_EV6\\LOG\\00001026", "output_folder": "C:\\output", "output_filename": "Kia.mf4"}'
+```
+→ Creates verified skill with operation "Concatenate all .MF4 files and save with specified name"
+
+**Second run** (Tesla Model 3):
+```bash
+python agent/workflows/autonomous_workflow.py \
+  --operation "Concatenate all .MF4 files and save with specified name" \
+  --parameters '{"input_folder": "C:\\data\\Tesla_Model_3\\LOG\\00000001", "output_folder": "C:\\output", "output_filename": "Tesla.mf4"}'
+```
+→ **Matches existing skill!** Reuses proven workflow with new parameters
+
+---
+
+## Troubleshooting
+
+**Q: "operation and parameters must be provided together" error**
+A: Both `--operation` and `--parameters` are required. Use both or neither (for default task).
+
+**Q: JSON parsing error**
+A: Ensure backslashes are escaped: `"C:\\folder"` not `"C:\folder"`
+
+**Q: Placeholder not substituted**
+A: Check placeholder name matches parameter key exactly (case-sensitive)
+
+**Q: Skill not matching**
+A: Ensure operation text is similar (>75% similarity threshold)

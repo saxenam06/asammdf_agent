@@ -2,7 +2,7 @@
 Autonomous workflow orchestrator using LangGraph
 """
 import sys, os, asyncio
-from typing import TypedDict, Optional, List, Annotated
+from typing import TypedDict, Optional, List, Annotated, Dict
 from langgraph.graph import StateGraph, END
 import operator
 
@@ -34,6 +34,8 @@ except ImportError:
 
 class WorkflowState(TypedDict):
     task: str
+    operation: Optional[str]  # Core operation without paths (for parameterized tasks)
+    parameters: Optional[Dict[str, str]]  # Path parameters (for parameterized tasks)
     retrieved_knowledge: List[KnowledgeSchema]
     plan: Optional[PlanSchema]
     current_step: int
@@ -127,7 +129,8 @@ class AutonomousWorkflow:
                     knowledge_retriever=self.retriever,
                     plan_filepath=plan_path,
                     human_observer=self._human_observer if self.enable_hitl else None,
-                    session_id=self.session_id
+                    session_id=self.session_id,
+                    parameters=self.parameters if hasattr(self, 'parameters') else None
                 )
         return self._executor
 
@@ -187,7 +190,9 @@ class AutonomousWorkflow:
                 task=state["task"],
                 available_knowledge=state["retrieved_knowledge"],
                 force_regenerate=state.get("force_regenerate_plan", False),
-                latest_state=latest_state
+                latest_state=latest_state,
+                operation=state.get("operation"),
+                parameters=state.get("parameters")
             )
 
             print(f"  ✓ Generated {len(plan.plan)} steps")
@@ -425,6 +430,8 @@ class AutonomousWorkflow:
                         task_description=state["task"],
                         action_plan=action_plan,
                         session_id=self.session_id,
+                        operation=state.get("operation"),
+                        parameters=state.get("parameters"),
                         human_feedbacks_count=human_feedbacks_count,
                         agent_recoveries_count=agent_recoveries_count,
                         tags=["human_verified"]
@@ -549,14 +556,45 @@ class AutonomousWorkflow:
 
         return f"agent/learning/verified_skills/{task_clean}_skills.json"
 
-    async def run(self, task: str, force_regenerate_plan: bool = False) -> dict:
+    async def run(
+        self,
+        operation: str,
+        parameters: Dict[str, str],
+        force_regenerate_plan: bool = False
+    ) -> dict:
+        """
+        Run autonomous workflow
+
+        Args:
+            operation: Core operation without paths (e.g., "Concatenate all .MF4 files and save with specified name")
+            parameters: Path parameters dict (e.g., {"input_folder": "C:\\...", "output_folder": "C:\\...", "output_filename": "file.mf4"})
+            force_regenerate_plan: Force plan regeneration even if cached plan exists
+        """
+        from agent.planning.schemas import TaskInput
+
+        # Parameterized mode only
+        self.operation = operation
+        self.parameters = parameters or {}
+
+        # Create TaskInput for validation
+        task_input = TaskInput(operation=operation, parameters=self.parameters)
+
+        # Build full task string for internal use
+        final_task = task_input.to_full_task_string()
+        self.task = final_task
+
         print("\n" + "="*80)
-        print(f"Task: {task}")
+        print(f"Operation: {operation}")
+        if self.parameters:
+            print(f"Parameters:")
+            for key, value in self.parameters.items():
+                print(f"  - {key}: {value}")
         print("="*80)
 
-        self.task = task
         initial_state = WorkflowState(
-            task=task,
+            task=final_task,
+            operation=self.operation,
+            parameters=self.parameters,
             retrieved_knowledge=[],
             plan=None,
             current_step=0,
@@ -568,7 +606,7 @@ class AutonomousWorkflow:
 
         # Initialize skill library with task-specific path
         if self.enable_hitl and HITL_AVAILABLE:
-            skill_library_path = self._get_skill_library_path(task)
+            skill_library_path = self._get_skill_library_path(self.task)
             self._skill_library = SkillLibrary(library_path=skill_library_path)
             print(f"[SkillLibrary] Using: {skill_library_path}")
 
@@ -593,7 +631,7 @@ class AutonomousWorkflow:
 
                 results = {
                     "success": final_state.get("completed", False) and not final_state.get("error"),
-                    "task": task,
+                    "task": self.task,
                     "plan": final_state["plan"].model_dump() if final_state.get("plan") else None,
                     "steps_completed": final_state.get("current_step", 0),
                     "execution_log": [],
@@ -613,7 +651,7 @@ class AutonomousWorkflow:
 
             except Exception as e:
                 print(f"\n✗ Error: {e}")
-                return {"success": False, "task": task, "error": str(e)}
+                return {"success": False, "task": self.task, "error": str(e)}
 
             finally:
                 # Stop keyboard listener
@@ -625,22 +663,24 @@ class AutonomousWorkflow:
                     self._human_observer.stop()
                     print("[HITL] Observer stopped")
 
-    def run_sync(self, task: str, force_regenerate_plan: bool = False) -> dict:
+    def run_sync(self, operation: str, parameters: Dict[str, str], force_regenerate_plan: bool = False) -> dict:
         """
-        Sync wrapper for run() - for backward compatibility
+        Sync wrapper for run()
 
         Args:
-            task: Natural language task description
+            operation: Core operation without paths
+            parameters: Path parameters dict
             force_regenerate_plan: If True, regenerate plan even if cached plan exists
 
         Returns:
             Execution results
         """
-        return asyncio.run(self.run(task, force_regenerate_plan))
+        return asyncio.run(self.run(operation, parameters, force_regenerate_plan))
 
 
 def execute_autonomous_task(
-    task: str,
+    operation: str,
+    parameters: Dict[str, str],
     app_name: str = "asammdf 8.6.10",
     catalog_path: str = "agent/knowledge_base/parsed_knowledge/knowledge_catalog.json",
     vector_db_path: str = "agent/knowledge_base/vector_store",
@@ -650,9 +690,11 @@ def execute_autonomous_task(
     Convenience function to execute a task autonomously
 
     Args:
-        task: Natural language task description
+        operation: Core operation without paths (e.g., "Concatenate all .MF4 files and save with specified name")
+        parameters: Path parameters dict (e.g., {"input_folder": "C:\\...", "output_folder": "C:\\...", "output_filename": "file.mf4"})
         app_name: Application window name
         catalog_path: Path to knowledge catalog
+        vector_db_path: Path to vector database
         interactive_mode: If True, pause after each step for feedback
 
     Returns:
@@ -665,7 +707,10 @@ def execute_autonomous_task(
         interactive_mode=interactive_mode
     )
 
-    return workflow.run_sync(task)
+    return asyncio.run(workflow.run(
+        operation=operation,
+        parameters=parameters
+    ))
 
 
 if __name__ == "__main__":
@@ -674,17 +719,29 @@ if __name__ == "__main__":
     """
     import argparse
 
-    parser = argparse.ArgumentParser(description="Run autonomous workflow")
-    parser.add_argument(
-        "task",
-        nargs="?",
-        default=None,
-        help="Task description"
+    parser = argparse.ArgumentParser(
+        description="Run autonomous workflow with parameterized tasks",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Use default task
+  python autonomous_workflow.py
+
+  # Custom task with parameters
+  python autonomous_workflow.py \\
+    --operation "Concatenate all .MF4 files and save with specified name" \\
+    --parameters '{"input_folder": "C:\\\\data\\\\Tesla", "output_folder": "C:\\\\output", "output_filename": "Tesla.mf4"}'
+        """
     )
     parser.add_argument(
-        "--gui-instructions",
-        default=None,
-        help="Optional GUI-specific instructions"
+        "--operation",
+        type=str,
+        help="Core operation without paths (e.g., 'Concatenate all .MF4 files and save with specified name')"
+    )
+    parser.add_argument(
+        "--parameters",
+        type=str,
+        help='Path parameters as JSON string (e.g., \'{"input_folder": "C:\\\\...", "output_folder": "C:\\\\...", "output_filename": "file.mf4"}\')'
     )
     parser.add_argument(
         "--interactive",
@@ -694,36 +751,30 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    # Default task and GUI instructions (separated for clarity)
-    default_task = (
-        "Concatenate all .MF4 files in the folder "
-        r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\LOG\2F6913DB\00001026\."
-        "Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder."
-    )
+    # Parse parameters
+    import json
 
-    default_gui_instructions = (
-        # "To load all MF4 files:"
-        # " Go to File → Open, then enter the path of the desired folder, select any .MF4 file, press Ctrl + A to highlight all files in the folder, and then press Enter to load them all."
-    )
-
-    # Build final task
-    if args.task is None:
-        # Use defaults
-        task = default_task
-        gui_instructions = default_gui_instructions
+    if args.operation and args.parameters:
+        # User-provided operation and parameters
+        operation = args.operation
+        parameters = json.loads(args.parameters)
+    elif args.operation or args.parameters:
+        # Only one provided - error
+        parser.error("--operation and --parameters must be provided together")
     else:
-        # Use provided arguments
-        task = args.task
-        gui_instructions = args.gui_instructions
+        # Use default task
+        operation = "Concatenate all .MF4 files in the input_folder and save in the output_folder with specified output_filename."
+        parameters = {
+            "input_folder": r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\LOG\2F6913DB\00001026",
+            "output_folder": r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\LOG\2F6913DB\00001026",
+            "output_filename": "Kia_EV_6_2F6913DB.mf4"
+        }
+        print(f"\n[Using Default Task]")
 
-    # Combine task with GUI instructions if available
-    if gui_instructions:
-        full_task = f"{task} GUI instructions: {gui_instructions}"
-    else:
-        full_task = task
-
+    # Run workflow
     results = execute_autonomous_task(
-        task=full_task,
+        operation=operation,
+        parameters=parameters,
         catalog_path="agent/knowledge_base/parsed_knowledge/knowledge_catalog.json",
         vector_db_path="agent/knowledge_base/vector_store",
         interactive_mode=args.interactive

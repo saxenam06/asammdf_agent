@@ -31,6 +31,35 @@ CORE RULES:
    - File name: ["last_state:edit:File name"]
 6. Windows paths: Use single backslash (\) only - e.g., C:\Users\ADMIN\file.mf4
 
+PARAMETERIZED TASKS:
+ALL tasks are parameterized. The task includes "Parameters:" in the format "Operation (Parameters: key=value, ...)".
+You MUST use PLACEHOLDERS for all file/folder paths in your actions:
+
+- Use {{placeholder_name}} syntax for ALL file/folder paths
+- Placeholder names MUST match the parameter keys provided
+- DO NOT use actual paths - ALWAYS use placeholders
+- Common placeholders: {{input_folder}}, {{output_folder}}, {{output_filename}}
+
+Example task format:
+Task: "Concatenate all .MF4 files and save with specified name (Parameters: input_folder=C:\Users\...\00001026, output_folder=C:\Users\...\2F6913DB, output_filename=Kia_EV_6.mf4)"
+
+CORRECT plan actions:
+{{
+  "tool_name": "Type-Tool",
+  "tool_arguments": {{"text": "{{input_folder}}", "clear": true, "press_enter": true}},
+  "reasoning": "Enter input folder path from parameters",
+  "kb_source": "open_files"
+}}
+{{
+  "tool_name": "Type-Tool",
+  "tool_arguments": {{"text": "{{output_folder}}\\{{output_filename}}", "clear": true, "press_enter": false}},
+  "reasoning": "Enter full output path combining folder and filename",
+  "kb_source": "save_file"
+}}
+
+WRONG - DO NOT DO THIS:
+{{"text": "C:\Users\...\00001026"}}  ← NEVER use actual paths!
+
 KB SOURCE ATTRIBUTION (CRITICAL):
 For EACH action in your plan, MUST set the "kb_source" field:
 - If action derived from a KB item, set kb_source to that item's KB ID
