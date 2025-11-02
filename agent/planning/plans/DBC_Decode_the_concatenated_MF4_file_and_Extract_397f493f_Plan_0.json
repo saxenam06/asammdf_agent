@@ -7,7 +7,7 @@
         "tool_arguments": {
           "name": "asammdf"
         },
-        "reasoning": "Activate asammdf window so subsequent UI interactions target the correct application",
+        "reasoning": "Activate the asammdf application window so subsequent UI actions target it",
         "kb_source": null,
         "step_num": 1
       },
@@ -16,7 +16,7 @@
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Discover current UI elements and confirm we are in Single files view before opening the concatenated MF4",
+        "reasoning": "Discover current UI elements (menus, tabs, buttons) before interacting",
         "kb_source": null,
         "step_num": 2
       },
@@ -29,33 +29,25 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Open Mode menu to ensure Single files mode is selected (KB: can_lin_flexray_decoding recommends Mode be set to Single files before opening file)",
+        "reasoning": "Open the Mode menu so we can switch to Single files mode (from KB: can_lin_flexray_decoding)",
         "kb_source": "can_lin_flexray_decoding",
         "step_num": 3
       },
       {
-        "tool_name": "Click-Tool",
+        "tool_name": "Wait-Tool",
         "tool_arguments": {
-          "loc": [
-            "last_state:menu:Single Files"
-          ],
-          "button": "left",
-          "clicks": 1
+          "duration": 1
         },
-        "reasoning": "Select Single files mode to enable Bus logging and Modify & Export tools (KB: can_lin_flexray_decoding)",
-        "kb_source": "can_lin_flexray_decoding",
+        "reasoning": "Allow Mode menu to open before selecting an option",
+        "kb_source": null,
         "step_num": 4
       },
       {
-        "tool_name": "Click-Tool",
+        "tool_name": "State-Tool",
         "tool_arguments": {
-          "loc": [
-            "last_state:menu:File"
-          ],
-          "button": "left",
-          "clicks": 1
+          "use_vision": false
         },
-        "reasoning": "Open File menu to load the concatenated MF4 file",
+        "reasoning": "Capture Mode menu options so we can click Single files",
         "kb_source": null,
         "step_num": 5
       },
@@ -63,23 +55,62 @@
         "tool_name": "Click-Tool",
         "tool_arguments": {
           "loc": [
-            "last_state:menu:Open"
+            "last_state:menu:Single files"
           ],
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Choose Open to bring up the file dialog for selecting the concatenated MF4",
-        "kb_source": null,
+        "reasoning": "Select Single files mode to ensure Bus logging tab is available (from KB: can_lin_flexray_decoding)",
+        "kb_source": "can_lin_flexray_decoding",
         "step_num": 6
+      },
+      {
+        "tool_name": "Wait-Tool",
+        "tool_arguments": {
+          "duration": 1
+        },
+        "reasoning": "Wait for UI to switch to Single files mode",
+        "kb_source": null,
+        "step_num": 7
       },
       {
         "tool_name": "State-Tool",
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Capture the file open dialog elements so we can enter the concatenated filename",
+        "reasoning": "Refresh UI state before opening the concatenated MF4",
         "kb_source": null,
-        "step_num": 7
+        "step_num": 8
+      },
+      {
+        "tool_name": "Shortcut-Tool",
+        "tool_arguments": {
+          "shortcut": [
+            "ctrl",
+            "o"
+          ]
+        },
+        "reasoning": "Open the file dialog to load the concatenated MF4 (conservative, generic open action)",
+        "kb_source": "can_lin_flexray_decoding",
+        "step_num": 9
+      },
+      {
+        "tool_name": "Wait-Tool",
+        "tool_arguments": {
+          "duration": 1
+        },
+        "reasoning": "Allow the Open file dialog to appear",
+        "kb_source": null,
+        "step_num": 10
+      },
+      {
+        "tool_name": "State-Tool",
+        "tool_arguments": {
+          "use_vision": false
+        },
+        "reasoning": "Locate the File name edit field in the Open dialog",
+        "kb_source": null,
+        "step_num": 11
       },
       {
         "tool_name": "Type-Tool",
@@ -88,27 +119,27 @@
           "clear": true,
           "press_enter": true
         },
-        "reasoning": "Enter the full path (placeholder) of the concatenated MF4 to open it",
-        "kb_source": null,
-        "step_num": 8
+        "reasoning": "Enter the full path to the concatenated MF4 and open it (from KB: can_lin_flexray_decoding)",
+        "kb_source": "can_lin_flexray_decoding",
+        "step_num": 12
       },
       {
         "tool_name": "Wait-Tool",
         "tool_arguments": {
           "duration": 3
         },
-        "reasoning": "Wait for the file to open and UI to update",
+        "reasoning": "Wait for the concatenated MF4 to finish loading into Single files view",
         "kb_source": null,
-        "step_num": 9
+        "step_num": 13
       },
       {
         "tool_name": "State-Tool",
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Discover UI elements now that the file is open and locate the Bus logging tab",
+        "reasoning": "Capture UI to find the Bus logging tab and controls",
         "kb_source": null,
-        "step_num": 10
+        "step_num": 14
       },
       {
         "tool_name": "Click-Tool",
@@ -119,9 +150,27 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Open the Bus logging tab to load the CAN database for decoding (KB: can_lin_flexray_decoding)",
+        "reasoning": "Open the Bus logging tab to decode CAN/LIN/FlexRay data (from KB: can_lin_flexray_decoding)",
         "kb_source": "can_lin_flexray_decoding",
-        "step_num": 11
+        "step_num": 15
+      },
+      {
+        "tool_name": "Wait-Tool",
+        "tool_arguments": {
+          "duration": 1
+        },
+        "reasoning": "Allow Bus logging tab to become active",
+        "kb_source": null,
+        "step_num": 16
+      },
+      {
+        "tool_name": "State-Tool",
+        "tool_arguments": {
+          "use_vision": false
+        },
+        "reasoning": "Discover controls inside the Bus logging tab (Load CAN database, Extract Bus Signals)",
+        "kb_source": null,
+        "step_num": 17
       },
       {
         "tool_name": "Click-Tool",
@@ -132,18 +181,27 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Initiate loading of the external CAN database (.dbc) required for DBC decoding (KB: can_lin_flexray_decoding; learning: the correct button is 'Load CAN database')",
+        "reasoning": "Load the external CAN database (.dbc) for decoding (KB: can_lin_flexray_decoding \u2014 correct button is 'Load CAN database')",
         "kb_source": "can_lin_flexray_decoding",
-        "step_num": 12
+        "step_num": 18
+      },
+      {
+        "tool_name": "Wait-Tool",
+        "tool_arguments": {
+          "duration": 1
+        },
+        "reasoning": "Wait for the file selection dialog to appear for the CAN database",
+        "kb_source": null,
+        "step_num": 19
       },
       {
         "tool_name": "State-Tool",
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Capture the file dialog for selecting the CAN database file",
+        "reasoning": "Capture the database file dialog controls",
         "kb_source": null,
-        "step_num": 13
+        "step_num": 20
       },
       {
         "tool_name": "Type-Tool",
@@ -152,18 +210,27 @@
           "clear": true,
           "press_enter": true
         },
-        "reasoning": "Enter the path (placeholder) to the .dbc CAN database file to load it for decoding",
-        "kb_source": null,
-        "step_num": 14
+        "reasoning": "Enter the path to the .dbc file to load it for decoding (from KB: can_lin_flexray_decoding)",
+        "kb_source": "can_lin_flexray_decoding",
+        "step_num": 21
       },
       {
         "tool_name": "Wait-Tool",
         "tool_arguments": {
-          "duration": 2
+          "duration": 1
         },
-        "reasoning": "Allow time for the CAN database to load",
+        "reasoning": "Allow CAN database to load and be applied to the measurement",
         "kb_source": null,
-        "step_num": 15
+        "step_num": 22
+      },
+      {
+        "tool_name": "State-Tool",
+        "tool_arguments": {
+          "use_vision": false
+        },
+        "reasoning": "Refresh UI to reveal the Extract Bus Signals action after loading the DB",
+        "kb_source": null,
+        "step_num": 23
       },
       {
         "tool_name": "Click-Tool",
@@ -174,18 +241,27 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Extract bus signals using the loaded CAN database and create a decoded MF4 (learning: use 'Extract Bus Signals' rather than an 'Apply' button) (KB: can_lin_flexray_decoding)",
+        "reasoning": "Extract bus signals using the loaded database; this creates a decoded MF4 (KB: can_lin_flexray_decoding \u2014 use Extract Bus Signals then Save)",
         "kb_source": "can_lin_flexray_decoding",
-        "step_num": 16
+        "step_num": 24
+      },
+      {
+        "tool_name": "Wait-Tool",
+        "tool_arguments": {
+          "duration": 1
+        },
+        "reasoning": "Wait for the Save dialog to appear for the decoded MF4 output filename",
+        "kb_source": null,
+        "step_num": 25
       },
       {
         "tool_name": "State-Tool",
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Capture the Save dialog to enter the output decoded MF4 filename",
+        "reasoning": "Capture the Save dialog so we can enter the decoded MF4 filename",
         "kb_source": null,
-        "step_num": 17
+        "step_num": 26
       },
       {
         "tool_name": "Type-Tool",
@@ -194,9 +270,9 @@
           "clear": true,
           "press_enter": false
         },
-        "reasoning": "Enter the full path (placeholder) and filename for the decoded MF4 output",
+        "reasoning": "Enter the full path and filename for the decoded MF4 output",
         "kb_source": "can_lin_flexray_decoding",
-        "step_num": 18
+        "step_num": 27
       },
       {
         "tool_name": "Click-Tool",
@@ -207,27 +283,27 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Save the decoded MF4 file to the specified placeholder path (KB: can_lin_flexray_decoding)",
+        "reasoning": "Save the decoded MF4 to the specified output path (KB: can_lin_flexray_decoding)",
         "kb_source": "can_lin_flexray_decoding",
-        "step_num": 19
+        "step_num": 28
       },
       {
         "tool_name": "Wait-Tool",
         "tool_arguments": {
-          "duration": 8
+          "duration": 3
         },
-        "reasoning": "Wait for the decoding and saving operation to complete (time depends on file size)",
+        "reasoning": "Wait for decoding and decoded MF4 creation to complete",
         "kb_source": null,
-        "step_num": 20
+        "step_num": 29
       },
       {
         "tool_name": "State-Tool",
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Confirm the decoded MF4 is available and discover Modify & Export controls",
+        "reasoning": "Capture UI to access Modify & Export tab and its tools",
         "kb_source": null,
-        "step_num": 21
+        "step_num": 30
       },
       {
         "tool_name": "Click-Tool",
@@ -238,9 +314,27 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Open the Modify & Export tab to access resample and export tools (KB: file_modify_and_export_tools)",
+        "reasoning": "Open the Modify & Export tab to access the Resample and export functions (from KB: file_modify_and_export_tools)",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 22
+        "step_num": 31
+      },
+      {
+        "tool_name": "Wait-Tool",
+        "tool_arguments": {
+          "duration": 1
+        },
+        "reasoning": "Allow Modify & Export tab to become active",
+        "kb_source": null,
+        "step_num": 32
+      },
+      {
+        "tool_name": "State-Tool",
+        "tool_arguments": {
+          "use_vision": false
+        },
+        "reasoning": "Discover available tools under Modify & Export (Resample, Output format, etc.)",
+        "kb_source": null,
+        "step_num": 33
       },
       {
         "tool_name": "Click-Tool",
@@ -251,18 +345,40 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Select the Resample tool to set the desired time step for the measurement (KB: file_modify_and_export_tools)",
+        "reasoning": "Choose the Resample tool to set the desired 2s sampling interval (from KB: file_modify_and_export_tools)",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 23
+        "step_num": 34
+      },
+      {
+        "tool_name": "Wait-Tool",
+        "tool_arguments": {
+          "duration": 1
+        },
+        "reasoning": "Wait for Resample options to appear",
+        "kb_source": null,
+        "step_num": 35
       },
       {
         "tool_name": "State-Tool",
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Capture the Resample options UI so we can set the interval to 2 seconds",
+        "reasoning": "Locate the Time step field in the Resample options",
         "kb_source": null,
-        "step_num": 24
+        "step_num": 36
+      },
+      {
+        "tool_name": "Click-Tool",
+        "tool_arguments": {
+          "loc": [
+            "last_state:edit:step"
+          ],
+          "button": "left",
+          "clicks": 1
+        },
+        "reasoning": "Focus the time-step field so we can enter the resample interval (from KB: file_modify_and_export_tools)",
+        "kb_source": "file_modify_and_export_tools",
+        "step_num": 37
       },
       {
         "tool_name": "Type-Tool",
@@ -271,40 +387,18 @@
           "clear": true,
           "press_enter": false
         },
-        "reasoning": "Set the resample interval to 2 seconds (placeholder value entered into the resample interval field) (KB: file_modify_and_export_tools)",
-        "kb_source": "file_modify_and_export_tools",
-        "step_num": 25
-      },
-      {
-        "tool_name": "Click-Tool",
-        "tool_arguments": {
-          "loc": [
-            "last_state:button:Apply"
-          ],
-          "button": "left",
-          "clicks": 1
-        },
-        "reasoning": "Apply the resample operation to the opened (decoded) measurement (KB: file_modify_and_export_tools)",
-        "kb_source": "file_modify_and_export_tools",
-        "step_num": 26
-      },
-      {
-        "tool_name": "Wait-Tool",
-        "tool_arguments": {
-          "duration": 3
-        },
-        "reasoning": "Allow time for the Resample operation to complete",
+        "reasoning": "Set resample interval to 2 seconds (learning: set resample first before applying/exporting)",
         "kb_source": null,
-        "step_num": 27
+        "step_num": 38
       },
       {
         "tool_name": "State-Tool",
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Refresh UI state before starting the export to CSV and capture export formatting controls (learning: confirm format dropdown options with State-Tool)",
+        "reasoning": "Confirm resample settings are applied in the UI before selecting output format",
         "kb_source": null,
-        "step_num": 28
+        "step_num": 39
       },
       {
         "tool_name": "Click-Tool",
@@ -315,57 +409,84 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Open the Output format dropdown to choose CSV for export (KB: file_modify_and_export_tools; learning: use State-Tool after opening dropdown to locate CSV option)",
+        "reasoning": "Open Output format dropdown to select CSV (KB: file_modify_and_export_tools \u2014 there is no direct 'Export' button)",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 29
+        "step_num": 40
+      },
+      {
+        "tool_name": "Wait-Tool",
+        "tool_arguments": {
+          "duration": 1
+        },
+        "reasoning": "Wait for Output format menu to populate",
+        "kb_source": null,
+        "step_num": 41
       },
       {
         "tool_name": "State-Tool",
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Capture dropdown options so we can reliably click the CSV option",
+        "reasoning": "Capture Output format options to find CSV option",
         "kb_source": null,
-        "step_num": 30
+        "step_num": 42
       },
       {
         "tool_name": "Click-Tool",
         "tool_arguments": {
           "loc": [
-            "last_state:button:CSV"
+            "last_state:menu:CSV"
           ],
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Select CSV as the export format (KB: file_modify_and_export_tools)",
+        "reasoning": "Select CSV as the export format (from KB: file_modify_and_export_tools)",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 31
+        "step_num": 43
+      },
+      {
+        "tool_name": "Wait-Tool",
+        "tool_arguments": {
+          "duration": 1
+        },
+        "reasoning": "Wait for CSV formatting options to appear",
+        "kb_source": null,
+        "step_num": 44
+      },
+      {
+        "tool_name": "State-Tool",
+        "tool_arguments": {
+          "use_vision": false
+        },
+        "reasoning": "Capture CSV formatting options including Single time base and Time as date",
+        "kb_source": null,
+        "step_num": 45
       },
       {
         "tool_name": "Click-Tool",
         "tool_arguments": {
           "loc": [
-            "last_state:checkbox:Single time base"
+            "last_state:button:Single time base"
           ],
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Enable Single time base for the CSV export so the file uses a single time axis (KB: file_modify_and_export_tools)",
+        "reasoning": "Enable Single time base option for CSV export (KB: file_modify_and_export_tools)",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 32
+        "step_num": 46
       },
       {
         "tool_name": "Click-Tool",
         "tool_arguments": {
           "loc": [
-            "last_state:checkbox:Time as date"
+            "last_state:button:Time as date"
           ],
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Set Time as date so timestamps in the CSV are exported as date/time values (KB: file_modify_and_export_tools)",
+        "reasoning": "Enable Time as date option so the CSV time column is formatted as dates (KB: file_modify_and_export_tools)",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 33
+        "step_num": 47
       },
       {
         "tool_name": "Click-Tool",
@@ -376,18 +497,27 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Apply the export formatting options prior to saving the CSV (learning: Apply before entering filename and clicking Save) (KB: file_modify_and_export_tools)",
+        "reasoning": "Apply the export formatting and resampling settings; this opens the Save dialog for the CSV (KB: file_modify_and_export_tools)",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 34
+        "step_num": 48
+      },
+      {
+        "tool_name": "Wait-Tool",
+        "tool_arguments": {
+          "duration": 1
+        },
+        "reasoning": "Wait for the Save dialog for CSV to appear",
+        "kb_source": null,
+        "step_num": 49
       },
       {
         "tool_name": "State-Tool",
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Capture the Save dialog for exporting the CSV so we can enter the output CSV filename",
+        "reasoning": "Locate File name edit field in the Save dialog to enter CSV filename",
         "kb_source": null,
-        "step_num": 35
+        "step_num": 50
       },
       {
         "tool_name": "Type-Tool",
@@ -396,9 +526,9 @@
           "clear": true,
           "press_enter": false
         },
-        "reasoning": "Enter the full path (placeholder) and filename for the exported CSV in the Save dialog (KB: file_modify_and_export_tools; learning: enter filename then click Save)",
+        "reasoning": "Enter the full path and filename for the CSV export",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 36
+        "step_num": 51
       },
       {
         "tool_name": "Click-Tool",
@@ -409,30 +539,30 @@
           "button": "left",
           "clicks": 1
         },
-        "reasoning": "Save the resampled, decoded measurement to CSV at the specified placeholder path (KB: file_modify_and_export_tools)",
+        "reasoning": "Save the CSV with the selected resample and formatting settings (from KB: file_modify_and_export_tools)",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 37
+        "step_num": 52
       },
       {
         "tool_name": "Wait-Tool",
         "tool_arguments": {
-          "duration": 6
+          "duration": 5
         },
-        "reasoning": "Wait for the CSV export to complete; file size affects duration",
+        "reasoning": "Allow time for the CSV export to complete",
         "kb_source": null,
-        "step_num": 38
+        "step_num": 53
       },
       {
         "tool_name": "State-Tool",
         "tool_arguments": {
           "use_vision": false
         },
-        "reasoning": "Final capture of UI to confirm export finished and file dialogs closed",
+        "reasoning": "Final UI capture to confirm the export finished and the UI is stable",
         "kb_source": null,
-        "step_num": 39
+        "step_num": 54
       }
     ],
-    "reasoning": "Overall strategy: ensure Single files mode, open the provided concatenated MF4, load the provided .dbc and use 'Extract Bus Signals' to produce a decoded MF4. Then use Modify & Export -> Resample to set a 2s interval, apply single time base and time-as-date options, and export to CSV. State-Tool calls are included before UI interactions and after opening dropdowns per KB learnings. Save/open dialogs use placeholder paths as required.",
+    "reasoning": "Set Single files mode, open the provided concatenated MF4, load the provided .dbc and run 'Extract Bus Signals' to create a decoded MF4, then open the decoded file, use Modify & Export \u2192 Resample with a 2s timestep, select CSV output with Single time base and Time as date, apply settings and save the CSV. Steps follow KB procedures (can_lin_flexray_decoding for decoding; file_modify_and_export_tools for resample/export) and incorporate learnings: ensure Mode=Single files before opening, use 'Load CAN database' and 'Extract Bus Signals' (not Apply), and select CSV via Output format then Apply before saving.",
     "estimated_duration": 180,
     "parameters": {
       "input_folder": "C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045",

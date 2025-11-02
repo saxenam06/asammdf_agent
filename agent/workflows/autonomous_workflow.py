@@ -2,9 +2,8 @@
 Autonomous workflow orchestrator using LangGraph
 """
 import sys, os, asyncio
-from typing import TypedDict, Optional, List, Annotated, Dict
+from typing import TypedDict, Optional, List, Dict
 from langgraph.graph import StateGraph, END
-import operator
 
 if sys.platform == 'win32':
     import io
@@ -39,7 +38,7 @@ class WorkflowState(TypedDict):
     retrieved_knowledge: List[KnowledgeSchema]
     plan: Optional[PlanSchema]
     current_step: int
-    execution_log: Annotated[List[ExecutionResult], operator.add]
+    last_execution_result: Optional[ExecutionResult]  # Only store last result to avoid MemoryError
     error: Optional[str]
     completed: bool
     force_regenerate_plan: bool
@@ -258,7 +257,7 @@ class AutonomousWorkflow:
 
         # Note: Learning attachment handled in _handle_failure() method of AdaptiveExecutor
 
-        state["execution_log"] = [result]
+        state["last_execution_result"] = result
         state["current_step"] += 1
         return state
 
@@ -267,13 +266,17 @@ class AutonomousWorkflow:
         sys.stdout.flush()
 
         total_steps = len(state["plan"].plan) if state["plan"] else 0
+        current = state["current_step"]
+        print(f"[Debug] verify_step: current_step={current}, total_steps={total_steps}")
+
         if state["current_step"] >= total_steps:
             print(f"  ✓ All {total_steps} steps completed!")
             state["completed"] = True
             state["error"] = None
+            print(f"[Debug] Setting completed=True, will route to 'done'")
             return state
 
-        last_result = state["execution_log"][-1] if state["execution_log"] else None
+        last_result = state.get("last_execution_result")
 
         if last_result and not last_result.success:
             # No replanning - just fail immediately
@@ -413,6 +416,7 @@ class AutonomousWorkflow:
     def _final_verification_node(self, state: WorkflowState) -> WorkflowState:
         """HITL final verification and skill creation"""
         print(f"\n[HITL] Final Verification")
+        print(f"[Debug] Entered _final_verification_node")
 
         if not self._human_observer:
             print("  [Warning] Observer not available, skipping verification")
@@ -544,9 +548,11 @@ class AutonomousWorkflow:
         return "error" if state.get("error") else "execute"
 
     def _route_after_verification(self, state: WorkflowState) -> str:
-        if state.get("completed"):
-            return "done"
-        return "error" if state.get("error") else "next_step"
+        completed = state.get("completed")
+        error = state.get("error")
+        route = "done" if completed else ("error" if error else "next_step")
+        print(f"[Debug] _route_after_verification: completed={completed}, error={error}, route={route}")
+        return route
 
     def _route_after_error(self, state: WorkflowState) -> str:
         """Always fail - no retries. User must rerun task to apply learnings."""
@@ -617,7 +623,7 @@ class AutonomousWorkflow:
             retrieved_knowledge=[],
             plan=None,
             current_step=0,
-            execution_log=[],
+            last_execution_result=None,
             error=None,
             completed=False,
             force_regenerate_plan=force_regenerate_plan
@@ -646,14 +652,24 @@ class AutonomousWorkflow:
             self._client = client
 
             try:
-                final_state = self.graph.invoke(initial_state, {"recursion_limit": 100})
+                # Calculate recursion limit: 3 initial nodes + (steps × 2) + 1 final = safe margin
+                # For 54 steps: 3 + 108 + 1 = 112, so set to 150 for safety
+                print(f"\n[Debug] Starting graph.invoke() with recursion_limit=150")
+                final_state = self.graph.invoke(initial_state, {"recursion_limit": 150})
+
+                # Debug logging
+                print(f"\n[Debug] graph.invoke() completed")
+                print(f"[Debug] final_state type: {type(final_state)}")
+                print(f"[Debug] final_state keys: {final_state.keys() if isinstance(final_state, dict) else 'N/A'}")
+                print(f"[Debug] completed: {final_state.get('completed', 'KEY_MISSING')}")
+                print(f"[Debug] current_step: {final_state.get('current_step', 'KEY_MISSING')}")
+                print(f"[Debug] error: {final_state.get('error', 'KEY_MISSING')}")
 
                 results = {
                     "success": final_state.get("completed", False) and not final_state.get("error"),
                     "task": self.task,
                     "plan": final_state["plan"].model_dump() if final_state.get("plan") else None,
                     "steps_completed": final_state.get("current_step", 0),
-                    "execution_log": [],
                     "error": final_state.get("error")
                 }
 
@@ -669,7 +685,11 @@ class AutonomousWorkflow:
                 return results
 
             except Exception as e:
-                print(f"\n✗ Error: {e}")
+                print(f"\n✗ Error during graph execution: {e}")
+                print(f"[Debug] Exception type: {type(e).__name__}")
+                import traceback
+                print(f"[Debug] Full traceback:")
+                traceback.print_exc()
                 return {"success": False, "task": self.task, "error": str(e)}
 
             finally:
