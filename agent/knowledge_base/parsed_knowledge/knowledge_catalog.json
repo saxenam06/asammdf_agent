@@ -1584,8 +1584,45 @@
     "output_state": "file_processed_or_exported",
     "doc_citation": "GUI#Single-files",
     "parameters": {},
-    "kb_learnings": [],
-    "trust_score": 1.0
+    "kb_learnings": [
+      {
+        "task": " DBC Decode the concatenated MF4 file and Extract the bus signals. Export the decoded MF4 file to csv with single time base and time as date settings applied. (Parameters: input_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, output_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, input_concatenated_filename=Kia_EV_6_2F6913DB_00001045.MF4, input_CAN_database_file=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\can2-canmod-gnss.dbc, output_decoded_filename=Kia_EV_6_2F6913DB_00001045_decoded.mf4, output_csv_filename=Kia_EV_6_2F6913DB_00001045.csv)",
+        "step_num": 25,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Export"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Open the Export tool to configure CSV export options",
+          "kb_source": "file_modify_and_export_tools",
+          "step_num": 25
+        },
+        "original_error": "There is no button Export to Export the MF4 file to csv | Suggestion: Click on Output format and then select the option CSV in the dropdown. You should use the State Tool after clikcing on Output format to get the coordinates of the CSV in the dropdown.",
+        "timestamp": "2025-11-02T19:34:49.435641"
+      },
+      {
+        "task": " DBC Decode the concatenated MF4 file and Extract the bus signals. Export the decoded MF4 file to csv with single time base and time as date settings applied. (Parameters: input_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, output_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, input_concatenated_filename=Kia_EV_6_2F6913DB_00001045.MF4, input_CAN_database_file=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\can2-canmod-gnss.dbc, output_decoded_filename=Kia_EV_6_2F6913DB_00001045_decoded.mf4, output_csv_filename=Kia_EV_6_2F6913DB_00001045.csv)",
+        "step_num": 28,
+        "original_action": {
+          "tool_name": "Type-Tool",
+          "tool_arguments": {
+            "text": "{output_folder}\\{output_csv_filename}",
+            "clear": true,
+            "press_enter": false
+          },
+          "reasoning": "Enter the full output CSV path using placeholders so the exported CSV is saved to the requested location/name",
+          "kb_source": "file_modify_and_export_tools",
+          "step_num": 28
+        },
+        "original_error": "After selecting the formatting options for e.g. Single time base and Time as date, Click on Apply, enter the Output file name and then Click Save to finally convert the MF4 file to CSV. | Suggestion: Click on Apply after selecting formatting options, enter the Output file name and then Click Save to finally convert the MF4 file to CSV.",
+        "timestamp": "2025-11-02T19:38:06.813200"
+      }
+    ],
+    "trust_score": 0.9025
   },
   {
     "knowledge_id": "extract_attachments",
@@ -1685,9 +1722,28 @@
         },
         "original_error": "Wrong Button: Load database doesnt exist | Suggestion: Actual Button is Load CAN database",
         "timestamp": "2025-11-02T18:22:08.062431"
+      },
+      {
+        "task": " DBC Decode the concatenated MF4 file and Extract the bus signals. Export the decoded MF4 file to csv with single time base and time as date settings applied. (Parameters: input_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, output_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, input_concatenated_filename=Kia_EV_6_2F6913DB_00001045.MF4, input_CAN_database_file=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\can2-canmod-gnss.dbc, output_decoded_filename=Kia_EV_6_2F6913DB_00001045_decoded.mf4, output_csv_filename=Kia_EV_6_2F6913DB_00001045.csv)",
+        "step_num": 18,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Apply"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Apply the loaded CAN database for decoding so bus messages/signals are mapped (KB: apply_database_for_decoding)",
+          "kb_source": "can_lin_flexray_decoding",
+          "step_num": 18
+        },
+        "original_error": "There is no button Apply to apply the loaded CAN database for decoding the bus signals. | Suggestion: The correct button is Extract Bus Signals. After Loading CAN database file, Click Extract Bus Signals, provide the name of the output_decoded_filename and click Save to create the decoded MF4 file. Then proceed with exporting the decoded MF4 file to csv.",
+        "timestamp": "2025-11-02T19:24:29.610047"
       }
     ],
-    "trust_score": 0.9025
+    "trust_score": 0.8573749999999999
   },
   {
     "knowledge_id": "batch_rearrange_file_list",
