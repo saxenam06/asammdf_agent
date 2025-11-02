@@ -768,8 +768,9 @@ Examples:
             "input_folder": r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\LOG\2F6913DB\00001045",
             "output_folder": r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\LOG\2F6913DB\00001045",
             "input_concatenated_filename": "Kia_EV_6_2F6913DB_00001045.MF4",
+            "input_CAN_database_file": r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\can2-canmod-gnss.dbc",
             "output_decoded_filename": "Kia_EV_6_2F6913DB_00001045_decoded.mf4",
-            "output_csv_filename": "Kia_EV_6_2F6913DB_00001045.csv"
+            "output_csv_filename": "Kia_EV_6_2F6913DB_00001045.csv",
         }
         print(f"\n[Using Default Task]")
 
