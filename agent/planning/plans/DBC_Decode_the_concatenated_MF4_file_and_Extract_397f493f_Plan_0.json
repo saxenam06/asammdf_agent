@@ -337,68 +337,13 @@
         "step_num": 33
       },
       {
-        "tool_name": "Click-Tool",
-        "tool_arguments": {
-          "loc": [
-            "last_state:button:Resample"
-          ],
-          "button": "left",
-          "clicks": 1
-        },
-        "reasoning": "Choose the Resample tool to set the desired 2s sampling interval (from KB: file_modify_and_export_tools)",
-        "kb_source": "file_modify_and_export_tools",
-        "step_num": 34
-      },
-      {
-        "tool_name": "Wait-Tool",
-        "tool_arguments": {
-          "duration": 1
-        },
-        "reasoning": "Wait for Resample options to appear",
-        "kb_source": null,
-        "step_num": 35
-      },
-      {
-        "tool_name": "State-Tool",
-        "tool_arguments": {
-          "use_vision": false
-        },
-        "reasoning": "Locate the Time step field in the Resample options",
-        "kb_source": null,
-        "step_num": 36
-      },
-      {
-        "tool_name": "Click-Tool",
-        "tool_arguments": {
-          "loc": [
-            "last_state:edit:step"
-          ],
-          "button": "left",
-          "clicks": 1
-        },
-        "reasoning": "Focus the time-step field so we can enter the resample interval (from KB: file_modify_and_export_tools)",
-        "kb_source": "file_modify_and_export_tools",
-        "step_num": 37
-      },
-      {
-        "tool_name": "Type-Tool",
-        "tool_arguments": {
-          "text": "2s",
-          "clear": true,
-          "press_enter": false
-        },
-        "reasoning": "Set resample interval to 2 seconds (learning: set resample first before applying/exporting)",
-        "kb_source": null,
-        "step_num": 38
-      },
-      {
         "tool_name": "State-Tool",
         "tool_arguments": {
           "use_vision": false
         },
         "reasoning": "Confirm resample settings are applied in the UI before selecting output format",
         "kb_source": null,
-        "step_num": 39
+        "step_num": 34
       },
       {
         "tool_name": "Click-Tool",
@@ -411,7 +356,7 @@
         },
         "reasoning": "Open Output format dropdown to select CSV (KB: file_modify_and_export_tools \u2014 there is no direct 'Export' button)",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 40
+        "step_num": 35
       },
       {
         "tool_name": "Wait-Tool",
@@ -420,7 +365,7 @@
         },
         "reasoning": "Wait for Output format menu to populate",
         "kb_source": null,
-        "step_num": 41
+        "step_num": 36
       },
       {
         "tool_name": "State-Tool",
@@ -429,7 +374,7 @@
         },
         "reasoning": "Capture Output format options to find CSV option",
         "kb_source": null,
-        "step_num": 42
+        "step_num": 37
       },
       {
         "tool_name": "Click-Tool",
@@ -442,7 +387,7 @@
         },
         "reasoning": "Select CSV as the export format (from KB: file_modify_and_export_tools)",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 43
+        "step_num": 38
       },
       {
         "tool_name": "Wait-Tool",
@@ -451,7 +396,7 @@
         },
         "reasoning": "Wait for CSV formatting options to appear",
         "kb_source": null,
-        "step_num": 44
+        "step_num": 39
       },
       {
         "tool_name": "State-Tool",
@@ -460,7 +405,7 @@
         },
         "reasoning": "Capture CSV formatting options including Single time base and Time as date",
         "kb_source": null,
-        "step_num": 45
+        "step_num": 40
       },
       {
         "tool_name": "Click-Tool",
@@ -473,7 +418,7 @@
         },
         "reasoning": "Enable Single time base option for CSV export (KB: file_modify_and_export_tools)",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 46
+        "step_num": 41
       },
       {
         "tool_name": "Click-Tool",
@@ -486,7 +431,7 @@
         },
         "reasoning": "Enable Time as date option so the CSV time column is formatted as dates (KB: file_modify_and_export_tools)",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 47
+        "step_num": 42
       },
       {
         "tool_name": "Click-Tool",
@@ -499,7 +444,7 @@
         },
         "reasoning": "Apply the export formatting and resampling settings; this opens the Save dialog for the CSV (KB: file_modify_and_export_tools)",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 48
+        "step_num": 43
       },
       {
         "tool_name": "Wait-Tool",
@@ -508,7 +453,7 @@
         },
         "reasoning": "Wait for the Save dialog for CSV to appear",
         "kb_source": null,
-        "step_num": 49
+        "step_num": 44
       },
       {
         "tool_name": "State-Tool",
@@ -517,7 +462,7 @@
         },
         "reasoning": "Locate File name edit field in the Save dialog to enter CSV filename",
         "kb_source": null,
-        "step_num": 50
+        "step_num": 45
       },
       {
         "tool_name": "Type-Tool",
@@ -528,7 +473,7 @@
         },
         "reasoning": "Enter the full path and filename for the CSV export",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 51
+        "step_num": 46
       },
       {
         "tool_name": "Click-Tool",
@@ -541,7 +486,7 @@
         },
         "reasoning": "Save the CSV with the selected resample and formatting settings (from KB: file_modify_and_export_tools)",
         "kb_source": "file_modify_and_export_tools",
-        "step_num": 52
+        "step_num": 47
       },
       {
         "tool_name": "Wait-Tool",
@@ -550,7 +495,7 @@
         },
         "reasoning": "Allow time for the CSV export to complete",
         "kb_source": null,
-        "step_num": 53
+        "step_num": 48
       },
       {
         "tool_name": "State-Tool",
@@ -559,7 +504,7 @@
         },
         "reasoning": "Final UI capture to confirm the export finished and the UI is stable",
         "kb_source": null,
-        "step_num": 54
+        "step_num": 49
       }
     ],
     "reasoning": "Set Single files mode, open the provided concatenated MF4, load the provided .dbc and run 'Extract Bus Signals' to create a decoded MF4, then open the decoded file, use Modify & Export \u2192 Resample with a 2s timestep, select CSV output with Single time base and Time as date, apply settings and save the CSV. Steps follow KB procedures (can_lin_flexray_decoding for decoding; file_modify_and_export_tools for resample/export) and incorporate learnings: ensure Mode=Single files before opening, use 'Load CAN database' and 'Extract Bus Signals' (not Apply), and select CSV via Output format then Apply before saving.",
