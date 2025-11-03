@@ -802,7 +802,7 @@ Examples:
         parser.error("--operation and --parameters must be provided together")
     else:
         # Use default task
-        operation = " DBC Decode the concatenated MF4 file and Extract the bus signals. Export the decoded MF4 file to CSV after resampling with time step of 2s, Single time base and Time as date settings applied."
+        operation = " DBC Decode the concatenated MF4 file and Extract the bus signals. Export the decoded MF4 file to CSV after resampling with step of 2s, Single time base and Time as date settings applied."
         parameters = {
             "input_folder": r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\LOG\2F6913DB\00001045",
             "output_folder": r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\LOG\2F6913DB\00001045",
