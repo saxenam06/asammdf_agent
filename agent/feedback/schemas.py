@@ -27,6 +27,7 @@ class VerifiedSkillMetadata(BaseModel):
     times_used: int = Field(0, description="How many times skill has been used")
     success_count: int = Field(0, description="How many times it succeeded")
     success_rate: float = Field(1.0, description="Current success rate (0.0-1.0)")
+    source: str = Field("llm_generated", description="Source of skill: 'llm_generated' or 'human_demonstration'")
 
     class Config:
         json_schema_extra = {
@@ -38,7 +39,8 @@ class VerifiedSkillMetadata(BaseModel):
                 "agent_recoveries_count": 1,
                 "times_used": 5,
                 "success_count": 5,
-                "success_rate": 1.0
+                "success_rate": 1.0,
+                "source": "llm_generated"
             }
         }
 
