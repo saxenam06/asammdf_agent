@@ -18,7 +18,7 @@ from agent.planning.workflow_planner import WorkflowPlanner
 from agent.execution.mcp_client import MCPClient
 from agent.execution.adaptive_executor import AdaptiveExecutor
 from agent.utils.cost_tracker import get_global_tracker
-from agent.knowledge_base.recovery_approach_generator import RecoveryApproachGenerator
+from agent.knowledge_base.recovery_generator import RecoveryApproachGenerator
 
 # HITL imports
 try:
