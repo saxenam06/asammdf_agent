@@ -1,7 +1,10 @@
 **Autonomous GUI Automation with Iterative Learning** 
 
-- Natural language tasks → GUI control with knowledge base learning, human verification, and skill library.
-- ASAMMDF Agent is an autonomous GUI automation system that executes Windows GUI based workflows on ASAMMDF tool from natural-language instructions. Given a task description, it generates UI action plans and executes them using MCP tools (e.g., click, type, key-shortcuts, window focus), while continuously improving by learning from failures and converting successful runs into reusable skills. Each rerun leverages accumulated knowledge, making the automation progressively more reliable and repeatable.
+- Natural-language tasks translated into automated GUI control of engineering tools (for e.g ASAM MDF), powered by knowledge-base learning, human verification, and a reusable skill library.
+- ASAMMDF Agent is an autonomous GUI automation system that translates natural-language task descriptions into executable Windows GUI workflows for ASAM MDF software.
+Given a user-defined task in natural language, the agent plans and executes UI actions—such as clicks, text input, keyboard shortcuts etc using MCP-based tools.
+The system continuously improves by learning from execution failures, human-in-the-loop feedback and converting validated successful runs into reusable automation skills.
+With each rerun, the agent leverages its accumulated knowledge base, making GUI automation increasingly robust, reliable, and repeatable over time.
 ---
 
 ## 🚀 Quick Start
