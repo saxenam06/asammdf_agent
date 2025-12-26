@@ -1,0 +1,2122 @@
+[
+  {
+    "knowledge_id": "open_files",
+    "description": "Open one or more MDF files using the File → Open command. In Single files mode files are opened individually; in Batch processing mode multiple files can be selected for batch operations.",
+    "ui_location": "Menu → File → Open",
+    "action_sequence": [
+      "click_menu('File')",
+      "select_option('Open')",
+      "in_file_dialog(select_files)",
+      "click_button('Open')"
+    ],
+    "shortcut": "Ctrl+O",
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "file(s)_opened",
+    "doc_citation": "GUI#Menu",
+    "parameters": {},
+    "kb_learnings": [
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 11,
+        "original_action": {
+          "tool_name": "Type-Tool",
+          "tool_arguments": {
+            "text": "C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\*.MF4",
+            "clear": true,
+            "press_enter": true
+          },
+          "reasoning": "Select all .MF4 files in the target folder using a wildcard in the file dialog to add them to the batch (KB open_files)",
+          "kb_source": "open_files",
+          "step_num": 11
+        },
+        "original_error": "The folder path mentioned in the task is: C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\. However, the tool argument used was: C:\\\\Users\\\\ADMIN\\\\Downloads\\\\ev-data-pack-v10\\\\ev-data-pack-v10\\\\electric_cars\\\\log_files\\\\Kia EV6\\\\LOG\\\\2F6913DB\\\\*.MF4. Even if the argument were updated to C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\*.MF4, it still wouldnt select all MF4 files. | Suggestion: Always use the exact folder path specified in the task. Once inside the folder, select any one of the .MF4 files, then press Ctrl + A to select all .MF4 files. Finally, click Open to load all the selected files together.",
+        "timestamp": "2025-10-25T23:45:00.942967",
+        "recovery_approach": "Always use the exact folder path specified in the task. Navigate to the folder first, select one .MF4 file, then press Ctrl+A to select all .MF4 files before clicking Open. This ensures all files are loaded correctly."
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 14,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Open"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Click Open to add the selected .MF4 files to the Batch processing list (from KB: open_files)",
+          "kb_source": "open_files",
+          "step_num": 14
+        },
+        "original_error": "The MF4 files were not selected. | Suggestion: Go to File  Open, then enter the path of the desired folder, select any .MF4 file, press Ctrl + A to highlight all files in the folder, and then press Enter to load them all.",
+        "timestamp": "2025-10-25T23:55:17.303145",
+        "recovery_approach": "Ensure to select at least one .MF4 file before pressing Ctrl+A to select all files. This step is crucial to ensure that files are highlighted for loading."
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 14,
+        "original_action": {
+          "tool_name": "Shortcut-Tool",
+          "tool_arguments": {
+            "shortcut": [
+              "ctrl",
+              "a"
+            ]
+          },
+          "reasoning": "Select all files in the folder (KB recommendation: select any .MF4 then Ctrl+A to highlight all .MF4 files to load them into Batch mode)",
+          "kb_source": "open_files",
+          "step_num": 14
+        },
+        "original_error": "No file was selected before Clicking CTRL+A | Suggestion: You must select a File before Pressing CTRL+A to select all the files on the display in the folder",
+        "timestamp": "2025-10-26T12:53:53.428930",
+        "recovery_approach": "Select any visible .MF4 file in the folder before pressing Ctrl+A to ensure all files are selected for batch processing."
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 16,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Open"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Load the selected .MF4 files into Batch processing (from KB: open_files)",
+          "kb_source": "open_files",
+          "step_num": 16
+        },
+        "original_error": "The intent was to click the Open Button. But you were wrongly Clicking the drop downs of File Name or All Files tabs. | Suggestion: Click the Open Button which is on the lower and is only one Open Button On the Select Measurement File Dialog",
+        "timestamp": "2025-10-26T12:58:52.665435",
+        "recovery_approach": "Always ensure you are clicking the correct Open button located at the bottom of the dialog after selecting the files."
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 15,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Open"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Confirm and open all selected .MF4 files into the Batch processing file list (from KB: open_files)",
+          "kb_source": "open_files",
+          "step_num": 15
+        },
+        "original_error": "You were not clicking the Open Button. PLease click the Open Button thatis on the bottom most though I see only one",
+        "timestamp": "2025-10-26T15:43:07.034387",
+        "recovery_approach": "Confirm that you are clicking the Open button at the bottom of the dialog to load the selected files."
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 17,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Open"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Click Open to load all selected MF4 files into the Batch processing list (KB: open_files)",
+          "kb_source": "open_files",
+          "step_num": 17
+        },
+        "original_error": "You are not able to click the correct Open Button due to some underlying reasons. Prefer Just typing enter key after the files are selected to When you want to Open the files instead of the Clicking Open Button | Suggestion: Type Enter Key after the files are selected when you want instead of clickung the Open Button.",
+        "timestamp": "2025-10-26T15:50:29.511911",
+        "recovery_approach": "If clicking the Open button fails, press Enter after selecting the files to confirm the selection and load them into Batch processing."
+      }
+    ],
+    "trust_score": 0.6983372960937497
+  },
+  {
+    "knowledge_id": "open_folder",
+    "description": "Open a folder recursively: starting from the chosen root folder, all sub-folders are searched for MDF files and they are loaded (mode-dependent behavior).",
+    "ui_location": "Menu → File → Open folder",
+    "action_sequence": [
+      "click_menu('File')",
+      "select_option('Open folder')",
+      "in_folder_dialog(select_folder)",
+      "click_button('Open')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "files_from_folder_opened",
+    "doc_citation": "GUI#Menu",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "load_display_configuration",
+    "description": "Load a saved display configuration that restores the channels tree and all sub-plot windows (channels, colors, axes, enable state).",
+    "ui_location": "Menu → File → Open configuration",
+    "action_sequence": [
+      "click_menu('File')",
+      "select_option('Open configuration')",
+      "in_file_dialog(select_configuration_file)",
+      "click_button('Open')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "configuration_loaded",
+    "doc_citation": "GUI#Menu",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "save_display_configuration",
+    "description": "Save the current sub-windows (channels, colors, common axis and enabled state) and channel tree to a configuration file.",
+    "ui_location": "Menu → File → Save configuration",
+    "action_sequence": [
+      "click_menu('File')",
+      "select_option('Save configuration')",
+      "in_file_dialog(enter_configuration_name)",
+      "click_button('Save')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open",
+      "file_opened"
+    ],
+    "output_state": "configuration_saved",
+    "doc_citation": "GUI#Menu",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "set_mode_single_files",
+    "description": "Switch application mode to Single files where files are opened individually for visualization and processing.",
+    "ui_location": "Menu → Mode → Single files",
+    "action_sequence": [
+      "click_menu('Mode')",
+      "select_option('Single files')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "mode_single_files",
+    "doc_citation": "GUI#Mode",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "set_mode_batch_processing",
+    "description": "Switch application mode to Batch processing to operate on multiple files (concatenate, stack, or run same processing on multiple files).",
+    "ui_location": "Menu → Mode → Batch processing",
+    "action_sequence": [
+      "click_menu('Mode')",
+      "select_option('Batch processing')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "mode_batch_processing",
+    "doc_citation": "GUI#Mode",
+    "parameters": {},
+    "kb_learnings": [
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 4,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:menu:Batch processing"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Select Batch processing mode to enable concatenation of multiple files (per KB: set_mode_batch_processing)",
+          "kb_source": "set_mode_batch_processing",
+          "step_num": 4
+        },
+        "original_error": "Batch Processing coordinates could not be resolved or was not found in the UI State. | Suggestion: You must use the State-Tool to get the coordinates of Batch Processing as its You must use the State-Tool to capture the coordinates of Batch Processing, as it appears in a sub-window that opens after clicking Mode. Therefore, you need to run the State-Tool again after clicking Mode to obtain the coordinates required to click Batch Processing.",
+        "timestamp": "2025-10-26T11:41:38.951817",
+        "recovery_approach": "Always run the State-Tool again after clicking the Mode menu to capture the updated coordinates for Batch Processing, ensuring you can select it correctly."
+      }
+    ],
+    "trust_score": 0.7350918906249998
+  },
+  {
+    "knowledge_id": "set_mode_comparison",
+    "description": "Switch application mode to Comparison which shows channels from all opened files for cross-file comparison.",
+    "ui_location": "Menu → Mode → Comparison",
+    "action_sequence": [
+      "click_menu('Mode')",
+      "select_option('Comparison')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open",
+      "multiple_files_opened"
+    ],
+    "output_state": "mode_comparison",
+    "doc_citation": "GUI#Mode",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "toggle_subwindows_setting",
+    "description": "Enable or disable multiple sub-windows (subplots). When disabled a single plot is used and replaced by new plots; when enabled a new subplot is added.",
+    "ui_location": "Menu → Settings → Sub-windows",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "open_section('Sub-windows')",
+      "select_option('Enabled' or 'Disabled')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "subwindows_setting_updated",
+    "doc_citation": "GUI#Settings",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "toggle_link_subwindows_x_axis",
+    "description": "Link or unlink sub-windows on the X axis so zooming/panning is synchronized across subplots.",
+    "ui_location": "Menu → Settings → Link sub-windows X-axis",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "open_section('Link sub-windows X-axis')",
+      "select_option('Enabled' or 'Disabled')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open",
+      "subwindows_enabled"
+    ],
+    "output_state": "link_subwindows_x_axis_updated",
+    "doc_citation": "GUI#Settings",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "toggle_ignore_value2text",
+    "description": "Enable or disable ignoring value-to-text conversions; when enabled value-to-text conversions are not applied.",
+    "ui_location": "Menu → Settings → Ignore value2text conversions",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "open_section('Ignore value2text conversions')",
+      "select_option('Enabled' or 'Disabled')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "ignore_value2text_updated",
+    "doc_citation": "GUI#Settings",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "set_plot_background",
+    "description": "Set the plot background color for new plots (Black or White). This does not affect existing plots.",
+    "ui_location": "Menu → Settings → Plot background",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "open_section('Plot background')",
+      "select_option('Black' or 'White')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "default_plot_background_changed",
+    "doc_citation": "GUI#Settings",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "set_plot_x_axis_representation",
+    "description": "Choose how the X axis is displayed: seconds, time (HH:MM:SS), or date (using measurement start datetime).",
+    "ui_location": "Menu → Settings → Plot X axis",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "open_section('Plot X axis')",
+      "select_option('seconds' or 'time' or 'date')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "plot_x_axis_format_changed",
+    "doc_citation": "GUI#Settings",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "set_theme",
+    "description": "Switch the application theme between Dark and Light.",
+    "ui_location": "Menu → Settings → Theme",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "open_section('Theme')",
+      "select_option('Dark' or 'Light')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "theme_changed",
+    "doc_citation": "GUI#Settings",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "set_step_mode_interpolation",
+    "description": "Configure how integer and float channel samples are visually interpolated (repeat previous sample, linear, hybrid).",
+    "ui_location": "Menu → Settings → Step mode",
+    "action_sequence": [
+      "click_menu('Settings')",
+      "open_section('Step mode')",
+      "for_integer(set_option(0/1/2))",
+      "for_float(set_option(0/1))"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "interpolation_settings_updated",
+    "doc_citation": "GUI#Settings",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "help_page",
+    "description": "Open the online help page for the application.",
+    "ui_location": "General shortcuts / Help",
+    "action_sequence": [
+      "press_key('F1')"
+    ],
+    "shortcut": "F1",
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "help_page_opened",
+    "doc_citation": "GUI#General-shortcuts",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "create_plot_from_checked_channels",
+    "description": "Create a new Plot window using the currently checked channels from the channel selection tree.",
+    "ui_location": "Single files view → Command buttons → Create window OR General shortcut",
+    "action_sequence": [
+      "ensure_file_tab_selected",
+      "check_channels_in_tree(desired_channels)",
+      "click_button('Create window')",
+      "select_window_type('Plot')"
+    ],
+    "shortcut": "F2",
+    "prerequisites": [
+      "app_open",
+      "file_opened",
+      "channels_checked"
+    ],
+    "output_state": "plot_window_created",
+    "doc_citation": "GUI#General-shortcuts",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "create_numeric_window_from_selection",
+    "description": "Create a new Numeric window using the currently checked channels from the channel selection tree to view instantaneous signal values.",
+    "ui_location": "Single files view → Command buttons → Create window OR General shortcut",
+    "action_sequence": [
+      "ensure_file_tab_selected",
+      "check_channels_in_tree(desired_channels)",
+      "click_button('Create window')",
+      "select_window_type('Numeric')"
+    ],
+    "shortcut": "F3",
+    "prerequisites": [
+      "app_open",
+      "file_opened",
+      "channels_checked"
+    ],
+    "output_state": "numeric_window_created",
+    "doc_citation": "GUI#General-shortcuts",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "create_tabular_window_from_selection",
+    "description": "Create a new Tabular window using the currently checked channels from the channel selection tree to view samples in a spreadsheet-like view.",
+    "ui_location": "Single files view → Command buttons → Create window OR General shortcut",
+    "action_sequence": [
+      "ensure_file_tab_selected",
+      "check_channels_in_tree(desired_channels)",
+      "click_button('Create window')",
+      "select_window_type('Tabular')"
+    ],
+    "shortcut": "F4",
+    "prerequisites": [
+      "app_open",
+      "file_opened",
+      "channels_checked"
+    ],
+    "output_state": "tabular_window_created",
+    "doc_citation": "GUI#General-shortcuts",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "select_all_channels",
+    "description": "Check all channels in the channels tree for the current file.",
+    "ui_location": "Single files view → Command buttons",
+    "action_sequence": [
+      "select_tab(file)",
+      "click_button('Select all channels')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "file_opened"
+    ],
+    "output_state": "all_channels_checked",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "reset_channel_selection",
+    "description": "Uncheck all channels in the channels tree for the current file.",
+    "ui_location": "Single files view → Command buttons",
+    "action_sequence": [
+      "select_tab(file)",
+      "click_button('Reset selection')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "file_opened"
+    ],
+    "output_state": "no_channels_checked",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "advanced_search_and_select",
+    "description": "Open an advanced search dialog to select channels using wildcard or regex patterns and optional sample-value based conditions; can also define pattern-based windows that remain in configurations.",
+    "ui_location": "Single files view → Command buttons → Advanced search & select",
+    "action_sequence": [
+      "select_tab(file)",
+      "click_button('Advanced search & select')",
+      "in_dialog(enter_pattern_or_regex)",
+      "optionally_set_value_condition",
+      "click_button('Apply' or 'Select')"
+    ],
+    "shortcut": "Ctrl+F",
+    "prerequisites": [
+      "file_opened"
+    ],
+    "output_state": "channels_selected_or_pattern_window_defined",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "create_pattern_based_window",
+    "description": "Define and create a pattern-based channel group window that filters signals by name or values; this configuration is saved and visually identified by an icon.",
+    "ui_location": "Advanced search dialog → Pattern based window tab",
+    "action_sequence": [
+      "click_button('Advanced search & select')",
+      "open_tab('Pattern based window')",
+      "enter_name_and_pattern",
+      "optionally_define_value_filter",
+      "click_button('Create window')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "file_opened"
+    ],
+    "output_state": "pattern_based_window_created_and_saved_in_configuration",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "create_bus_trace_window",
+    "description": "Create a CAN/LIN/FlexRay Bus Trace window from selected channels when the measurement contains bus logging of that kind.",
+    "ui_location": "Single files view → Command buttons → Create window → Bus Trace types",
+    "action_sequence": [
+      "select_tab(file)",
+      "check_bus_logging_channels",
+      "click_button('Create window')",
+      "select_window_type('CAN' or 'LIN' or 'FlexRay')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "file_opened",
+      "file_contains_bus_logging"
+    ],
+    "output_state": "bus_trace_window_created",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "drag_and_drop_channels_between_subwindows",
+    "description": "Drag channels between sub-windows to reconfigure plots. Dragging channels into the free MDI area can create new windows.",
+    "ui_location": "Single files view → Windows area (MDI)",
+    "action_sequence": [
+      "click_and_hold(channel_item)",
+      "drag_to(target_subwindow_or_free_mdi_area)",
+      "release_mouse()"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "subwindows_enabled",
+      "channel_present_in_tree"
+    ],
+    "output_state": "channels_moved_or_new_window_created",
+    "doc_citation": "GUI#Drag-&-Drop",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "opened_files_tabs_management",
+    "description": "Open multiple files in parallel; each file is represented by a tab showing short filename; full path is available in the tooltip. The same file may be opened multiple times.",
+    "ui_location": "Single files view → Opened files tabs",
+    "action_sequence": [
+      "open_file(s)",
+      "switch_tabs(as_needed)",
+      "hover_tab_for_tooltip"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "app_open"
+    ],
+    "output_state": "multiple_file_tabs_opened",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "channel_tree_display_mode",
+    "description": "Change how the channel tree is displayed: naturally sorted list, grouped using internal file structure, or only the selected channels.",
+    "ui_location": "Single files view → Channel tree display mode selector",
+    "action_sequence": [
+      "open_file_tab",
+      "open_channel_tree_display_mode_menu",
+      "select_option('list' or 'grouped' or 'only selected')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "file_opened"
+    ],
+    "output_state": "channel_tree_display_mode_changed",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "channel_double_click_show_metadata",
+    "description": "Double click a channel name in the complete channels tree to display a pop-up window with detailed channel metadata (CNBLOCK, CCBLOCK, SIBLOCK/CEBLOCK).",
+    "ui_location": "Single files view → Complete channels tree",
+    "action_sequence": [
+      "open_file_tab",
+      "double_click(channel_item)"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "file_opened"
+    ],
+    "output_state": "channel_metadata_popup_shown",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "numeric_window_sort_column",
+    "description": "Toggle sorting on a column in the Numeric window by double clicking the column header.",
+    "ui_location": "Numeric window → Display area",
+    "action_sequence": [
+      "open_numeric_window",
+      "double_click(column_header)"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "numeric_window_open"
+    ],
+    "output_state": "column_sort_toggled",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "numeric_window_integer_format",
+    "description": "Change integer display format in a Numeric window between physical, hex, and binary representations.",
+    "ui_location": "Numeric window → Integer format control",
+    "action_sequence": [
+      "open_numeric_window",
+      "open_integer_format_menu",
+      "select_option('physical' or 'hex' or 'binary')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "numeric_window_open"
+    ],
+    "output_state": "integer_format_changed",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "numeric_window_set_float_decimals",
+    "description": "Set the precision (number of decimal places) used for float values in a Numeric window.",
+    "ui_location": "Numeric window → Float decimals control",
+    "action_sequence": [
+      "open_numeric_window",
+      "locate_float_decimals_field",
+      "enter_precision_value"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "numeric_window_open"
+    ],
+    "output_state": "float_display_precision_updated",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "numeric_window_timestamp_selection",
+    "description": "Adjust the timestamp shown in the Numeric window using the input box or the slider.",
+    "ui_location": "Numeric window → Timestamp selection controls",
+    "action_sequence": [
+      "open_numeric_window",
+      "adjust_slider_or_input_timestamp(value_or_time)"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "numeric_window_open"
+    ],
+    "output_state": "timestamp_changed",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "numeric_window_search_values",
+    "description": "Search for channel sample values in a Numeric window using raw or scaled mode, name pattern, operator, target value and direction (timebase).",
+    "ui_location": "Numeric window → Search controls",
+    "action_sequence": [
+      "open_numeric_window",
+      "set_search_mode('raw' or 'scaled')",
+      "enter_signal_name_pattern",
+      "choose_operator",
+      "enter_target_value",
+      "set_direction",
+      "click_button('Search')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "numeric_window_open"
+    ],
+    "output_state": "search_results_highlighted",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "numeric_window_row_double_click_range_editor",
+    "description": "Open range editor for a signal by double clicking its row in the Numeric window.",
+    "ui_location": "Numeric window → Display area",
+    "action_sequence": [
+      "open_numeric_window",
+      "double_click(signal_row)"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "numeric_window_open"
+    ],
+    "output_state": "range_editor_dialog_opened",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_toggle_cursor",
+    "description": "Toggle the plot cursor which displays channel values at the cursor position in the Selected channels list. Cursor can be toggled via keyboard or by clicking plot area.",
+    "ui_location": "Plot window → Graphical area",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('C') or click_plot_area()"
+    ],
+    "shortcut": "C",
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "cursor_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_toggle_range",
+    "description": "Toggle a movable range on the plot; when enabled it shows delta values for all plot channels. Clicking plot moves left margin; Ctrl+click moves right margin.",
+    "ui_location": "Plot window → Graphical area",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('R')",
+      "click_plot_to_move_left_margin",
+      "press_ctrl_and_click_to_move_right_margin"
+    ],
+    "shortcut": "R",
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "range_toggled_and_configurable",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_fit_all_y_axis",
+    "description": "Fit the Y-axis for all active channels within the current X-axis range.",
+    "ui_location": "Plot window → Graphical area / Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('F')"
+    ],
+    "shortcut": "F",
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "y_axis_fitted_for_all_active_channels",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_fit_selected_y_axis",
+    "description": "Fit the Y-axis for only the selected channels within the current X-axis range; unselected channels are not fitted.",
+    "ui_location": "Plot window → Graphical area",
+    "action_sequence": [
+      "open_plot_window",
+      "select_channels_in_selection_tree",
+      "press_key('Shift+F')"
+    ],
+    "shortcut": "Shift+F",
+    "prerequisites": [
+      "plot_window_open",
+      "channels_selected_in_plot"
+    ],
+    "output_state": "y_axis_fitted_for_selected_channels",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_toggle_grid",
+    "description": "Toggle grid lines on the plot display.",
+    "ui_location": "Plot window → Graphical area",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('G')"
+    ],
+    "shortcut": "G",
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "grid_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_home_whole_signals",
+    "description": "Home the plot view to show whole signals (fit both X and Y axes to the whole time range).",
+    "ui_location": "Plot window → Graphical area",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('W')"
+    ],
+    "shortcut": "W",
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "plot_homed_to_whole_signals",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_honeywell_zoom",
+    "description": "Zoom in on the current cursor position using a constant real display zoom level of 0.1s/cm (Honeywell zoom).",
+    "ui_location": "Plot window → Graphical area",
+    "action_sequence": [
+      "open_plot_window",
+      "place_cursor(if_not_present)",
+      "press_key('H')"
+    ],
+    "shortcut": "H",
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "zoom_centered_on_cursor_honeywell_level",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_zoom_in",
+    "description": "Zoom in on the X-axis; if a cursor exists the zoom centers on it.",
+    "ui_location": "Plot window → Graphical area",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('I')"
+    ],
+    "shortcut": "I",
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "x_axis_zoomed_in",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_zoom_out",
+    "description": "Zoom out on the X-axis; if a cursor exists the zoom centers on it.",
+    "ui_location": "Plot window → Graphical area",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('O')"
+    ],
+    "shortcut": "O",
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "x_axis_zoomed_out",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_zoom_to_range",
+    "description": "Zoom the X-axis to the currently enabled range.",
+    "ui_location": "Plot window → Graphical area",
+    "action_sequence": [
+      "enable_range(R_key_if_needed)",
+      "press_key('X')"
+    ],
+    "shortcut": "X",
+    "prerequisites": [
+      "plot_window_open",
+      "range_enabled"
+    ],
+    "output_state": "zoomed_to_range",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_toggle_statistics_panel",
+    "description": "Toggle the display of the signal statistics panel for the active plot/sub-window.",
+    "ui_location": "Plot window",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('M')"
+    ],
+    "shortcut": "M",
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "statistics_panel_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_stack_all",
+    "description": "Stack all active channels on the Y axis so that they don't overlap, keeping the current X-axis range.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('S')"
+    ],
+    "shortcut": "S",
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "all_active_channels_stacked",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_stack_selected",
+    "description": "Stack only the selected channels on the Y axis so that they don't overlap; unselected channels are not stacked.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "select_channels",
+      "press_key('Shift+S')"
+    ],
+    "shortcut": "Shift+S",
+    "prerequisites": [
+      "plot_window_open",
+      "channels_selected"
+    ],
+    "output_state": "selected_channels_stacked",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_lock_unlock_region",
+    "description": "Lock or unlock the left margin of the range region on the plot.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('Y')"
+    ],
+    "shortcut": "Y",
+    "prerequisites": [
+      "plot_window_open",
+      "range_present"
+    ],
+    "output_state": "region_lock_state_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_toggle_dots",
+    "description": "Toggle the display of signal samples as dots (affects performance).",
+    "ui_location": "Plot window → Keyboard shortcuts or graphical control",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('.')"
+    ],
+    "shortcut": ".",
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "dots_display_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_move_cursor_left",
+    "description": "Move the cursor to the next sample on the left.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('Left Arrow')"
+    ],
+    "shortcut": "←",
+    "prerequisites": [
+      "plot_window_open",
+      "cursor_enabled"
+    ],
+    "output_state": "cursor_moved_left",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_move_cursor_right",
+    "description": "Move the cursor to the next sample on the right.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('Right Arrow')"
+    ],
+    "shortcut": "→",
+    "prerequisites": [
+      "plot_window_open",
+      "cursor_enabled"
+    ],
+    "output_state": "cursor_moved_right",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_insert_computed_signal",
+    "description": "Insert a new computed channel into the plot using functions, basic operations, or expressions combining multiple plot signals.",
+    "ui_location": "Plot window → Keyboard shortcuts (Insert) or context",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('Ins')",
+      "in_insert_dialog(choose_operation_or_function_or_enter_expression)",
+      "click_button('Insert')"
+    ],
+    "shortcut": "Ins",
+    "prerequisites": [
+      "plot_window_open",
+      "channels_present_in_plot"
+    ],
+    "output_state": "computed_channel_inserted_in_plot",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_toggle_fullscreen",
+    "description": "Toggle full screen display for the current opened file in Single files mode.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('F11')"
+    ],
+    "shortcut": "F11",
+    "prerequisites": [
+      "plot_window_open",
+      "mode_single_files"
+    ],
+    "output_state": "plot_fullscreen_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_toggle_trigger_texts",
+    "description": "Toggle the display of trigger text boxes on the plot.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('Alt+I')"
+    ],
+    "shortcut": "Alt+I",
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "trigger_texts_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_toggle_raw_samples",
+    "description": "Toggle raw (non-scaled) samples display mode for the selected channels.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "select_channels",
+      "press_key('Alt+R')"
+    ],
+    "shortcut": "Alt+R",
+    "prerequisites": [
+      "plot_window_open",
+      "channels_selected"
+    ],
+    "output_state": "selected_channels_raw_samples_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_toggle_scaled_samples",
+    "description": "Toggle scaled (physical) samples display mode for the selected channels.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "select_channels",
+      "press_key('Alt+S')"
+    ],
+    "shortcut": "Alt+S",
+    "prerequisites": [
+      "plot_window_open",
+      "channels_selected"
+    ],
+    "output_state": "selected_channels_scaled_samples_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_toggle_binary_representation",
+    "description": "Toggle binary representation for integer channels' value display.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "select_integer_channel_items",
+      "press_key('Ctrl+B')"
+    ],
+    "shortcut": "Ctrl+B",
+    "prerequisites": [
+      "plot_window_open",
+      "integer_channels_present"
+    ],
+    "output_state": "integer_channels_binary_display_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_toggle_hex_representation",
+    "description": "Toggle hexadecimal representation for integer channels' value display.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "select_integer_channel_items",
+      "press_key('Ctrl+H')"
+    ],
+    "shortcut": "Ctrl+H",
+    "prerequisites": [
+      "plot_window_open",
+      "integer_channels_present"
+    ],
+    "output_state": "integer_channels_hex_display_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_toggle_physical_representation",
+    "description": "Toggle physical (scaled) representation for integer channels' value display.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "select_integer_channel_items",
+      "press_key('Ctrl+P')"
+    ],
+    "shortcut": "Ctrl+P",
+    "prerequisites": [
+      "plot_window_open",
+      "integer_channels_present"
+    ],
+    "output_state": "integer_channels_physical_display_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_insert_cursor_comment",
+    "description": "Insert a visual vertical line and comment at the current cursor position.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "position_cursor",
+      "press_key('Ctrl+I')",
+      "enter_comment_text",
+      "confirm()"
+    ],
+    "shortcut": "Ctrl+I",
+    "prerequisites": [
+      "plot_window_open",
+      "cursor_enabled"
+    ],
+    "output_state": "cursor_comment_inserted",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_edit_color_ranges",
+    "description": "Open a dialog to edit color ranges for a channel or channel group (color mapping).",
+    "ui_location": "Plot window → Keyboard shortcuts or selection tree context",
+    "action_sequence": [
+      "open_plot_window",
+      "select_channel_or_group",
+      "press_key('Ctrl+R')",
+      "in_dialog(edit_color_ranges)",
+      "click_button('OK')"
+    ],
+    "shortcut": "Ctrl+R",
+    "prerequisites": [
+      "plot_window_open",
+      "channel_or_group_selected"
+    ],
+    "output_state": "color_ranges_updated",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_edit_y_axis_scaling",
+    "description": "Open a dialog to visually edit the Y axis ranges according to expected signal values.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "select_axis_or_channel",
+      "press_key('Ctrl+G')",
+      "in_dialog(adjust_y_ranges)",
+      "click_button('OK')"
+    ],
+    "shortcut": "Ctrl+G",
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "y_axis_scaling_updated",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_save_active_subplot_channels",
+    "description": "Save channels from the currently active subplot to a new MF4 (measurement) file.",
+    "ui_location": "Plot window → Keyboard shortcuts or File menu Save operation in plot context",
+    "action_sequence": [
+      "open_plot_window",
+      "ensure_subplot_active",
+      "press_keys('Ctrl+S')",
+      "in_file_dialog(enter_filename)",
+      "click_button('Save')"
+    ],
+    "shortcut": "Ctrl+S",
+    "prerequisites": [
+      "plot_window_open",
+      "subplot_has_channels"
+    ],
+    "output_state": "new_mf4_file_saved_with_subplot_channels",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_save_all_subwindows_channels",
+    "description": "Save channels from all sub-windows to a new MF4 file.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "press_keys('Ctrl+Shift+S')",
+      "in_file_dialog(enter_filename)",
+      "click_button('Save')"
+    ],
+    "shortcut": "Ctrl+Shift+S",
+    "prerequisites": [
+      "plot_window_open",
+      "subwindows_present"
+    ],
+    "output_state": "new_mf4_file_saved_with_all_subwindow_channels",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_window_tiling_and_layout_controls",
+    "description": "Arrange sub-windows using multiple layout commands: cascade, tile grid, tile vertically, tile horizontally, toggle frames, toggle channel list.",
+    "ui_location": "Plot window → Keyboard shortcuts / Window controls",
+    "action_sequence": [
+      "open_plot_window",
+      "press_key('Shift+C' for cascade) or",
+      "press_key('Shift+T' for tile) or",
+      "press_key('Shift+V' for tile vertically) or",
+      "press_key('Shift+H' for tile horizontally) or",
+      "press_key('Shift+Alt+F' to toggle frames) or",
+      "press_key('Shift+L' to toggle channel list')"
+    ],
+    "shortcut": "Shift+C / Shift+T / Shift+V / Shift+H / Shift+Alt+F / Shift+L",
+    "prerequisites": [
+      "plot_window_open",
+      "multiple_subwindows_present"
+    ],
+    "output_state": "subwindow_layout_changed_or_ui_elements_toggled",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_shift_channels_time_and_order",
+    "description": "Shift the selected channels in the time domain or vertical order using arrow key combinations.",
+    "ui_location": "Plot window → Keyboard shortcuts",
+    "action_sequence": [
+      "open_plot_window",
+      "select_channels",
+      "press_key('Shift+Left Arrow' to shift left) or",
+      "press_key('Shift+Right Arrow' to shift right) or",
+      "press_key('Shift+Up Arrow' to shift up) or",
+      "press_key('Shift+Down Arrow' to shift down)"
+    ],
+    "shortcut": "Shift+← / Shift+→ / Shift+↑ / Shift+↓",
+    "prerequisites": [
+      "plot_window_open",
+      "channels_selected"
+    ],
+    "output_state": "selected_channels_shifted",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_signal_selection_item_elements",
+    "description": "Each signal item in the plot selection tree includes a display enable checkbox, color select button, channel name/unit label, channel value label (shown when cursor or range active), common axis checkbox, and individual axis checkbox.",
+    "ui_location": "Plot window → Signal selection tree",
+    "action_sequence": [
+      "open_plot_window",
+      "inspect_selection_tree_item"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "signal_item_visual_and_interactive_controls_available",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_create_channel_group",
+    "description": "Create simple or pattern-based channel groups in the plot selection tree. Simple groups are for organization; pattern-based groups filter signals by name or values.",
+    "ui_location": "Plot window → Signal selection tree → Context menu or Advanced search",
+    "action_sequence": [
+      "open_plot_window",
+      "open_selection_tree_context_menu",
+      "select('Create group' or 'Create pattern-based group')",
+      "enter_group_name_and_pattern_if_needed",
+      "confirm()"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "channel_group_created",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "tabular_window_header_context_menu",
+    "description": "Right click a column header in the Tabular window to control sorting, define signal ranges, and adjust column width.",
+    "ui_location": "Tabular window → Column header",
+    "action_sequence": [
+      "open_tabular_window",
+      "right_click(column_header)",
+      "select_context_menu_option"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "tabular_window_open"
+    ],
+    "output_state": "header_context_action_performed",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "tabular_window_integer_format_and_precision",
+    "description": "Set integer format (physical/hex/binary) and float decimal precision in the Tabular window.",
+    "ui_location": "Tabular window → Integer format / Float decimals controls",
+    "action_sequence": [
+      "open_tabular_window",
+      "open_integer_format_menu",
+      "select_option('physical' or 'hex' or 'binary')",
+      "enter_float_decimals"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "tabular_window_open"
+    ],
+    "output_state": "tabular_format_settings_applied",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "tabular_window_timestamp_format",
+    "description": "Change timestamp display in the Tabular window between float value or datetime value using the timestamp format control.",
+    "ui_location": "Tabular window → Timestamp format control",
+    "action_sequence": [
+      "open_tabular_window",
+      "locate_timestamp_format_input",
+      "enter_or_select_format('float' or 'datetime')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "tabular_window_open"
+    ],
+    "output_state": "timestamp_format_updated",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "tabular_window_remove_prefix",
+    "description": "Toggle removing column name prefixes in the Tabular window to reduce column width.",
+    "ui_location": "Tabular window → Remove prefix option",
+    "action_sequence": [
+      "open_tabular_window",
+      "toggle_option('Remove prefix')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "tabular_window_open"
+    ],
+    "output_state": "column_prefixes_removed_or_restored",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "tabular_window_toggle_filters_view",
+    "description": "Toggle the visibility of the filters panel in the Tabular window to save vertical space when filters are not used.",
+    "ui_location": "Tabular window → Toggle filters view",
+    "action_sequence": [
+      "open_tabular_window",
+      "click_button('Toggle filters view')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "tabular_window_open"
+    ],
+    "output_state": "filters_view_toggled",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "tabular_window_define_and_apply_filters",
+    "description": "Create multiple value filters for signals (enable, logical relation, signal, operator, target value) then apply them. The filtering is performed on a pandas dataframe via query when Apply filters is pressed.",
+    "ui_location": "Tabular window → Filters panel",
+    "action_sequence": [
+      "open_tabular_window",
+      "click_button('Add filter')",
+      "configure_filter(enable, logical_relation, signal, operator, target_value)",
+      "repeat_for_additional_filters",
+      "click_button('Apply filters')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "tabular_window_open"
+    ],
+    "output_state": "filters_applied_and_dataframe_filtered",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "file_modify_and_export_tools",
+    "description": "Access tools in the Modify & Export tab for processing a measurement file: convert formats, export to other formats (CSV/HDF5), cut, filter, resample, scramble.",
+    "ui_location": "Single files view → Modify & Export tab",
+    "action_sequence": [
+      "open_file_tab",
+      "click_tab('Modify & Export')",
+      "select_tool('Convert' or 'Export' or 'Cut' or 'Filter' or 'Resample' or 'Scramble')",
+      "configure_tool_options",
+      "execute_tool()"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "file_opened"
+    ],
+    "output_state": "file_processed_or_exported",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [
+      {
+        "task": " DBC Decode the concatenated MF4 file and Extract the bus signals. Export the decoded MF4 file to csv with single time base and time as date settings applied. (Parameters: input_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, output_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, input_concatenated_filename=Kia_EV_6_2F6913DB_00001045.MF4, input_CAN_database_file=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\can2-canmod-gnss.dbc, output_decoded_filename=Kia_EV_6_2F6913DB_00001045_decoded.mf4, output_csv_filename=Kia_EV_6_2F6913DB_00001045.csv)",
+        "step_num": 25,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Export"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Open the Export tool to configure CSV export options",
+          "kb_source": "file_modify_and_export_tools",
+          "step_num": 25
+        },
+        "original_error": "There is no button Export to Export the MF4 file to csv | Suggestion: Click on Output format and then select the option CSV in the dropdown. You should use the State Tool after clikcing on Output format to get the coordinates of the CSV in the dropdown.",
+        "timestamp": "2025-11-02T19:34:49.435641"
+      },
+      {
+        "task": " DBC Decode the concatenated MF4 file and Extract the bus signals. Export the decoded MF4 file to csv with single time base and time as date settings applied. (Parameters: input_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, output_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, input_concatenated_filename=Kia_EV_6_2F6913DB_00001045.MF4, input_CAN_database_file=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\can2-canmod-gnss.dbc, output_decoded_filename=Kia_EV_6_2F6913DB_00001045_decoded.mf4, output_csv_filename=Kia_EV_6_2F6913DB_00001045.csv)",
+        "step_num": 28,
+        "original_action": {
+          "tool_name": "Type-Tool",
+          "tool_arguments": {
+            "text": "{output_folder}\\{output_csv_filename}",
+            "clear": true,
+            "press_enter": false
+          },
+          "reasoning": "Enter the full output CSV path using placeholders so the exported CSV is saved to the requested location/name",
+          "kb_source": "file_modify_and_export_tools",
+          "step_num": 28
+        },
+        "original_error": "After selecting the formatting options for e.g. Single time base and Time as date, Click on Apply, enter the Output file name and then Click Save to finally convert the MF4 file to CSV. | Suggestion: Click on Apply after selecting formatting options, enter the Output file name and then Click Save to finally convert the MF4 file to CSV.",
+        "timestamp": "2025-11-02T19:38:06.813200",
+        "recovery_approach": "Ensure to click Apply only after all formatting options are selected. This prevents premature dialog openings and ensures all settings are configured correctly before saving."
+      },
+      {
+        "task": " DBC Decode the concatenated MF4 file and Extract the bus signals. Export the decoded MF4 file to CSV after resampling with time step of 2s, Single time base and Time as date settings applied. (Parameters: input_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, output_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, input_concatenated_filename=Kia_EV_6_2F6913DB_00001045.MF4, input_CAN_database_file=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\can2-canmod-gnss.dbc, output_decoded_filename=Kia_EV_6_2F6913DB_00001045_decoded.mf4, output_csv_filename=Kia_EV_6_2F6913DB_00001045.csv)",
+        "step_num": 26,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Apply"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Apply the resample operation to the opened (decoded) measurement (KB: file_modify_and_export_tools)",
+          "kb_source": "file_modify_and_export_tools",
+          "step_num": 26
+        },
+        "original_error": "You chose to Apply directly after Resample the signal to 2s. Apply will already open the dialog for the filename of the CSV. | Suggestion: Click Apply only after all the required resampling or formatting options or settings are selected.",
+        "timestamp": "2025-11-02T22:53:00.477339",
+        "recovery_approach": "Always finalize all resampling and formatting options before clicking Apply. This ensures that the filename dialog opens correctly after all settings are confirmed."
+      },
+      {
+        "task": " DBC Decode the concatenated MF4 file and Extract the bus signals. Export the decoded MF4 file to CSV after resampling with time step of 2s, Single time base and Time as date settings applied. (Parameters: input_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, output_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, input_concatenated_filename=Kia_EV_6_2F6913DB_00001045.MF4, input_CAN_database_file=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\can2-canmod-gnss.dbc, output_decoded_filename=Kia_EV_6_2F6913DB_00001045_decoded.mf4, output_csv_filename=Kia_EV_6_2F6913DB_00001045.csv)",
+        "step_num": 42,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:edit:Time step"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Focus the time-step field so we can enter the resample interval (from KB: file_modify_and_export_tools)",
+          "kb_source": "file_modify_and_export_tools",
+          "step_num": 42
+        },
+        "original_error": "There is no Time step field for entering the resample interval | Suggestion: The Correct field is with the name step where you can enter the resampling interval",
+        "timestamp": "2025-11-02T23:14:26.501269"
+      },
+      {
+        "task": " DBC Decode the concatenated MF4 file and Extract the bus signals. Export the decoded MF4 file to CSV after resampling with time step of 2s, Single time base and Time as date settings applied. (Parameters: input_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, output_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, input_concatenated_filename=Kia_EV_6_2F6913DB_00001045.MF4, input_CAN_database_file=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\can2-canmod-gnss.dbc, output_decoded_filename=Kia_EV_6_2F6913DB_00001045_decoded.mf4, output_csv_filename=Kia_EV_6_2F6913DB_00001045.csv)",
+        "step_num": 34,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Resample"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Choose the Resample tool to set the desired 2s sampling interval (from KB: file_modify_and_export_tools)",
+          "kb_source": "file_modify_and_export_tools",
+          "step_num": 34
+        },
+        "original_error": "You could not click on the check box infront of Resample. | Suggestion: Please make sure you use the ControlType as Check Box and Control Name as Resample to select the checkbox of Resample.",
+        "timestamp": "2025-11-03T00:32:19.556355"
+      }
+    ],
+    "trust_score": 0.6302494097246091
+  },
+  {
+    "knowledge_id": "extract_attachments",
+    "description": "Extract attachments embedded in a measurement file and save them as separate files. The Attachments tab is visible only if attachments are present.",
+    "ui_location": "Single files view → Attachments tab",
+    "action_sequence": [
+      "open_file_tab",
+      "click_tab('Attachments')",
+      "select_attachment_from_list",
+      "click_button('Extract' or 'Save')",
+      "in_file_dialog(enter_save_location)",
+      "click_button('Save')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "file_opened",
+      "file_contains_attachments"
+    ],
+    "output_state": "attachment_saved_to_file",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "file_info_overview",
+    "description": "View an overview of the measurement file content such as channel groups, file header comments and total number of channels in the Info tab.",
+    "ui_location": "Single files view → Info tab",
+    "action_sequence": [
+      "open_file_tab",
+      "click_tab('Info')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "file_opened"
+    ],
+    "output_state": "file_info_displayed",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "can_lin_flexray_decoding",
+    "description": "Decode CAN/LIN/FlexRay bus logging using an external database file (.dbc, .ldf, .arxml) available in the Bus logging tab or by creating a Bus Trace window.",
+    "ui_location": "Single files view → Bus logging tab OR Create window → Bus Trace",
+    "action_sequence": [
+      "open_file_tab_with_bus_logging",
+      "click_tab('Bus logging') or Create bus trace window",
+      "load_database_file(select .dbc/.ldf/.arxml)",
+      "apply_database_for_decoding"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "file_opened",
+      "file_contains_bus_logging",
+      "database_file_available"
+    ],
+    "output_state": "bus_messages_decoded",
+    "doc_citation": "GUI#Single-files",
+    "parameters": {},
+    "kb_learnings": [
+      {
+        "task": " DBC Decode the concatenated MF4 file and Extract the bus signals. Export the decoded MF4 file to csv with single time base and time as date settings applied. (Parameters: input_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, output_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, input_concatenated_filename=Kia_EV_6_2F6913DB_00001045.MF4, output_decoded_filename=Kia_EV_6_2F6913DB_00001045_decoded.mf4, output_csv_filename=Kia_EV_6_2F6913DB_00001045.csv)",
+        "step_num": 11,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:tab:Bus logging"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Open the Bus logging tab to enable decoding options and apply a DBC (from KB: can_lin_flexray_decoding)",
+          "kb_source": "can_lin_flexray_decoding",
+          "step_num": 11
+        },
+        "original_error": "Mode was not explicitly set from Batch Processing to Single Files before Opening the Concatenated Input file. | Suggestion: Assure that Mode is Set to Single Files before you Open the Concatenated MF4 File. Click Mode and then Click Single Files before Opening the Concatenated Input MF4 File.",
+        "timestamp": "2025-11-02T18:19:21.119841",
+        "recovery_approach": "Always check that the Mode is set to Single Files before opening the concatenated MF4 file. This ensures the correct processing mode is selected."
+      },
+      {
+        "task": " DBC Decode the concatenated MF4 file and Extract the bus signals. Export the decoded MF4 file to csv with single time base and time as date settings applied. (Parameters: input_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, output_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, input_concatenated_filename=Kia_EV_6_2F6913DB_00001045.MF4, output_decoded_filename=Kia_EV_6_2F6913DB_00001045_decoded.mf4, output_csv_filename=Kia_EV_6_2F6913DB_00001045.csv)",
+        "step_num": 13,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Load database"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Open the dialog to load a DBC/ARXML/LDF file required for CAN/LIN/FlexRay decoding (from KB: can_lin_flexray_decoding)",
+          "kb_source": "can_lin_flexray_decoding",
+          "step_num": 13
+        },
+        "original_error": "Wrong Button: Load database doesnt exist | Suggestion: Actual Button is Load CAN database",
+        "timestamp": "2025-11-02T18:22:08.062431"
+      },
+      {
+        "task": " DBC Decode the concatenated MF4 file and Extract the bus signals. Export the decoded MF4 file to csv with single time base and time as date settings applied. (Parameters: input_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, output_folder=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001045, input_concatenated_filename=Kia_EV_6_2F6913DB_00001045.MF4, input_CAN_database_file=C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\can2-canmod-gnss.dbc, output_decoded_filename=Kia_EV_6_2F6913DB_00001045_decoded.mf4, output_csv_filename=Kia_EV_6_2F6913DB_00001045.csv)",
+        "step_num": 18,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Apply"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Apply the loaded CAN database for decoding so bus messages/signals are mapped (KB: apply_database_for_decoding)",
+          "kb_source": "can_lin_flexray_decoding",
+          "step_num": 18
+        },
+        "original_error": "There is no button Apply to apply the loaded CAN database for decoding the bus signals. | Suggestion: The correct button is Extract Bus Signals. After Loading CAN database file, Click Extract Bus Signals, provide the name of the output_decoded_filename and click Save to create the decoded MF4 file. Then proceed with exporting the decoded MF4 file to csv.",
+        "timestamp": "2025-11-02T19:24:29.610047",
+        "recovery_approach": "After loading the CAN database, click on Extract Bus Signals instead of looking for an Apply button. This will correctly initiate the decoding process."
+      }
+    ],
+    "trust_score": 0.8145062499999999
+  },
+  {
+    "knowledge_id": "batch_rearrange_file_list",
+    "description": "Rearrange the order of files in Batch processing file list by dragging and dropping lines; order is considered from top to bottom.",
+    "ui_location": "Batch processing view → File list",
+    "action_sequence": [
+      "click_menu('Mode')",
+      "select_option('Batch processing')",
+      "click_and_drag(file_line_to_new_position)"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "mode_batch_processing",
+      "files_added_to_batch_list"
+    ],
+    "output_state": "batch_file_list_reordered",
+    "doc_citation": "GUI#Batch-processing",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "batch_delete_file_from_list",
+    "description": "Delete unwanted files from the Batch processing file list by selecting them and pressing the DEL key.",
+    "ui_location": "Batch processing view → File list",
+    "action_sequence": [
+      "open_batch_processing_view",
+      "select_file_lines",
+      "press_key('DEL')",
+      "confirm_if_prompted"
+    ],
+    "shortcut": "DEL",
+    "prerequisites": [
+      "mode_batch_processing",
+      "files_added_to_batch_list"
+    ],
+    "output_state": "file_removed_from_batch_list",
+    "doc_citation": "GUI#Batch-processing",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "batch_concatenate_files",
+    "description": "Concatenate multiple input files into a single continuous measurement file. Input files must have matching internal structure (same number of channel groups and same channels per group). Optionally synchronize using measurement timestamps.",
+    "ui_location": "Batch processing view → Batch operations",
+    "action_sequence": [
+      "click_menu('Mode')",
+      "select_option('Batch processing')",
+      "click_button('Add files')",
+      "multi_select_files_in_dialog",
+      "arrange_files_in_list(desired_order)",
+      "select_operation('Concatenate')",
+      "set_option('Sync using measurement timestamps', true_or_false)",
+      "enter_output_filename",
+      "click_button('Start' or 'Save')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "mode_batch_processing",
+      "multiple_files_available"
+    ],
+    "output_state": "concatenated_file_created",
+    "doc_citation": "GUI#Batch-processing",
+    "parameters": {},
+    "kb_learnings": [
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 7,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Add files"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Open the file-selection dialog to add multiple files for batch operations (from KB: batch_concatenate_files)",
+          "kb_source": "batch_concatenate_files"
+        },
+        "original_error": "Could not resolve any of 1 alternative(s): No button labeled 'Add files' is present in the current UI state. | Suggestion: Consider using the 'File' menu to add files or check for other buttons related to file operations.",
+        "timestamp": "2025-10-26T00:37:11.371766",
+        "recovery_approach": "If the 'Add files' button is missing, use the File menu to add files instead, ensuring you can still proceed with batch operations."
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 20,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:menu:Concatenate"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Select the 'Concatenate' batch operation to join the files into one continuous measurement (KB: batch_concatenate_files).",
+          "kb_source": "batch_concatenate_files",
+          "step_num": 20
+        },
+        "original_error": "There are two Concatenate buttons. Out of that there is only one which concatenates the selected MF4 files. | Suggestion: Click the Concatenate button thats more on the lower screen.",
+        "timestamp": "2025-10-26T00:51:12.622709",
+        "recovery_approach": "When faced with multiple Concatenate buttons, always choose the one located lower on the screen to ensure the correct operation is executed."
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 24,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Start"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Start the concatenation/save operation to produce the single MF4 output file (KB: batch_concatenate_files).",
+          "kb_source": "batch_concatenate_files",
+          "step_num": 24
+        },
+        "original_error": "There is no button with Start after the concatenated filename is mentioned. | Suggestion: Correct button is Save. Click Save to finally start the concatenation process.",
+        "timestamp": "2025-10-26T00:55:03.089416",
+        "recovery_approach": "Always click the Save button after entering the filename to initiate the concatenation process, as this is the correct action."
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 7,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Add files"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Open file selection dialog to add multiple MF4 files for batch operations (KB: batch_concatenate_files)",
+          "kb_source": "batch_concatenate_files"
+        },
+        "original_error": "Could not resolve any of 1 alternative(s): No button labeled 'Add files' is present in the current UI state. | Suggestion: Consider using the 'File' menu to add files or check for other buttons related to file operations.",
+        "timestamp": "2025-10-26T12:46:14.746967",
+        "recovery_approach": "If the 'Add files' button is not visible, check the File menu for options to add files to the batch operation."
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 7,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Add files"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Open file dialog to add multiple MF4 files for batch concatenation (from KB: batch_concatenate_files)",
+          "kb_source": "batch_concatenate_files"
+        },
+        "original_error": "Could not resolve any of 1 alternative(s): No button labeled 'Add files' is present in the current UI state. | Suggestion: Consider using the 'Concatenate' button or check the 'File' menu for options to add files.",
+        "timestamp": "2025-10-26T12:48:26.012489",
+        "recovery_approach": "The error occurred because the 'Add files' button was missing in the UI. The verified skill resolved this by using the 'File' menu to access the 'Open' command instead. In the future, if the 'Add files' button is absent, always check the 'File' menu for the 'Open' option to add files."
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 23,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:button:Save"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Click the Save button to start the concatenation and write the combined MF4 to the specified file (learning: the correct final action is Save, not Start).",
+          "kb_source": "batch_concatenate_files"
+        },
+        "original_error": "Could not resolve any of 1 alternative(s): No Save button found in the current UI state | Suggestion: Consider looking for buttons related to saving or finalizing actions, such as 'Concatenate' or 'Export'.",
+        "timestamp": "2025-10-26T15:39:01.734156",
+        "recovery_approach": "If the Save button is not visible, look for alternative buttons related to saving or finalizing the concatenation process."
+      },
+      {
+        "task": "Concatenate all .MF4 files in the folder C:\\Users\\ADMIN\\Downloads\\ev-data-pack-v10\\ev-data-pack-v10\\electric_cars\\log_files\\Kia EV6\\LOG\\2F6913DB\\00001026\\.Save the concatenated file as Kia_EV_6_2F6913DB.mf4 in the same folder.",
+        "step_num": 20,
+        "original_action": {
+          "tool_name": "Click-Tool",
+          "tool_arguments": {
+            "loc": [
+              "last_state:edit:File name"
+            ],
+            "button": "left",
+            "clicks": 1
+          },
+          "reasoning": "Focus the output filename edit field so the filename can be entered (from KB: batch_concatenate_files)",
+          "kb_source": "batch_concatenate_files"
+        },
+        "original_error": "Could not resolve any of 1 alternative(s): No edit field for 'File name' is present in the current UI state. | Suggestion: Consider checking for other input fields or buttons related to file output.",
+        "timestamp": "2025-10-26T16:03:09.059428",
+        "recovery_approach": "If the output filename field is missing, check for other input fields or buttons that may allow you to specify the output filename."
+      }
+    ],
+    "trust_score": 0.5133420832795047
+  },
+  {
+    "knowledge_id": "batch_stack_files",
+    "description": "Stack multiple files into a single measurement that contains all channel groups from the inputs. Identically named channels are not concatenated but will appear multiple times in the output file.",
+    "ui_location": "Batch processing view → Batch operations",
+    "action_sequence": [
+      "click_menu('Mode')",
+      "select_option('Batch processing')",
+      "click_button('Add files')",
+      "select_files_in_dialog",
+      "arrange_files_as_desired",
+      "select_operation('Stack')",
+      "enter_output_filename",
+      "click_button('Start' or 'Save')"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "mode_batch_processing",
+      "multiple_files_available"
+    ],
+    "output_state": "stacked_file_created",
+    "doc_citation": "GUI#Batch-processing",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "comparison_mode_search_channels",
+    "description": "Search channels across all opened files while in Comparison mode; search results will show channel names prefixed with the measurement index.",
+    "ui_location": "Comparison view (Mode → Comparison) → Search (Ctrl+F)",
+    "action_sequence": [
+      "click_menu('Mode')",
+      "select_option('Comparison')",
+      "press_keys('Ctrl+F')",
+      "enter_search_pattern",
+      "execute_search"
+    ],
+    "shortcut": "Ctrl+F",
+    "prerequisites": [
+      "mode_comparison",
+      "multiple_files_opened"
+    ],
+    "output_state": "channels_found_across_files_listed",
+    "doc_citation": "GUI#Comparison",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "plot_edit_signal_color",
+    "description": "Open a dialog to edit the color of a signal in the plot selection tree or via shortcut.",
+    "ui_location": "Plot window → Signal selection tree → Color button or keyboard shortcut",
+    "action_sequence": [
+      "open_plot_window",
+      "select_channel_item",
+      "press_key('C') or click_color_button",
+      "in_color_dialog(select_color)",
+      "click_button('OK')"
+    ],
+    "shortcut": "C",
+    "prerequisites": [
+      "plot_window_open",
+      "channel_present_in_selection_tree"
+    ],
+    "output_state": "signal_color_updated",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "display_channel_value_label_conditions",
+    "description": "Channel value labels are displayed in the selection tree only when the cursor or range is active. For cursor it shows current value; for range it shows delta between start and stop timestamps.",
+    "ui_location": "Plot window → Signal selection tree",
+    "action_sequence": [
+      "open_plot_window",
+      "enable_cursor_or_range",
+      "observe_value_label_display"
+    ],
+    "shortcut": null,
+    "prerequisites": [
+      "plot_window_open"
+    ],
+    "output_state": "value_labels_shown_for_active_cursor_or_range",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  },
+  {
+    "knowledge_id": "insert_cursor_comment_via_context_or_shortcut",
+    "description": "Insert a vertical comment at the cursor position using the Ctrl+I shortcut or via plot context.",
+    "ui_location": "Plot window → Keyboard shortcut / context",
+    "action_sequence": [
+      "open_plot_window",
+      "position_cursor",
+      "press_keys('Ctrl+I')",
+      "enter_comment_text",
+      "confirm()"
+    ],
+    "shortcut": "Ctrl+I",
+    "prerequisites": [
+      "plot_window_open",
+      "cursor_enabled"
+    ],
+    "output_state": "cursor_comment_added_to_plot",
+    "doc_citation": "GUI#Plot",
+    "parameters": {},
+    "kb_learnings": [],
+    "trust_score": 1.0
+  }
+]

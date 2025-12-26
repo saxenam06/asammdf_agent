@@ -1,0 +1,829 @@
+"""
+Autonomous workflow orchestrator using LangGraph
+"""
+import sys, os, asyncio
+from typing import TypedDict, Optional, List, Dict
+from langgraph.graph import StateGraph, END
+
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True)
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace', line_buffering=True)
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+
+from agent.planning.schemas import KnowledgeSchema, PlanSchema, ExecutionResult, VerifiedSkillSchema, ActionSchema
+from agent.knowledge_base.retriever import KnowledgeRetriever
+from agent.planning.workflow_planner import WorkflowPlanner
+from agent.execution.mcp_client import MCPClient
+from agent.execution.adaptive_executor import AdaptiveExecutor
+from agent.utils.cost_tracker import get_global_tracker
+from agent.knowledge_base.recovery_generator import RecoveryApproachGenerator
+
+# HITL imports
+try:
+    from agent.feedback.human_observer import HumanObserver
+    from agent.learning.skill_library import SkillLibrary
+    from agent.feedback.schemas import VerificationStatus
+    HITL_AVAILABLE = True
+except ImportError:
+    HITL_AVAILABLE = False
+    print("[Warning] HITL components not available")
+
+
+class WorkflowState(TypedDict):
+    task: str
+    operation: Optional[str]  # Core operation without paths (for parameterized tasks)
+    parameters: Optional[Dict[str, str]]  # Path parameters (for parameterized tasks)
+    retrieved_knowledge: List[KnowledgeSchema]
+    plan: Optional[PlanSchema]
+    current_step: int
+    last_execution_result: Optional[ExecutionResult]  # Only store last result to avoid MemoryError
+    error: Optional[str]
+    completed: bool
+    force_regenerate_plan: bool
+
+
+class AutonomousWorkflow:
+    """Orchestrates RAG → Planning → Execution → Recovery workflow"""
+
+    def __init__(
+        self,
+        app_name: str = "asammdf 8.6.10",
+        catalog_path: str = "agent/knowledge_base/parsed_knowledge/knowledge_catalog.json",
+        vector_db_path: str = "agent/knowledge_base/vector_store",
+        enable_hitl: bool = True,
+        interactive_mode: bool = True,  # Pause after each step for feedback (default: ON)
+        session_id: Optional[str] = None
+    ):
+        self.app_name = app_name
+        self.catalog_path = catalog_path
+        self.vector_db_path = vector_db_path
+        self.task = None
+        self._retriever = None
+        self._planner = None
+        self._graph = None
+        self._client = None
+        self._executor = None
+        self.interactive_mode = interactive_mode
+        self._feedback_requested = False  # Flag set when ESC is pressed
+        self._keyboard_listener = None
+
+        # HITL components
+        self.enable_hitl = enable_hitl and HITL_AVAILABLE
+        self.session_id = "session_fe2424ebd"
+        self._human_observer = None
+        self._skill_library = None
+        # Skill library will be initialized when task is set (in run method)
+
+        if self.enable_hitl:
+            print(f"[HITL] Enabled (session: {self.session_id})")
+            # Observer will be started in run() method
+        else:
+            print("[HITL] Disabled")
+
+        if self.interactive_mode:
+            print(f"[Interactive Mode] ENABLED - Press ESC anytime to provide feedback")
+
+    @property
+    def retriever(self):
+        if self._retriever is None:
+            self._retriever = KnowledgeRetriever(
+                catalog_path=self.catalog_path,
+                vector_db_path=self.vector_db_path
+            )
+        return self._retriever
+
+    @property
+    def planner(self):
+        if self._planner is None:
+            self._planner = WorkflowPlanner(
+                mcp_client=self.client,
+                skill_library=self._skill_library if self.enable_hitl else None,
+                knowledge_retriever=self.retriever,
+                session_id=self.session_id
+            )
+        return self._planner
+
+    @property
+    def graph(self):
+        if self._graph is None:
+            self._graph = self._build_graph()
+        return self._graph
+
+    @property
+    def client(self):
+        if self._client is None:
+            raise RuntimeError("MCP client not initialized")
+        return self._client
+
+    @property
+    def executor(self):
+        if self._executor is None and self.task is not None:
+            from agent.planning.workflow_planner import get_latest_plan_filepath
+            plan_path = get_latest_plan_filepath(self.task)
+            if plan_path:
+                self._executor = AdaptiveExecutor(
+                    self.client,
+                    knowledge_retriever=self.retriever,
+                    plan_filepath=plan_path,
+                    human_observer=self._human_observer if self.enable_hitl else None,
+                    session_id=self.session_id,
+                    parameters=self.parameters if hasattr(self, 'parameters') else None
+                )
+        return self._executor
+
+    def _build_graph(self) -> StateGraph:
+        workflow = StateGraph(WorkflowState)
+
+        workflow.add_node("retrieve_knowledge", self._retrieve_knowledge_node)
+        workflow.add_node("generate_plan", self._generate_plan_node)
+        workflow.add_node("validate_plan", self._validate_plan_node)
+        workflow.add_node("execute_step", self._execute_step_node)
+        workflow.add_node("verify_step", self._verify_step_node)
+        workflow.add_node("handle_error", self._handle_error_node)
+
+        # HITL node for final verification
+        if self.enable_hitl:
+            workflow.add_node("final_verification", self._final_verification_node)
+
+        workflow.set_entry_point("retrieve_knowledge")
+        workflow.add_edge("retrieve_knowledge", "generate_plan")
+        workflow.add_edge("generate_plan", "validate_plan")
+        workflow.add_conditional_edges("validate_plan", self._route_after_validation, {"execute": "execute_step", "error": END})
+        workflow.add_edge("execute_step", "verify_step")
+
+        if self.enable_hitl:
+            # Route to final_verification instead of END on completion
+            workflow.add_conditional_edges("verify_step", self._route_after_verification, {"next_step": "execute_step", "error": "handle_error", "done": "final_verification"})
+            workflow.add_edge("final_verification", END)
+        else:
+            workflow.add_conditional_edges("verify_step", self._route_after_verification, {"next_step": "execute_step", "error": "handle_error", "done": END})
+
+        workflow.add_conditional_edges("handle_error", self._route_after_error, {"retry": "execute_step", "failed": END})
+
+        return workflow.compile()
+    def _retrieve_knowledge_node(self, state: WorkflowState) -> WorkflowState:
+        print(f"\n[1/5] Retrieving knowledge for: '{state['task']}'")
+        knowledge_patterns = self.retriever.retrieve(state["task"], top_k=5)
+        print(f"  ✓ Retrieved {len(knowledge_patterns)} patterns")
+        if knowledge_patterns:
+            kb_ids = [kb.knowledge_id for kb in knowledge_patterns]
+            print(f"  📚 KB IDs: {', '.join(kb_ids)}")
+        state["retrieved_knowledge"] = knowledge_patterns
+        return state
+
+    def _generate_plan_node(self, state: WorkflowState) -> WorkflowState:
+        print(f"\n[2/5] Generating plan...")
+
+        try:
+            latest_state = None
+            try:
+                state_result = self.client.call_tool_sync('State-Tool', {'use_vision': False})
+                if not state_result.isError:
+                    latest_state = state_result.content[0].text if hasattr(state_result, 'content') else str(state_result)
+            except:
+                pass
+
+            plan = self.planner.generate_plan(
+                task=state["task"],
+                available_knowledge=state["retrieved_knowledge"],
+                force_regenerate=state.get("force_regenerate_plan", False),
+                latest_state=latest_state,
+                operation=state.get("operation"),
+                parameters=state.get("parameters")
+            )
+
+            print(f"  ✓ Generated {len(plan.plan)} steps")
+            state["plan"] = plan
+            state["current_step"] = 0  # Start at step 0 (0-indexed internally)
+
+            if self._executor is None:
+                _ = self.executor
+
+        except Exception as e:
+            print(f"  ✗ Failed: {e}")
+            state["error"] = f"Plan generation failed: {e}"
+
+        return state
+
+    def _validate_plan_node(self, state: WorkflowState) -> WorkflowState:
+        print(f"\n[3/5] Validating plan...")
+
+        if not state["plan"]:
+            state["error"] = "No plan generated"
+            print("  ✗ No plan")
+            return state
+
+        is_valid, error_msg = self.planner.validate_plan(state["plan"])
+        print(f"  {'✓ Valid' if is_valid else '✗ Invalid: ' + error_msg}")
+
+        if not is_valid:
+            state["error"] = error_msg
+            return state
+
+        # Plan review phase (only if HITL enabled and plan is valid)
+        if self.enable_hitl and HITL_AVAILABLE and self._human_observer:
+            from agent.planning.workflow_planner import get_latest_plan_filepath
+
+            plan_filepath = get_latest_plan_filepath(state["task"])
+            if plan_filepath:
+                feedbacks = self._human_observer.review_plan(
+                    plan=state["plan"],
+                    task=state["task"],
+                    plan_filepath=plan_filepath
+                )
+
+                if feedbacks:
+                    print(f"\n[Plan Review] Collected {len(feedbacks)} feedback(s)")
+                    print("[Plan Review] Feedback stored for future plans")
+                else:
+                    print("\n[Plan Review] No feedback provided")
+
+        return state
+
+    def _execute_step_node(self, state: WorkflowState) -> WorkflowState:
+        step_num = state["current_step"]  # 0-indexed internally
+        total_steps = len(state["plan"].plan) if state["plan"] else 0
+        action = state["plan"].plan[step_num]
+
+        step_display = step_num + 1  # Convert to 1-indexed for display
+
+        print(f"\n[4/5] Executing step {step_display}/{total_steps}: {action.tool_name}")
+        sys.stdout.flush()
+
+        context_actions = state["plan"].plan[:step_num]
+        result = self.executor.execute_action(action, context=context_actions, step_num=step_display)
+
+        # Note: Learning attachment handled in _handle_failure() method of AdaptiveExecutor
+
+        state["last_execution_result"] = result
+        state["current_step"] += 1
+        return state
+
+    def _verify_step_node(self, state: WorkflowState) -> WorkflowState:
+        print(f"\n[5/5] Verifying...")
+        sys.stdout.flush()
+
+        total_steps = len(state["plan"].plan) if state["plan"] else 0
+        current = state["current_step"]
+        print(f"[Debug] verify_step: current_step={current}, total_steps={total_steps}")
+
+        if state["current_step"] >= total_steps:
+            print(f"  ✓ All {total_steps} steps completed!")
+            state["completed"] = True
+            state["error"] = None
+            print(f"[Debug] Setting completed=True, will route to 'done'")
+            return state
+
+        last_result = state.get("last_execution_result")
+
+        if last_result and not last_result.success:
+            # No replanning - just fail immediately
+            print(f"  ✗ Failed: {last_result.error}")
+            state["error"] = last_result.error
+        else:
+            print(f"  ✓ Success")
+            state["error"] = None
+
+            # Interactive mode: Check if feedback was requested (ESC pressed)
+            if self.interactive_mode and self._feedback_requested:
+                if self._human_observer:
+                    self._prompt_for_step_feedback(state)
+                    self._feedback_requested = False  # Reset flag
+                else:
+                    print(f"[Debug] Interactive mode enabled but observer not available")
+                    self._feedback_requested = False
+
+        return state
+
+    def _prompt_for_step_feedback(self, state: WorkflowState):
+        """
+        Prompt user for feedback after a step completes in interactive mode
+
+        Args:
+            state: Current workflow state
+        """
+        # current_step is 0-indexed internally and already incremented after execution
+        # So state["current_step"] = 1 means step 1 just completed (array index 0)
+        # Display as 1-indexed for human
+        completed_step_num = state["current_step"]  # Already 1-indexed for display
+
+        print("\n" + "-"*80)
+        print(f"[Interactive] Step {completed_step_num} completed")
+        feedback_prompt = input("Provide feedback for this step? [y/N/stop]: ").strip().lower()
+
+        if feedback_prompt == 'stop':
+            print("[Stopped] Execution stopped by user")
+            state["error"] = "User requested stop"
+            state["completed"] = False
+            return
+
+        if feedback_prompt == 'y':
+            from agent.planning.workflow_planner import get_latest_plan_filepath
+            plan_filepath = get_latest_plan_filepath(state["task"])
+
+            if plan_filepath:
+                feedback_result = self._human_observer.provide_step_feedback(
+                    task=state["task"],
+                    plan_filepath=plan_filepath
+                )
+
+                if feedback_result:
+                    print(f"✓ Feedback recorded for step {feedback_result['step_num']}")
+            else:
+                print("[Error] Could not find plan file for feedback")
+
+        # IMPORTANT: Switch focus back to asammdf after feedback
+        # Terminal interaction causes focus to shift to VS Code/terminal
+        self._switch_to_asammdf()
+
+        print("-"*80 + "\n")
+
+    def _start_keyboard_listener(self):
+        """Start keyboard listener for ESC key to request feedback"""
+        try:
+            from pynput import keyboard
+
+            def on_press(key):
+                if key == keyboard.Key.esc:
+                    self._feedback_requested = True
+                    print("\n[ESC pressed] Feedback will be requested after current step completes...")
+
+            self._keyboard_listener = keyboard.Listener(on_press=on_press)
+            self._keyboard_listener.start()
+            print("[Keyboard Listener] Started - Press ESC anytime to provide feedback")
+
+        except ImportError:
+            print("[Warning] pynput not installed - ESC key feedback disabled")
+            print("          Install with: pip install pynput")
+        except Exception as e:
+            print(f"[Warning] Could not start keyboard listener: {e}")
+
+    def _stop_keyboard_listener(self):
+        """Stop keyboard listener"""
+        if self._keyboard_listener:
+            self._keyboard_listener.stop()
+            self._keyboard_listener = None
+
+    def _switch_to_asammdf(self):
+        """
+        Switch active window to asammdf application using MCP Switch-Tool
+
+        After interactive feedback, the terminal/VS Code becomes active,
+        which breaks State-Tool coordinate capture. This ensures asammdf is active.
+        """
+        try:
+            print(f"\n[Switching focus] Activating {self.app_name}...")
+
+            # Use MCP Switch-Tool to activate window
+            from agent.planning.schemas import ActionSchema
+
+            switch_action = ActionSchema(
+                tool_name="Switch-Tool",
+                tool_arguments={"name": "asammdf"},  # Use "name" parameter, not "window_title"
+                reasoning="Switch focus back to asammdf after interactive feedback"
+            )
+
+            result = self.client.execute_action_sync(switch_action)
+
+            if result.success:
+                print(f"  ✓ {self.app_name} is now active")
+            else:
+                print(f"  ⚠️  Warning: Could not switch to {self.app_name}")
+                print(f"     Error: {result.error}")
+                print(f"     Please manually click on {self.app_name} window")
+                input("     Press Enter when ready...")
+
+        except Exception as e:
+            print(f"  ⚠️  Warning: Could not switch to {self.app_name}: {e}")
+            print(f"     Please manually click on {self.app_name} window")
+            input("     Press Enter when ready...")
+
+    def _handle_error_node(self, state: WorkflowState) -> WorkflowState:
+        """
+        Handle execution error - no retries, just report and stop
+
+        Learning has been attached to KB, user should rerun the task
+        """
+        print(f"\n[Error] {state['error']}")
+        print(f"  → Execution stopped. Learning attached to KB.")
+        print(f"  → Please rerun the task to apply learnings.")
+
+        # Keep the error - no retries
+        return state
+
+    def _final_verification_node(self, state: WorkflowState) -> WorkflowState:
+        """HITL final verification and skill creation"""
+        print(f"\n[HITL] Final Verification")
+        print(f"[Debug] Entered _final_verification_node")
+
+        if not self._human_observer:
+            print("  [Warning] Observer not available, skipping verification")
+            return state
+
+        # Prepare execution summary
+        execution_summary = {
+            "steps_completed": state.get("current_step", 0),
+            "human_feedbacks": 0,  # TODO: Track this in executor
+            "agent_recoveries": 0  # No longer using automatic recovery
+        }
+
+        # Request human verification
+        verification = self._human_observer.request_verification(
+            task=state["task"],
+            execution_summary=execution_summary
+        )
+
+        if verification.status == VerificationStatus.COMPLETED:
+            print(f"  ✓ Human verified task completion")
+
+            # Create verified skill if requested
+            skill_path = None
+            if verification.create_skill and self._skill_library and state.get("plan"):
+                try:
+                    # Get execution summary for tracking human feedbacks
+                    human_feedbacks_count = execution_summary.get("human_feedbacks", 0)
+                    agent_recoveries_count = execution_summary.get("agent_recoveries", 0)
+
+                    # Extract action plan from PlanSchema
+                    action_plan = state["plan"].plan  # PlanSchema has 'plan' attribute with List[ActionSchema]
+
+                    skill = self._skill_library.add_skill(
+                        task_description=state["task"],
+                        action_plan=action_plan,
+                        session_id=self.session_id,
+                        operation=state.get("operation"),
+                        parameters=state.get("parameters"),
+                        human_feedbacks_count=human_feedbacks_count,
+                        agent_recoveries_count=agent_recoveries_count,
+                        tags=["human_verified"]
+                    )
+                    print(f"  [HITL] Created verified skill: {skill.skill_id}")
+
+                    # Get skill library path for KB update
+                    skill_path = self._get_skill_library_path(state["task"])
+
+                    # Ask if knowledge catalog should be updated with recovery approaches
+                    self._prompt_kb_update(skill_path)
+
+                except Exception as e:
+                    print(f"  [Warning] Failed to create skill: {e}")
+
+            # Verification feedback (no longer stored in Mem0, using KB-attached learnings instead)
+            print(f"  [HITL] Verification complete: {verification.reasoning}")
+        else:
+            print(f"  ✗ Verification status: {verification.status}")
+            print(f"     Reason: {verification.reasoning}")
+            if verification.status == VerificationStatus.NOT_COMPLETED:
+                state["completed"] = False
+                state["error"] = f"Human verification: {verification.reasoning}"
+
+        return state
+
+    def _prompt_kb_update(self, skill_path: str):
+        """
+        Prompt user to update knowledge catalog with recovery approaches from verified skill
+
+        Args:
+            skill_path: Path to the verified skill JSON file
+        """
+        print("\n" + "="*80)
+        print("[KB Update] Would you like to update the knowledge catalog with")
+        print("            recovery approaches from this verified skill?")
+        print("            This will analyze errors in KB items and add learnings")
+        print("            based on how the verified skill solved them.")
+        print("="*80)
+
+        response = input("Update knowledge catalog? [y/N]: ").strip().lower()
+
+        if response == 'y':
+            print("\n[KB Update] Generating recovery approaches using LLM...")
+            try:
+                import json
+
+                # Load verified skill
+                with open(skill_path, 'r', encoding='utf-8') as f:
+                    skill_library = json.load(f)
+                    # Get the most recent skill (last in the 'skills' list)
+                    if skill_library and 'skills' in skill_library and skill_library['skills']:
+                        verified_skill = skill_library['skills'][-1]
+                    else:
+                        print("[KB Update] No verified skill found")
+                        return
+
+                # Load catalog
+                with open(self.catalog_path, 'r', encoding='utf-8') as f:
+                    catalog = json.load(f)
+
+                # Generate recovery approaches
+                generator = RecoveryApproachGenerator()
+                recovery_approaches = generator.generate_recovery_approaches(
+                    verified_skill=verified_skill,
+                    knowledge_catalog=catalog
+                )
+
+                if recovery_approaches:
+                    # Update catalog
+                    success = generator.update_knowledge_catalog(
+                        catalog_path=self.catalog_path,
+                        recovery_approaches=recovery_approaches
+                    )
+
+                    if success:
+                        print(f"  ✓ Knowledge catalog updated successfully!")
+                    else:
+                        print(f"  ✗ Failed to update knowledge catalog")
+                else:
+                    print("  [Info] No recovery approaches generated")
+
+            except Exception as e:
+                print(f"  [Error] KB update failed: {e}")
+                import traceback
+                traceback.print_exc()
+        else:
+            print("[KB Update] Skipped")
+
+    def _route_after_validation(self, state: WorkflowState) -> str:
+        return "error" if state.get("error") else "execute"
+
+    def _route_after_verification(self, state: WorkflowState) -> str:
+        completed = state.get("completed")
+        error = state.get("error")
+        route = "done" if completed else ("error" if error else "next_step")
+        print(f"[Debug] _route_after_verification: completed={completed}, error={error}, route={route}")
+        return route
+
+    def _route_after_error(self, state: WorkflowState) -> str:
+        """Always fail - no retries. User must rerun task to apply learnings."""
+        return "failed"
+
+    def _get_skill_library_path(self, task: str) -> str:
+        """
+        Generate skill library path based on task name
+
+        Args:
+            task: Task description
+
+        Returns:
+            Path to skill library JSON file for this task
+        """
+        import re
+
+        # Clean task name: remove special chars, limit length, convert to snake_case
+        task_clean = re.sub(r'[^\w\s-]', '', task.lower())
+        task_clean = re.sub(r'[-\s]+', '_', task_clean)
+        task_clean = task_clean[:50]  # Limit to 50 chars
+        task_clean = task_clean.strip('_')
+
+        if not task_clean:
+            task_clean = "default_task"
+
+        return f"agent/learning/verified_skills/{task_clean}_skills.json"
+
+    async def run(
+        self,
+        operation: str,
+        parameters: Dict[str, str],
+        force_regenerate_plan: bool = False
+    ) -> dict:
+        """
+        Run autonomous workflow
+
+        Args:
+            operation: Core operation without paths (e.g., "Concatenate all .MF4 files and save with specified name")
+            parameters: Path parameters dict (e.g., {"input_folder": "C:\\...", "output_folder": "C:\\...", "output_filename": "file.mf4"})
+            force_regenerate_plan: Force plan regeneration even if cached plan exists
+        """
+        from agent.planning.schemas import TaskInput
+
+        # Parameterized mode only
+        self.operation = operation
+        self.parameters = parameters or {}
+
+        # Create TaskInput for validation
+        task_input = TaskInput(operation=operation, parameters=self.parameters)
+
+        # Build full task string for internal use
+        final_task = task_input.to_full_task_string()
+        self.task = final_task
+
+        print("\n" + "="*80)
+        print(f"Operation: {operation}")
+        if self.parameters:
+            print(f"Parameters:")
+            for key, value in self.parameters.items():
+                print(f"  - {key}: {value}")
+        print("="*80)
+
+        initial_state = WorkflowState(
+            task=final_task,
+            operation=self.operation,
+            parameters=self.parameters,
+            retrieved_knowledge=[],
+            plan=None,
+            current_step=0,
+            last_execution_result=None,
+            error=None,
+            completed=False,
+            force_regenerate_plan=force_regenerate_plan
+        )
+
+        # Initialize skill library with task-specific path
+        if self.enable_hitl and HITL_AVAILABLE:
+            skill_library_path = self._get_skill_library_path(self.task)
+            self._skill_library = SkillLibrary(library_path=skill_library_path)
+            print(f"[SkillLibrary] Using: {skill_library_path}")
+
+        # Start HITL observer if enabled
+        if self.enable_hitl and HITL_AVAILABLE:
+            self._human_observer = HumanObserver(
+                session_id=self.session_id,
+                knowledge_retriever=self.retriever
+            )
+            self._human_observer.start()
+            print("[HITL] Observer started")
+
+        # Start keyboard listener for interactive mode
+        if self.interactive_mode:
+            self._start_keyboard_listener()
+
+        async with MCPClient() as client:
+            self._client = client
+
+            try:
+                # Calculate recursion limit: 3 initial nodes + (steps × 2) + 1 final = safe margin
+                # For 54 steps: 3 + 108 + 1 = 112, so set to 150 for safety
+                print(f"\n[Debug] Starting graph.invoke() with recursion_limit=150")
+                final_state = self.graph.invoke(initial_state, {"recursion_limit": 150})
+
+                # Debug logging
+                print(f"\n[Debug] graph.invoke() completed")
+                print(f"[Debug] final_state type: {type(final_state)}")
+                print(f"[Debug] final_state keys: {final_state.keys() if isinstance(final_state, dict) else 'N/A'}")
+                print(f"[Debug] completed: {final_state.get('completed', 'KEY_MISSING')}")
+                print(f"[Debug] current_step: {final_state.get('current_step', 'KEY_MISSING')}")
+                print(f"[Debug] error: {final_state.get('error', 'KEY_MISSING')}")
+
+                results = {
+                    "success": final_state.get("completed", False) and not final_state.get("error"),
+                    "task": self.task,
+                    "plan": final_state["plan"].model_dump() if final_state.get("plan") else None,
+                    "steps_completed": final_state.get("current_step", 0),
+                    "error": final_state.get("error")
+                }
+
+                print("\n" + "="*80)
+                print("✓ Success!" if results["success"] else f"✗ Failed: {results['error']}")
+                print("="*80)
+
+                # Display cost summary
+                tracker = get_global_tracker()
+                if tracker.calls:
+                    tracker.print_summary()
+
+                return results
+
+            except Exception as e:
+                print(f"\n✗ Error during graph execution: {e}")
+                print(f"[Debug] Exception type: {type(e).__name__}")
+                import traceback
+                print(f"[Debug] Full traceback:")
+                traceback.print_exc()
+                return {"success": False, "task": self.task, "error": str(e)}
+
+            finally:
+                # Stop keyboard listener
+                if self.interactive_mode:
+                    self._stop_keyboard_listener()
+
+                # Stop HITL observer
+                if self.enable_hitl and self._human_observer:
+                    self._human_observer.stop()
+                    print("[HITL] Observer stopped")
+
+    def run_sync(self, operation: str, parameters: Dict[str, str], force_regenerate_plan: bool = False) -> dict:
+        """
+        Sync wrapper for run()
+
+        Args:
+            operation: Core operation without paths
+            parameters: Path parameters dict
+            force_regenerate_plan: If True, regenerate plan even if cached plan exists
+
+        Returns:
+            Execution results
+        """
+        return asyncio.run(self.run(operation, parameters, force_regenerate_plan))
+
+
+def execute_autonomous_task(
+    operation: str,
+    parameters: Dict[str, str],
+    app_name: str = "asammdf 8.6.10",
+    catalog_path: str = "agent/knowledge_base/parsed_knowledge/knowledge_catalog.json",
+    vector_db_path: str = "agent/knowledge_base/vector_store",
+    interactive_mode: bool = True  # Default: ON
+) -> dict:
+    """
+    Convenience function to execute a task autonomously
+
+    Args:
+        operation: Core operation without paths (e.g., "Concatenate all .MF4 files and save with specified name")
+        parameters: Path parameters dict (e.g., {"input_folder": "C:\\...", "output_folder": "C:\\...", "output_filename": "file.mf4"})
+        app_name: Application window name
+        catalog_path: Path to knowledge catalog
+        vector_db_path: Path to vector database
+        interactive_mode: If True, pause after each step for feedback
+
+    Returns:
+        Execution results
+    """
+    workflow = AutonomousWorkflow(
+        app_name=app_name,
+        catalog_path=catalog_path,
+        vector_db_path=vector_db_path,
+        interactive_mode=interactive_mode
+    )
+
+    return asyncio.run(workflow.run(
+        operation=operation,
+        parameters=parameters
+    ))
+
+
+if __name__ == "__main__":
+    """
+    Test autonomous workflow
+    """
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Run autonomous workflow with parameterized tasks",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Use default task
+  python autonomous_workflow.py
+
+  # Custom task with parameters
+  python autonomous_workflow.py \\
+    --operation "Concatenate all .MF4 files and save with specified name" \\
+    --parameters '{"input_folder": "C:\\\\data\\\\Tesla", "output_folder": "C:\\\\output", "output_filename": "Tesla.mf4"}'
+        """
+    )
+    parser.add_argument(
+        "--operation",
+        type=str,
+        help="Core operation without paths (e.g., 'Concatenate all .MF4 files and save with specified name')"
+    )
+    parser.add_argument(
+        "--parameters",
+        type=str,
+        help='Path parameters as JSON string (e.g., \'{"input_folder": "C:\\\\...", "output_folder": "C:\\\\...", "output_filename": "file.mf4"}\')'
+    )
+    parser.add_argument(
+        "--interactive",
+        type=lambda x: x.lower() == 'true',
+        default=True,
+        help="Interactive mode - pause after each step for feedback (default: True)"
+    )
+    args = parser.parse_args()
+
+    # Parse parameters
+    import json
+
+    if args.operation and args.parameters:
+        # User-provided operation and parameters
+        operation = args.operation
+        parameters = json.loads(args.parameters)
+    elif args.operation or args.parameters:
+        # Only one provided - error
+        parser.error("--operation and --parameters must be provided together")
+    else:
+        # Use default task
+        operation = " DBC Decode the concatenated MF4 file and Extract the bus signals. Export the decoded MF4 file to CSV after applying Single time base and Time as date settings."
+        parameters = {
+            "input_folder": r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\LOG\2F6913DB\00001045",
+            "output_folder": r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\LOG\2F6913DB\00001045",
+            "input_concatenated_filename": "Kia_EV_6_2F6913DB_00001045.MF4",
+            "input_CAN_database_file": r"C:\Users\ADMIN\Downloads\ev-data-pack-v10\ev-data-pack-v10\electric_cars\log_files\Kia EV6\can2-canmod-gnss.dbc",
+            "output_decoded_filename": "Kia_EV_6_2F6913DB_00001045_decoded.mf4",
+            "output_csv_filename": "Kia_EV_6_2F6913DB_00001045.csv",
+        }
+        print(f"\n[Using Default Task]")
+
+    # Run workflow
+    results = execute_autonomous_task(
+        operation=operation,
+        parameters=parameters,
+        catalog_path="agent/knowledge_base/parsed_knowledge/knowledge_catalog.json",
+        vector_db_path="agent/knowledge_base/vector_store",
+        interactive_mode=args.interactive
+    )
+
+    print(f"\n\nFinal Results:")
+    print(f"  Success: {results['success']}")
+    print(f"  Steps completed: {results.get('steps_completed', 0)}")
+    if results.get('error'):
+        print(f"  Error: {results['error']}")
